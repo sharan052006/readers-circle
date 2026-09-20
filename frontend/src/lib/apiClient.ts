@@ -105,3 +105,4 @@ export function createApi(
 
 /** Singleton used by pages — the single place tokens attach (spec code style). */
 export const apiClient = createApi();
+export const api = apiClient;

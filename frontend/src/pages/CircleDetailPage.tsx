@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { JoinButton, MembershipState } from "../components/JoinButton";
 import { apiClient, decodeRole, loadTokens } from "../lib/apiClient";
+import { EventCard, EventSummary } from "../components/EventCard";
+import { EventModal } from "../components/EventModal";
+import { AttendeeModal } from "../components/AttendeeModal";
 
 interface CircleDetail {
   id: string;
@@ -32,6 +35,7 @@ interface MyMembership {
 
 export function CircleDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [circle, setCircle] = useState<CircleDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,11 +46,19 @@ export function CircleDetailPage() {
   const currentUserId = tokens ? extractUserIdFromJwt(tokens.accessToken) : null;
   const [myStatus, setMyStatus] = useState<MembershipState>(null);
 
-  // Organizer management state
-  const [activeTab, setActiveTab] = useState<"about" | "requests" | "members">("about");
+  // Tabs state: about, events, members, requests
+  const [activeTab, setActiveTab] = useState<"about" | "events" | "requests" | "members">("events");
   const [pendingRequests, setPendingRequests] = useState<MemberRow[]>([]);
   const [members, setMembers] = useState<MemberRow[]>([]);
+  const [events, setEvents] = useState<EventSummary[]>([]);
+  const [eventScope, setEventScope] = useState<"upcoming" | "past" | "all">("upcoming");
+  const [eventsLoading, setEventsLoading] = useState(false);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+
+  // Modals state
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [eventToEdit, setEventToEdit] = useState<EventSummary | null>(null);
+  const [attendeeModalData, setAttendeeModalData] = useState<{ id: string; title: string } | null>(null);
 
   function extractUserIdFromJwt(token: string): string | null {
     try {
@@ -80,8 +92,19 @@ export function CircleDetailPage() {
     }
   }
 
+  function loadEvents(scope = eventScope) {
+    if (!id) return;
+    setEventsLoading(true);
+    apiClient
+      .get<EventSummary[]>(`/circles/${id}/events?scope=${scope}`)
+      .then((res) => setEvents(res.data))
+      .catch(() => {})
+      .finally(() => setEventsLoading(false));
+  }
+
   useEffect(() => {
     loadCircle();
+    loadEvents();
   }, [id]);
 
   const isOrganizer = !!(circle && currentUserId && circle.organizerId === currentUserId);
@@ -107,7 +130,8 @@ export function CircleDetailPage() {
   useEffect(() => {
     if (activeTab === "requests") loadPendingRequests();
     if (activeTab === "members") loadMembers();
-  }, [activeTab, id, canManage]);
+    if (activeTab === "events") loadEvents(eventScope);
+  }, [activeTab, id, canManage, eventScope]);
 
   async function handleDecision(membershipId: string, action: "APPROVE" | "REJECT") {
     try {
@@ -119,6 +143,43 @@ export function CircleDetailPage() {
     } catch {
       setError("Failed to update join request.");
     }
+  }
+
+  async function handleRegisterEvent(eventId: string) {
+    try {
+      await apiClient.post(`/events/${eventId}/register`);
+      setActionNotice("Successfully registered for the event!");
+      setTimeout(() => setActionNotice(null), 3000);
+      loadEvents(eventScope);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Failed to register for event.");
+      setTimeout(() => setError(null), 4000);
+    }
+  }
+
+  async function handleCancelRegistration(eventId: string) {
+    try {
+      await apiClient.delete(`/events/${eventId}/register`);
+      setActionNotice("Registration cancelled.");
+      setTimeout(() => setActionNotice(null), 3000);
+      loadEvents(eventScope);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Failed to cancel registration.");
+      setTimeout(() => setError(null), 4000);
+    }
+  }
+
+  async function handleSaveEvent(payload: any) {
+    if (!id) return;
+    if (eventToEdit) {
+      await apiClient.patch(`/events/${eventToEdit.id}`, payload);
+      setActionNotice("Event updated successfully!");
+    } else {
+      await apiClient.post(`/circles/${id}/events`, payload);
+      setActionNotice("Event scheduled successfully!");
+    }
+    setTimeout(() => setActionNotice(null), 3000);
+    loadEvents(eventScope);
   }
 
   if (loading) {
@@ -191,6 +252,13 @@ export function CircleDetailPage() {
       <div style={{ display: "flex", gap: "0.75rem", borderBottom: "1px solid var(--border-subtle)", marginBottom: "1.5rem" }}>
         <button
           type="button"
+          className={`rc-btn rc-btn-sm ${activeTab === "events" ? "rc-btn-primary" : "rc-btn-secondary"}`}
+          onClick={() => setActiveTab("events")}
+        >
+          Gatherings & Events ({events.length})
+        </button>
+        <button
+          type="button"
           className={`rc-btn rc-btn-sm ${activeTab === "about" ? "rc-btn-primary" : "rc-btn-secondary"}`}
           onClick={() => setActiveTab("about")}
         >
@@ -221,7 +289,119 @@ export function CircleDetailPage() {
         </div>
       )}
 
-      {/* Tab Content */}
+      {error && (
+        <div className="rc-alert rc-alert-error" style={{ marginBottom: "1.5rem" }}>
+          <span>⚠️</span>
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Events Tab */}
+      {activeTab === "events" && (
+        <section>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "1.25rem",
+              flexWrap: "wrap",
+              gap: "1rem",
+            }}
+          >
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <button
+                onClick={() => setEventScope("upcoming")}
+                className={`rc-btn rc-btn-sm ${eventScope === "upcoming" ? "rc-btn-primary" : "rc-btn-secondary"}`}
+              >
+                Upcoming
+              </button>
+              <button
+                onClick={() => setEventScope("past")}
+                className={`rc-btn rc-btn-sm ${eventScope === "past" ? "rc-btn-primary" : "rc-btn-secondary"}`}
+              >
+                Past Events
+              </button>
+              <button
+                onClick={() => setEventScope("all")}
+                className={`rc-btn rc-btn-sm ${eventScope === "all" ? "rc-btn-primary" : "rc-btn-secondary"}`}
+              >
+                All
+              </button>
+            </div>
+
+            {canManage && (
+              <button
+                onClick={() => {
+                  setEventToEdit(null);
+                  setIsEventModalOpen(true);
+                }}
+                className="rc-btn rc-btn-primary rc-btn-sm"
+              >
+                + Schedule Event
+              </button>
+            )}
+          </div>
+
+          {eventsLoading ? (
+            <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-secondary)" }}>
+              <div className="rc-spinner" style={{ margin: "0 auto 1rem" }}></div>
+              Loading gatherings...
+            </div>
+          ) : events.length === 0 ? (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "3.5rem 1.5rem",
+                borderRadius: "var(--radius-lg)",
+                backgroundColor: "var(--bg-surface-card)",
+                border: "1px dashed var(--border-subtle)",
+              }}
+            >
+              <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>📅</div>
+              <h3 style={{ fontSize: "1.2rem", fontWeight: 700, margin: "0 0 0.5rem 0" }}>
+                No {eventScope === "upcoming" ? "upcoming" : eventScope === "past" ? "past" : ""} events scheduled
+              </h3>
+              <p style={{ color: "var(--text-muted)", maxWidth: "450px", margin: "0 auto 1.5rem auto" }}>
+                {canManage
+                  ? "Schedule the next book discussion or reading session for your circle members."
+                  : "Check back soon for new book discussions and group reading sessions."}
+              </p>
+              {canManage && (
+                <button
+                  onClick={() => {
+                    setEventToEdit(null);
+                    setIsEventModalOpen(true);
+                  }}
+                  className="rc-btn rc-btn-primary rc-btn-sm"
+                >
+                  Schedule an Event
+                </button>
+              )}
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.25rem" }}>
+              {events.map((ev) => (
+                <EventCard
+                  key={ev.id}
+                  event={ev}
+                  onViewDetails={(id) => navigate(`/events/${id}`)}
+                  onRegister={handleRegisterEvent}
+                  onCancel={handleCancelRegistration}
+                  onEdit={(e) => {
+                    setEventToEdit(e);
+                    setIsEventModalOpen(true);
+                  }}
+                  onViewAttendees={(id) => setAttendeeModalData({ id, title: ev.title })}
+                  isOrganizerOrAdmin={canManage}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Tab Content: About */}
       {activeTab === "about" && (
         <article
           style={{
@@ -237,6 +417,7 @@ export function CircleDetailPage() {
         </article>
       )}
 
+      {/* Tab Content: Members */}
       {activeTab === "members" && (
         <section className="rc-table-container">
           <table className="rc-table">
@@ -277,6 +458,7 @@ export function CircleDetailPage() {
         </section>
       )}
 
+      {/* Tab Content: Pending Requests */}
       {activeTab === "requests" && canManage && (
         <section className="rc-table-container">
           <table className="rc-table">
@@ -334,6 +516,27 @@ export function CircleDetailPage() {
             </tbody>
           </table>
         </section>
+      )}
+
+      {/* Modals */}
+      <EventModal
+        isOpen={isEventModalOpen}
+        onClose={() => {
+          setIsEventModalOpen(false);
+          setEventToEdit(null);
+        }}
+        onSubmit={handleSaveEvent}
+        eventToEdit={eventToEdit}
+        circleId={circle.id}
+      />
+
+      {attendeeModalData && (
+        <AttendeeModal
+          isOpen={true}
+          onClose={() => setAttendeeModalData(null)}
+          eventId={attendeeModalData.id}
+          eventTitle={attendeeModalData.title}
+        />
       )}
     </main>
   );

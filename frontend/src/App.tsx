@@ -7,6 +7,8 @@ import { RegisterPage } from "./pages/RegisterPage";
 import { CircleListPage } from "./pages/CircleListPage";
 import { CircleDetailPage } from "./pages/CircleDetailPage";
 import { MyMembershipsPage } from "./pages/MyMembershipsPage";
+import { EventDetailPage } from "./pages/EventDetailPage";
+import { MyEventsPage } from "./pages/MyEventsPage";
 
 interface UserRow {
   id: string;
@@ -55,6 +57,16 @@ function Navbar() {
             >
               <span>📚</span>
               <span>My Circles</span>
+            </Link>
+          )}
+
+          {tokens && (
+            <Link
+              to="/my-events"
+              className={`rc-nav-link ${location.pathname === "/my-events" ? "active" : ""}`}
+            >
+              <span>🎟️</span>
+              <span>My Events</span>
             </Link>
           )}
 
@@ -435,11 +447,20 @@ export function App() {
         <Route path="/" element={<CommunityPage />} />
         <Route path="/circles" element={<CircleListPage />} />
         <Route path="/circles/:id" element={<CircleDetailPage />} />
+        <Route path="/events/:id" element={<EventDetailPage />} />
         <Route
           path="/my-memberships"
           element={
             <AuthGuard>
               <MyMembershipsPage />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/my-events"
+          element={
+            <AuthGuard>
+              <MyEventsPage />
             </AuthGuard>
           }
         />
