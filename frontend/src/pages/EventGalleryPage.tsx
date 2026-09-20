@@ -26,7 +26,8 @@ interface EventDetail {
 }
 
 export const EventGalleryPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id, eventId } = useParams<{ id?: string; eventId?: string }>();
+  const effectiveEventId = eventId || id;
   const navigate = useNavigate();
 
   const [event, setEvent] = useState<EventDetail | null>(null);
@@ -40,13 +41,13 @@ export const EventGalleryPage: React.FC = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchEventAndGallery = async () => {
-    if (!id) return;
+    if (!effectiveEventId) return;
     try {
       setLoading(true);
       setError('');
       const [eventRes, galleryRes] = await Promise.all([
-        apiClient.get<EventDetail>(`/events/${id}`),
-        apiClient.get<GalleryItem[]>(`/events/${id}/gallery`),
+        apiClient.get<EventDetail>(`/events/${effectiveEventId}`),
+        apiClient.get<GalleryItem[]>(`/events/${effectiveEventId}/gallery`),
       ]);
       setEvent(eventRes.data);
       setItems(galleryRes.data);
@@ -63,14 +64,14 @@ export const EventGalleryPage: React.FC = () => {
 
   useEffect(() => {
     fetchEventAndGallery();
-  }, [id]);
+  }, [effectiveEventId]);
 
   const handleUpload = async (data: { mediaType: 'PHOTO' | 'VIDEO'; mediaUrl: string; caption?: string }) => {
-    if (!id) return;
-    await apiClient.post(`/events/${id}/gallery`, data);
+    if (!effectiveEventId) return;
+    await apiClient.post(`/events/${effectiveEventId}/gallery`, data);
     setActionNotice('Photo / Video added to gallery!');
     setTimeout(() => setActionNotice(null), 3000);
-    const res = await apiClient.get<GalleryItem[]>(`/events/${id}/gallery`);
+    const res = await apiClient.get<GalleryItem[]>(`/events/${effectiveEventId}/gallery`);
     setItems(res.data);
   };
 
@@ -115,7 +116,7 @@ export const EventGalleryPage: React.FC = () => {
     <div className="container" style={{ padding: '2rem 1rem', maxWidth: '1100px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <button
-          onClick={() => navigate(`/events/${id}`)}
+          onClick={() => navigate(`/events/${effectiveEventId}`)}
           className="btn btn-secondary"
           style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
         >

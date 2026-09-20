@@ -448,15 +448,9 @@ export function App() {
         <Route path="/" element={<CommunityPage />} />
         <Route path="/circles" element={<CircleListPage />} />
         <Route path="/circles/:id" element={<CircleDetailPage />} />
+        <Route path="/events/:eventId/gallery" element={<EventGalleryPage />} />
+        <Route path="/events/:id/gallery" element={<EventGalleryPage />} />
         <Route path="/events/:id" element={<EventDetailPage />} />
-        <Route
-          path="/events/:id/gallery"
-          element={
-            <AuthGuard>
-              <EventGalleryPage />
-            </AuthGuard>
-          }
-        />
         <Route
           path="/my-memberships"
           element={
