@@ -1,0 +1,24 @@
+- [x] Task 1: Scaffold monorepo (backend Maven + frontend Vite + postgres compose)
+  - Acceptance: `backend/pom.xml` Boot 3.3 Java21, `frontend/` builds, `docker compose up -d postgres` healthy
+  - Verify: `mvn -q -f backend/pom.xml validate; npm --prefix frontend run build`
+  - Files: `backend/pom.xml`, `frontend/package.json`, `docker-compose.yml`, `backend/src/main/resources/application.yml`
+- [x] Task 2: V1 users persistence (Flyway + entity + repo)
+  - Acceptance: V1 creates users(UUID,email unique citext,hash,role,deactivated); unique violation → constraint
+  - Verify: `mvn flyway:migrate; mvn -Dtest=UserRepositoryIT test`
+  - Files: `backend/.../db/migration/V1__identity.sql`, `User.java`, `UserRepository.java`
+- [x] Task 3: Auth domain (JwtService + AuthService + bootstrap admin)
+  - Acceptance: registerReader BCrypts + READER-only; login issues 15m/7d pair; refresh rotates + reuse invalidates; bootstrap admin from env
+  - Verify: `mvn -Dtest=AuthServiceTest,JwtServiceTest test`
+  - Files: `JwtService.java`, `AuthService.java`, `BootstrapAdmin.java`, DTOs
+- [x] Task 4: Security chain + REST API (filter, config, AuthController, UserAdminController, error envelope)
+  - Acceptance: public auth/*, ADMIN-only users/*, /me authenticated; 401/403/409/400 envelope correct
+  - Verify: `mvn test` (MockMvc matrix); curl register→login→me→refresh→admin-users
+  - Files: `JwtAuthFilter.java`, `SecurityConfig.java`, `AuthController.java`, `UserAdminController.java`, `ApiExceptionHandler.java`
+- [x] Task 5: Frontend auth (apiClient + context + pages + guards)
+  - Acceptance: login/register/me/logout flows, reload persists via refresh, 401 retries once, role guards redirect
+  - Verify: `npm test -- --run` + manual dev flow on :5173
+  - Files: `frontend/src/lib/apiClient.ts`, `authContext.tsx`, `LoginPage.tsx`, `RegisterPage.tsx`, `guards.tsx`
+- [x] Task 6: Verification gate (coverage + builds + contract demo)
+  - Acceptance: ≥80% identity package, `mvn verify` + `npm run build` green, downstream contract documented
+  - Verify: `mvn verify; npm --prefix frontend run build; npm --prefix frontend test -- --run --coverage`
+  - Files: `tasks/plan.md` checkpoint log, coverage report
