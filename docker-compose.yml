@@ -2,7 +2,7 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: readers_circle
+      POSTGRES_DB: readerscircle
       POSTGRES_USER: readers
       POSTGRES_PASSWORD: readers
     ports:

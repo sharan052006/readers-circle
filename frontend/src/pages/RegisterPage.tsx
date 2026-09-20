@@ -1,84 +1,91 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../lib/authContext';
+import { FormEvent, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { AxiosError } from "axios";
+import { apiClient, saveTokens, TokenPair } from "../lib/apiClient";
 
-export default function RegisterPage() {
-  const { register } = useAuth();
-  const nav = useNavigate();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+export function RegisterPage() {
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  async function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setError('');
+    if (!name.trim()) {
+      setError("Name is required.");
+      return;
+    }
+    if (!email.trim()) {
+      setError("Email is required.");
+      return;
+    }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
     try {
-      await register(name, email, password);
-      nav('/');
-    } catch {
-      setError('Registration failed (email may exist)');
+      const res = await apiClient.post<TokenPair>("/auth/register", {
+        name: name.trim(),
+        email: email.trim(),
+        password,
+      });
+      saveTokens(res.data);
+      navigate("/");
+    } catch (err) {
+      setError(
+        err instanceof AxiosError
+          ? ((err.response?.data as { message?: string } | undefined)?.message ??
+            "Registration failed.")
+          : "Registration failed.",
+      );
+    } finally {
+      setBusy(false);
     }
   }
 
   return (
-    <main className="rc-page">
-      <div className="rc-brand" aria-hidden="true">
-        <span className="rc-brand-mark">R</span>Reader&apos;s Circle
-      </div>
-      <div className="rc-auth-wrap">
-        <div className="rc-card">
-          <h1>Register</h1>
-          <p className="rc-card-sub">Join Reader&apos;s Circle to discover and discuss books.</p>
-          <form onSubmit={onSubmit}>
-            <label className="rc-field">
-              Name
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                maxLength={100}
-                autoComplete="name"
-                placeholder="Your display name"
-              />
-            </label>
-            <label className="rc-field">
-              Email
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                type="email"
-                required
-                autoComplete="email"
-                placeholder="you@example.com"
-              />
-            </label>
-            <label className="rc-field">
-              Password (min 8)
-              <input
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                type="password"
-                required
-                minLength={8}
-                autoComplete="new-password"
-                placeholder="At least 8 characters"
-              />
-            </label>
-            {error && (
-              <p role="alert" className="rc-alert">
-                {error}
-              </p>
-            )}
-            <button type="submit" className="rc-btn">
-              Create account
-            </button>
-          </form>
-          <p className="rc-switch">
-            Have an account? <Link to="/login">Login</Link>
-          </p>
-        </div>
-      </div>
+    <main>
+      <h1>Create your Reader&apos;s Circle account</h1>
+      <form onSubmit={onSubmit}>
+        <label>
+          Name
+          <input
+            type="text"
+            autoComplete="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </label>
+        <label>
+          Email
+          <input
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </label>
+        <label>
+          Password (min 8 characters)
+          <input
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </label>
+        {error && <p role="alert">{error}</p>}
+        <button type="submit" disabled={busy}>
+          {busy ? "Registering…" : "Register"}
+        </button>
+      </form>
+      <p>
+        Have an account? <Link to="/login">Log in</Link>
+      </p>
     </main>
   );
 }

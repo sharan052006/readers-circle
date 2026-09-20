@@ -1,71 +1,72 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../lib/authContext';
+import { FormEvent, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { apiClient, saveTokens, TokenPair } from "../lib/apiClient";
 
-export default function LoginPage() {
-  const { login } = useAuth();
-  const nav = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+export function LoginPage() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
-  async function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setError('');
+    if (!email.trim() || !password) {
+      setError("Email and password are required.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
     try {
-      await login(email, password);
-      nav('/');
-    } catch {
-      setError('Invalid credentials');
+      const res = await apiClient.post<TokenPair>("/auth/login", {
+        email: email.trim(),
+        password,
+      });
+      saveTokens(res.data);
+      navigate("/");
+    } catch (err) {
+      setError(
+        axios.isAxiosError(err)
+          ? ((err.response?.data as { message?: string } | undefined)?.message ??
+            "Login failed.")
+          : "Login failed.",
+      );
+    } finally {
+      setBusy(false);
     }
   }
 
   return (
-    <main className="rc-page">
-      <div className="rc-brand" aria-hidden="true">
-        <span className="rc-brand-mark">R</span>Reader&apos;s Circle
-      </div>
-      <div className="rc-auth-wrap">
-        <div className="rc-card">
-          <h1>Login</h1>
-          <p className="rc-card-sub">Welcome back to your reading circle.</p>
-          <form onSubmit={onSubmit}>
-            <label className="rc-field">
-              Email
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                type="email"
-                required
-                autoComplete="email"
-                placeholder="you@example.com"
-              />
-            </label>
-            <label className="rc-field">
-              Password
-              <input
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                type="password"
-                required
-                autoComplete="current-password"
-                placeholder="Your password"
-              />
-            </label>
-            {error && (
-              <p role="alert" className="rc-alert">
-                {error}
-              </p>
-            )}
-            <button type="submit" className="rc-btn">
-              Login
-            </button>
-          </form>
-          <p className="rc-switch">
-            No account? <Link to="/register">Register</Link>
-          </p>
-        </div>
-      </div>
+    <main>
+      <h1>Log in to Reader&apos;s Circle</h1>
+      <form onSubmit={onSubmit}>
+        <label>
+          Email
+          <input
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </label>
+        <label>
+          Password
+          <input
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </label>
+        {error && <p role="alert">{error}</p>}
+        <button type="submit" disabled={busy}>
+          {busy ? "Logging in…" : "Log in"}
+        </button>
+      </form>
+      <p>
+        No account? <Link to="/register">Register</Link>
+      </p>
     </main>
   );
 }

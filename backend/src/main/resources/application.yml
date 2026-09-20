@@ -1,26 +1,30 @@
 spring:
+  profiles:
+    default: local
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/readers_circle}
-    username: ${SPRING_DATASOURCE_USERNAME:readers}
-    password: ${SPRING_DATASOURCE_PASSWORD:readers}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/readerscircle}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
   flyway:
     enabled: true
     locations: classpath:db/migration
-
-security:
-  jwt:
-    secret: ${JWT_SECRET:}
-    access-minutes: 15
-    refresh-days: 7
-
-app:
-  admin-email: ${ADMIN_EMAIL:admin@readers.local}
-  admin-password: ${ADMIN_PASSWORD:ChangeMe123!}
-  admin-name: ${ADMIN_NAME:Platform Admin}
+    validate-on-migrate: true
 
 server:
   port: 8080
+
+app:
+  jwt:
+    # Fail-fast check for JWT_SECRET lands in Task 3 (SecurityConfig/JwtService).
+    # Placeholder default lets Task 1 scaffold boot without security wired yet.
+    secret: ${JWT_SECRET:change-me-in-env-min-32-chars-long-placeholder}
+    access-minutes: 15
+    refresh-days: 7
