@@ -18,6 +18,7 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -28,18 +29,65 @@ public class GalleryService {
   private final CircleRepository circleRepository;
   private final MembershipRepository membershipRepository;
   private final UserRepository userRepository;
+  private final FileStorageService fileStorageService;
 
   public GalleryService(
       GalleryItemRepository galleryRepository,
       EventRepository eventRepository,
       CircleRepository circleRepository,
       MembershipRepository membershipRepository,
-      UserRepository userRepository) {
+      UserRepository userRepository,
+      FileStorageService fileStorageService) {
     this.galleryRepository = galleryRepository;
     this.eventRepository = eventRepository;
     this.circleRepository = circleRepository;
     this.membershipRepository = membershipRepository;
     this.userRepository = userRepository;
+    this.fileStorageService = fileStorageService;
+  }
+
+  @Transactional
+  public GalleryItemDto uploadMedia(
+      UUID eventId,
+      UUID callerId,
+      Role callerRole,
+      MultipartFile file,
+      MediaType mediaType,
+      String caption) {
+    Event event =
+        eventRepository
+            .findById(eventId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+
+    // Gate 1: Event must be COMPLETED (FR-13)
+    if (event.getStatus() != EventStatus.COMPLETED) {
+      throw new ResponseStatusException(
+          HttpStatus.UNPROCESSABLE_ENTITY,
+          "Gallery uploads are only permitted for COMPLETED events. Current status: " + event.getStatus());
+    }
+
+    Circle circle =
+        circleRepository
+            .findById(event.getCircleId())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Circle not found"));
+
+    // Gate 2: Organizer or Admin only
+    assertOrganizerOrAdmin(circle, callerId, callerRole);
+
+    // Validate and store file to disk
+    String mediaUrl = fileStorageService.storeFile(file, mediaType);
+
+    GalleryItem item =
+        new GalleryItem(eventId, callerId, mediaType, mediaUrl, caption);
+    GalleryItem saved = galleryRepository.save(item);
+
+    String uploaderName =
+        userRepository
+            .findById(callerId)
+            .map(User::getName)
+            .orElse("Circle Organizer");
+
+    return toDto(saved, uploaderName);
   }
 
   @Transactional

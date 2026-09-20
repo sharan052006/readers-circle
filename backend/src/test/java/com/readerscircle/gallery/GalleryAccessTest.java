@@ -33,6 +33,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -322,6 +325,127 @@ class GalleryAccessTest {
             "/api/events/" + completedEventId + "/gallery",
             HttpMethod.POST,
             new HttpEntity<>(badReq, bearer(organizerToken)),
+            String.class);
+
+    assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  void organizerCanUploadMultipartImage_andServeMediaEndpoint() {
+    byte[] imageBytes = new byte[] {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 1, 2, 3, 4};
+    ByteArrayResource fileResource =
+        new ByteArrayResource(imageBytes) {
+          @Override
+          public String getFilename() {
+            return "gathering.jpg";
+          }
+        };
+
+    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+    body.add("file", fileResource);
+    body.add("mediaType", "PHOTO");
+    body.add("caption", "Directly uploaded snapshot");
+
+    HttpHeaders headers = bearer(organizerToken);
+    headers.setContentType(org.springframework.http.MediaType.MULTIPART_FORM_DATA);
+
+    ResponseEntity<GalleryItemDto> uploadResp =
+        rest.exchange(
+            "/api/events/" + completedEventId + "/gallery",
+            HttpMethod.POST,
+            new HttpEntity<>(body, headers),
+            GalleryItemDto.class);
+
+    assertThat(uploadResp.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+    GalleryItemDto dto = uploadResp.getBody();
+    assertThat(dto).isNotNull();
+    assertThat(dto.mediaType()).isEqualTo(MediaType.PHOTO);
+    assertThat(dto.caption()).isEqualTo("Directly uploaded snapshot");
+    assertThat(dto.mediaUrl()).startsWith("/api/media/");
+
+    // Verify media serving endpoint serves the file publicly
+    ResponseEntity<byte[]> mediaResp =
+        rest.getForEntity(dto.mediaUrl(), byte[].class);
+    assertThat(mediaResp.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(mediaResp.getBody()).isEqualTo(imageBytes);
+  }
+
+  @Test
+  void readerCannotUploadMultipartFile() {
+    ByteArrayResource fileResource =
+        new ByteArrayResource(new byte[] {1, 2, 3}) {
+          @Override
+          public String getFilename() {
+            return "unauthorized.jpg";
+          }
+        };
+
+    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+    body.add("file", fileResource);
+    body.add("mediaType", "PHOTO");
+
+    HttpHeaders headers = bearer(memberToken);
+    headers.setContentType(org.springframework.http.MediaType.MULTIPART_FORM_DATA);
+
+    ResponseEntity<String> resp =
+        rest.exchange(
+            "/api/events/" + completedEventId + "/gallery",
+            HttpMethod.POST,
+            new HttpEntity<>(body, headers),
+            String.class);
+
+    assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+  }
+
+  @Test
+  void uploadMultipartToPublishedEvent_rejectedWith422() {
+    ByteArrayResource fileResource =
+        new ByteArrayResource(new byte[] {1, 2, 3}) {
+          @Override
+          public String getFilename() {
+            return "photo.jpg";
+          }
+        };
+
+    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+    body.add("file", fileResource);
+    body.add("mediaType", "PHOTO");
+
+    HttpHeaders headers = bearer(organizerToken);
+    headers.setContentType(org.springframework.http.MediaType.MULTIPART_FORM_DATA);
+
+    ResponseEntity<String> resp =
+        rest.exchange(
+            "/api/events/" + publishedEventId + "/gallery",
+            HttpMethod.POST,
+            new HttpEntity<>(body, headers),
+            String.class);
+
+    assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+  }
+
+  @Test
+  void uploadMultipartWithInvalidExtension_rejectedWith400() {
+    ByteArrayResource fileResource =
+        new ByteArrayResource(new byte[] {1, 2, 3}) {
+          @Override
+          public String getFilename() {
+            return "bad_script.exe";
+          }
+        };
+
+    MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+    body.add("file", fileResource);
+    body.add("mediaType", "PHOTO");
+
+    HttpHeaders headers = bearer(organizerToken);
+    headers.setContentType(org.springframework.http.MediaType.MULTIPART_FORM_DATA);
+
+    ResponseEntity<String> resp =
+        rest.exchange(
+            "/api/events/" + completedEventId + "/gallery",
+            HttpMethod.POST,
+            new HttpEntity<>(body, headers),
             String.class);
 
     assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);

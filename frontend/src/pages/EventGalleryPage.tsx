@@ -66,9 +66,15 @@ export const EventGalleryPage: React.FC = () => {
     fetchEventAndGallery();
   }, [effectiveEventId]);
 
-  const handleUpload = async (data: { mediaType: 'PHOTO' | 'VIDEO'; mediaUrl: string; caption?: string }) => {
+  const handleUpload = async (data: { mediaType: 'PHOTO' | 'VIDEO'; file: File; caption?: string }) => {
     if (!effectiveEventId) return;
-    await apiClient.post(`/events/${effectiveEventId}/gallery`, data);
+    const formData = new FormData();
+    formData.append('file', data.file);
+    formData.append('mediaType', data.mediaType);
+    if (data.caption) {
+      formData.append('caption', data.caption);
+    }
+    await apiClient.post(`/events/${effectiveEventId}/gallery`, formData);
     setActionNotice('Photo / Video added to gallery!');
     setTimeout(() => setActionNotice(null), 3000);
     const res = await apiClient.get<GalleryItem[]>(`/events/${effectiveEventId}/gallery`);

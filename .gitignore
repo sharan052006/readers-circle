@@ -3,6 +3,7 @@ node_modules/
 dist/
 dist-ssr/
 coverage/
+.vite/
 *.local
 .pnp
 .pnp.js
@@ -49,4 +50,8 @@ Thumbs.db
 SPEC-*.md
 tasks/
 CAPABILITY-MAP.md
+
+# Uploads / media storage
+uploads/
+**/uploads/
 

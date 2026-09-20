@@ -43,7 +43,7 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers("/error")
                     .permitAll()
-                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/circles", "/api/circles/*", "/api/circles/*/events", "/api/events/*")
+                    .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/circles", "/api/circles/*", "/api/circles/*/events", "/api/events/*", "/api/media/**")
                     .permitAll()
                     .requestMatchers("/api/users/me/**")
                     .authenticated()

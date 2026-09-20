@@ -27,7 +27,21 @@ public class GalleryController {
     this.galleryService = galleryService;
   }
 
-  @PostMapping("/api/events/{id}/gallery")
+  @PostMapping(value = "/api/events/{id}/gallery", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PreAuthorize("isAuthenticated()")
+  @ResponseStatus(HttpStatus.CREATED)
+  public GalleryItemDto uploadMedia(
+      @PathVariable UUID id,
+      @org.springframework.web.bind.annotation.RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+      @org.springframework.web.bind.annotation.RequestParam("mediaType") MediaType mediaType,
+      @org.springframework.web.bind.annotation.RequestParam(value = "caption", required = false) String caption,
+      Authentication authentication) {
+    UUID callerId = getUserId(authentication);
+    Role callerRole = getUserRole(authentication);
+    return galleryService.uploadMedia(id, callerId, callerRole, file, mediaType, caption);
+  }
+
+  @PostMapping(value = "/api/events/{id}/gallery", consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
   @PreAuthorize("isAuthenticated()")
   @ResponseStatus(HttpStatus.CREATED)
   public GalleryItemDto addMedia(
