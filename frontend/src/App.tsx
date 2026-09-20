@@ -9,6 +9,7 @@ import { CircleDetailPage } from "./pages/CircleDetailPage";
 import { MyMembershipsPage } from "./pages/MyMembershipsPage";
 import { EventDetailPage } from "./pages/EventDetailPage";
 import { MyEventsPage } from "./pages/MyEventsPage";
+import { EventGalleryPage } from "./pages/EventGalleryPage";
 
 interface UserRow {
   id: string;
@@ -448,6 +449,14 @@ export function App() {
         <Route path="/circles" element={<CircleListPage />} />
         <Route path="/circles/:id" element={<CircleDetailPage />} />
         <Route path="/events/:id" element={<EventDetailPage />} />
+        <Route
+          path="/events/:id/gallery"
+          element={
+            <AuthGuard>
+              <EventGalleryPage />
+            </AuthGuard>
+          }
+        />
         <Route
           path="/my-memberships"
           element={

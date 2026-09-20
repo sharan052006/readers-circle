@@ -200,46 +200,57 @@ export const EventDetailPage: React.FC = () => {
             </p>
           </div>
 
-          {event.isOrganizerOrAdmin && (
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => setIsAttendeeModalOpen(true)}
-                className="btn btn-secondary"
-                style={{ fontSize: '0.85rem' }}
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {event.status === 'COMPLETED' && (
+              <Link
+                to={`/events/${event.id}/gallery`}
+                className="btn btn-primary"
+                style={{ fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
               >
-                👥 Attendees ({event.registeredCount})
-              </button>
-              {event.status !== 'COMPLETED' && event.status !== 'CANCELLED' && (
-                <>
-                  <button
-                    onClick={() => setIsEditModalOpen(true)}
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem' }}
-                  >
-                    ✏️ Edit
-                  </button>
-                  {event.status === 'PUBLISHED' && (
+                📸 Event Gallery & Memories
+              </Link>
+            )}
+            {event.isOrganizerOrAdmin && (
+              <>
+                <button
+                  onClick={() => setIsAttendeeModalOpen(true)}
+                  className="btn btn-secondary"
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  👥 Attendees ({event.registeredCount})
+                </button>
+                {event.status !== 'COMPLETED' && event.status !== 'CANCELLED' && (
+                  <>
                     <button
-                      onClick={() => handleStatusChange('COMPLETED')}
-                      disabled={actionLoading}
+                      onClick={() => setIsEditModalOpen(true)}
                       className="btn btn-secondary"
-                      style={{ fontSize: '0.85rem', color: '#34d399' }}
+                      style={{ fontSize: '0.85rem' }}
                     >
-                      ✓ Mark Completed
+                      ✏️ Edit
                     </button>
-                  )}
-                  <button
-                    onClick={() => handleStatusChange('CANCELLED')}
-                    disabled={actionLoading}
-                    className="btn btn-danger"
-                    style={{ fontSize: '0.85rem' }}
-                  >
-                    Cancel Event
-                  </button>
-                </>
-              )}
-            </div>
-          )}
+                    {event.status === 'PUBLISHED' && (
+                      <button
+                        onClick={() => handleStatusChange('COMPLETED')}
+                        disabled={actionLoading}
+                        className="btn btn-secondary"
+                        style={{ fontSize: '0.85rem', color: '#34d399' }}
+                      >
+                        ✓ Mark Completed
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleStatusChange('CANCELLED')}
+                      disabled={actionLoading}
+                      className="btn btn-danger"
+                      style={{ fontSize: '0.85rem' }}
+                    >
+                      Cancel Event
+                    </button>
+                  </>
+                )}
+              </>
+            )}
+          </div>
         </div>
 
         <div
@@ -365,6 +376,19 @@ export const EventDetailPage: React.FC = () => {
                   ? 'Registration Closed'
                   : 'Register / RSVP Now'}
               </button>
+            ) : event.status === 'COMPLETED' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                <span style={{ color: '#34d399', fontSize: '0.95rem', fontWeight: 600 }}>
+                  ✓ Event Concluded
+                </span>
+                <Link
+                  to={`/events/${event.id}/gallery`}
+                  className="btn btn-primary"
+                  style={{ fontSize: '0.95rem', padding: '0.6rem 1.5rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                >
+                  📸 View Event Gallery & Memories
+                </Link>
+              </div>
             ) : (
               <span style={{ color: '#64748b', fontSize: '0.95rem' }}>
                 {event.status === 'DRAFT'
