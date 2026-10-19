@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/readerscircle}
-    username: ${DB_USER:readers}
-    password: ${DB_PASSWORD:readers}
+    url: ${DB_URL:${SPRING_DATASOURCE_URL:${DATABASE_URL:jdbc:postgresql://localhost:5432/readerscircle}}}
+    username: ${DB_USER:${SPRING_DATASOURCE_USERNAME:readers}}
+    password: ${DB_PASSWORD:${SPRING_DATASOURCE_PASSWORD:readers}}
 
 app:
   jwt:

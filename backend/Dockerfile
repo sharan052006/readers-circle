@@ -19,6 +19,11 @@ WORKDIR /app
 # Run as a non-privileged user for security
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
+# Pre-create upload and data directories with proper non-root ownership and permissions
+RUN mkdir -p /app/uploads/gallery /app/data /tmp/readers-circle/uploads/gallery && \
+    chown -R appuser:appgroup /app /tmp/readers-circle && \
+    chmod -R 775 /app /tmp/readers-circle
+
 # Copy executable jar from builder stage
 COPY --from=builder /app/target/readers-circle-0.0.1-SNAPSHOT.jar app.jar
 RUN chown appuser:appgroup app.jar

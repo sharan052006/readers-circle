@@ -83,7 +83,7 @@ public class SecurityConfig {
         .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(
             auth ->
-                auth.requestMatchers("/api/auth/**", "/error", "/api/public/**")
+                auth.requestMatchers("/api/auth/**", "/error", "/api/public/**", "/healthz")
                     .permitAll()
                     .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/circles", "/api/circles/*", "/api/circles/*/events", "/api/events", "/api/events/*", "/api/media/**")
                     .permitAll()

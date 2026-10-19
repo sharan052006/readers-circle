@@ -39,7 +39,9 @@ public class FileStorageService {
   private static final Set<String> ALLOWED_VIDEO_EXTENSIONS =
       Set.of("mp4", "webm", "mov", "mkv");
 
-  private final Path storageLocation;
+  private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FileStorageService.class);
+
+  private Path storageLocation;
   private final String maxFileSizeStr;
   private final long maxFileSizeBytes;
   private final int maxUploadsPerMinute;
@@ -64,9 +66,30 @@ public class FileStorageService {
   public void init() {
     try {
       Files.createDirectories(storageLocation);
+      log.info("Initialized storage directory: {}", storageLocation);
     } catch (IOException e) {
-      throw new IllegalStateException("Could not initialize storage directory: " + storageLocation, e);
+      Path fallback = Paths.get(System.getProperty("java.io.tmpdir", "/tmp"), "readers-circle", "uploads", "gallery")
+          .toAbsolutePath().normalize();
+      if (!storageLocation.equals(fallback)) {
+        log.warn("Could not initialize storage directory: {}. Attempting fallback to: {}. "
+            + "Note: /tmp storage is ephemeral and will not persist across container restarts. "
+            + "Configure UPLOAD_DIR or a Render Persistent Disk for production storage.", storageLocation, fallback);
+        try {
+          Files.createDirectories(fallback);
+          this.storageLocation = fallback;
+          log.info("Successfully initialized fallback storage directory: {}", this.storageLocation);
+          return;
+        } catch (IOException fallbackError) {
+          log.error("Failed to initialize fallback storage directory: {}", fallback, fallbackError);
+        }
+      }
+      throw new IllegalStateException("Could not initialize storage directory: " + storageLocation
+          + ". Ensure the directory exists and is writable, or configure UPLOAD_DIR environment variable.", e);
     }
+  }
+
+  public Path getStorageLocation() {
+    return storageLocation;
   }
 
   public String storeFile(MultipartFile file, MediaType mediaType) {
