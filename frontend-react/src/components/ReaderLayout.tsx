@@ -133,16 +133,6 @@ export default function ReaderLayout({
       leftDrawerOpenAtStart = mobileMenuOpen;
       rightPanelOpenAtStart = rightPanelOpen;
 
-      if (leftDrawerOpenAtStart) {
-        const isDrawerOrBackdrop = elem && elem.closest('#rmobile-drawer, .rmobile-backdrop');
-        if (!isDrawerOrBackdrop) return;
-      }
-
-      if (rightPanelOpenAtStart) {
-        const isRightOrBackdrop = elem && elem.closest('.railcards, .rdet-rail, aside, .rec-side, .gchat-right, .rmobile-right-backdrop, .rmobile-right-drawer-header');
-        if (!isRightOrBackdrop) return;
-      }
-
       startX = touch.clientX;
       startY = touch.clientY;
       lastX = touch.clientX;
@@ -167,38 +157,35 @@ export default function ReaderLayout({
         return;
       }
 
-      if (absX >= 30 && absX > absY) {
+      if (absX >= 28 && absX > absY) {
         if (leftDrawerOpenAtStart) {
-          // Left nav open: swiping dismisses it
-          if (absX >= 25) {
+          // Left drawer is open: reverse swipe (right to left, dx <= -25) closes it
+          if (dx <= -25 || absX >= 35) {
             setMobileMenuOpen(false);
             isCanceled = true;
             isTracking = false;
           }
         } else if (rightPanelOpenAtStart) {
-          // Right panel open: swiping dismisses it
-          if (absX >= 25) {
+          // Right panel is open: reverse swipe (left to right, dx >= 25) closes it
+          if (dx >= 25 || absX >= 35) {
             setRightPanelOpen(false);
             isCanceled = true;
             isTracking = false;
           }
         } else {
           // Both closed:
-          // User: "swiping , left should get me the side nav bar on left , right should get me the things on the right"
-          if (dx <= -30) {
-            // Swiping LEFT -> opens side nav bar on left
+          if (dx >= 28) {
+            // Swiping left to right -> opens left nav drawer
             setMobileMenuOpen(true);
             setRightPanelOpen(false);
             isCanceled = true;
             isTracking = false;
-          } else if (dx >= 30) {
-            // Swiping RIGHT -> opens things on the right
-            if (hasRightPanel) {
-              setRightPanelOpen(true);
-              setMobileMenuOpen(false);
-              isCanceled = true;
-              isTracking = false;
-            }
+          } else if (dx <= -28 && hasRightPanel) {
+            // Swiping right to left -> opens right side things
+            setRightPanelOpen(true);
+            setMobileMenuOpen(false);
+            isCanceled = true;
+            isTracking = false;
           }
         }
       }
@@ -221,18 +208,18 @@ export default function ReaderLayout({
       const absX = Math.abs(dx);
       const absY = Math.abs(dy);
 
-      if (absX >= 30 && absX > absY) {
+      if (absX >= 28 && absX > absY) {
         if (leftDrawerOpenAtStart) {
-          if (absX >= 25) setMobileMenuOpen(false);
+          if (dx <= -25 || absX >= 35) setMobileMenuOpen(false);
         } else if (rightPanelOpenAtStart) {
-          if (absX >= 25) setRightPanelOpen(false);
+          if (dx >= 25 || absX >= 35) setRightPanelOpen(false);
         } else {
-          if (dx <= -30) {
-            // Swiping LEFT -> opens side nav bar on left
+          if (dx >= 28) {
+            // Swiping left to right -> opens left nav drawer
             setMobileMenuOpen(true);
             setRightPanelOpen(false);
-          } else if (dx >= 30 && hasRightPanel) {
-            // Swiping RIGHT -> opens things on the right
+          } else if (dx <= -28 && hasRightPanel) {
+            // Swiping right to left -> opens right side things
             setRightPanelOpen(true);
             setMobileMenuOpen(false);
           }
