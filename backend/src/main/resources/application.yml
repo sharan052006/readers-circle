@@ -2,9 +2,9 @@ spring:
   profiles:
     default: local
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/readerscircle}
-    username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: ${DB_URL:${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/readerscircle}}
+    username: ${DB_USER:${SPRING_DATASOURCE_USERNAME:postgres}}
+    password: ${DB_PASSWORD:${SPRING_DATASOURCE_PASSWORD:postgres}}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -23,7 +23,8 @@ spring:
       max-request-size: 60MB
 
 server:
-  port: 8080
+  port: ${PORT:8080}
+  address: 0.0.0.0
 
 app:
   jwt:
