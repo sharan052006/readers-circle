@@ -61,31 +61,9 @@ type DashboardResp = {
   registeredEvents?: RegEvent[];
 };
 
-type SearchDiscussion = {
-  discussionTitle?: string;
-  bookTitle?: string;
-  author?: string;
-};
-
-type SearchBook = {
-  bookTitle?: string;
-  author?: string;
-};
-
-type SearchResp = {
-  discussions?: SearchDiscussion[];
-  books?: SearchBook[];
-};
-
 type LikeResp = {
   liked: boolean;
   likesCount: number;
-};
-
-type SearchResult = {
-  q: string;
-  discussions: SearchDiscussion[];
-  books: SearchBook[];
 };
 
 import { DISCUSSION_COVER_PLACEHOLDER as PLACEHOLDER } from '../lib/placeholders';
@@ -132,14 +110,11 @@ export default function ReaderDashboard() {
   const [recs, setRecs] = useState<RecBook[]>([]);
   const [myEvents, setMyEvents] = useState<RegEvent[]>([]);
   const [sync, setSync] = useState('Connecting...');
-  const [query, setQuery] = useState('');
-  const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [liking, setLiking] = useState<Record<string, boolean>>({});
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [copyToast, setCopyToast] = useState('');
   const activeMenuRef = useRef<HTMLDivElement | null>(null);
   const copyToastTimer = useRef<number | undefined>(undefined);
-  const timer = useRef<number | undefined>(undefined);
 
   const [showModal, setShowModal] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -155,7 +130,6 @@ export default function ReaderDashboard() {
 
   useEffect(() => {
     return () => {
-      window.clearTimeout(timer.current);
       window.clearTimeout(copyToastTimer.current);
     };
   }, []);
@@ -329,29 +303,6 @@ export default function ReaderDashboard() {
     }
   }
 
-  function onQueryChange(v: string) {
-    setQuery(v);
-    window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => {
-      void (async () => {
-        if (!v.trim()) {
-          setSearchResult(null);
-          await loadAll();
-          return;
-        }
-        try {
-          const s = await api<SearchResp>('/api/search?q=' + encodeURIComponent(v.trim()) + '&limit=5');
-          setSearchResult({
-            q: v.trim(),
-            discussions: s.discussions ?? [],
-            books: s.books ?? [],
-          });
-        } catch {
-          /* keep current feed on search failure */
-        }
-      })();
-    }, 350);
-  }
 
   function onCoverFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files && e.target.files[0];
@@ -412,25 +363,7 @@ export default function ReaderDashboard() {
   }
 
   return (
-    <ReaderLayout
-      active="dashboard"
-      syncNote={sync}
-      search={
-        <>
-          <span className="rd-lens" aria-hidden="true">
-            🔍
-          </span>
-          <input
-            type="search"
-            placeholder="Search discussions, circles, events..."
-            aria-label="Search discussions, circles, events"
-            autoComplete="off"
-            value={query}
-            onChange={(e) => onQueryChange(e.target.value)}
-          />
-        </>
-      }
-    >
+    <ReaderLayout active="dashboard" syncNote={sync}>
       <div className="content">
         <main className="feed" aria-live="polite">
           <div className="feed-header">
@@ -442,36 +375,7 @@ export default function ReaderDashboard() {
               ➕ Start a Discussion
             </button>
           </div>
-          {searchResult ? (
-            <>
-              <div className="notice">
-                Results for &ldquo;{searchResult.q}&rdquo; — same circles, books and events admin sees.
-              </div>
-              {(searchResult.discussions.length > 0 || searchResult.books.length > 0) && (
-                <div className="post">
-                  {searchResult.discussions.map((x, i) => (
-                    <div className="rank" key={'d' + i}>
-                      <div>
-                        <b>{x.discussionTitle || x.bookTitle || ''}</b>
-                        <span>{x.author || ''}</span>
-                      </div>
-                    </div>
-                  ))}
-                  {searchResult.books.map((x, i) => (
-                    <div className="rank" key={'b' + i}>
-                      <div>
-                        <b>{x.bookTitle || ''}</b>
-                        <span>Book · {x.author || ''}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {searchResult.discussions.length === 0 && searchResult.books.length === 0 && (
-                <div className="empty">No matches. Try a title, author or circle name.</div>
-              )}
-            </>
-          ) : loadingFeed ? (
+          {loadingFeed ? (
             <div className="notice">Loading your reading home...</div>
           ) : feedError ? (
             <div className="err">{feedError}</div>
