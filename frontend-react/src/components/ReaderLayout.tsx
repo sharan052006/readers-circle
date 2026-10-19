@@ -9,7 +9,7 @@ export default function ReaderLayout({
   search,
   syncNote,
 }: {
-  active: 'dashboard' | 'circles' | 'events' | 'books' | 'recommend' | 'chat' | 'settings';
+  active: 'dashboard' | 'circles' | 'events' | 'books' | 'recommend' | 'chat' | 'settings' | 'discover';
   children: ReactNode;
   search?: ReactNode;
   syncNote?: string;
@@ -400,6 +400,14 @@ export default function ReaderLayout({
             >
               <span className="rmobile-nav-icon" aria-hidden="true">⌂</span>
               <span>Dashboard</span>
+            </NavLink>
+            <NavLink
+              to="/reader-discover"
+              className={active === 'discover' ? 'rmobile-nav-a on' : 'rmobile-nav-a'}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span className="rmobile-nav-icon" aria-hidden="true">🧭</span>
+              <span>Discover</span>
             </NavLink>
             <NavLink
               to="/reader-circles"
