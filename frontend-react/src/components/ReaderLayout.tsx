@@ -97,11 +97,8 @@ export default function ReaderLayout({
 
       drawerOpenAtStart = mobileMenuOpen;
 
-      if (!drawerOpenAtStart) {
-        // Natural left-edge zone (<= 45px from extreme left edge)
-        if (touch.clientX > 45) return;
-      } else {
-        // When drawer is open, swiping left on the drawer or backdrop closes it
+      if (drawerOpenAtStart) {
+        // When drawer is open, swiping on the drawer or backdrop closes it
         const isDrawerOrBackdrop = elem && elem.closest('#rmobile-drawer, .rmobile-backdrop');
         if (!isDrawerOrBackdrop) return;
       }
@@ -130,13 +127,15 @@ export default function ReaderLayout({
         return;
       }
 
-      // Responsive threshold: open drawer as soon as user swipes 35px rightward from left edge
+      // Responsive threshold: open drawer as soon as user swipes 35px horizontally from anywhere on screen
       if (absX >= 35 && absX > absY) {
-        if (!drawerOpenAtStart && dx >= 35) {
+        if (!drawerOpenAtStart) {
+          // Open the left navigation drawer from anywhere on screen
           setMobileMenuOpen(true);
           isCanceled = true;
           isTracking = false;
-        } else if (drawerOpenAtStart && dx <= -30) {
+        } else {
+          // When drawer is open, swiping closes it
           setMobileMenuOpen(false);
           isCanceled = true;
           isTracking = false;
@@ -161,11 +160,11 @@ export default function ReaderLayout({
       const absX = Math.abs(dx);
       const absY = Math.abs(dy);
 
-      // Support quick flick gestures on release
+      // Support quick flick gestures on release from anywhere on screen
       if (absX >= 35 && absX > absY) {
-        if (!drawerOpenAtStart && dx >= 35) {
+        if (!drawerOpenAtStart) {
           setMobileMenuOpen(true);
-        } else if (drawerOpenAtStart && dx <= -30) {
+        } else {
           setMobileMenuOpen(false);
         }
       }
