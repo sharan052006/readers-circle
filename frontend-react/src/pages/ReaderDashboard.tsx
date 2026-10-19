@@ -192,21 +192,23 @@ export default function ReaderDashboard() {
     setFeedError('');
     try {
       const dash = await api<DashboardResp>('/api/dashboard?feedLimit=10');
-      setFeed(dash.feed ?? dash.discussions ?? []);
-      setTrending(dash.trendingBooks ?? []);
-      let recList = dash.recommendedBooks ?? [];
+      const feedItems = dash.feed ?? dash.discussions ?? [];
+      setFeed(Array.isArray(feedItems) ? feedItems : []);
+      setTrending(Array.isArray(dash.trendingBooks) ? dash.trendingBooks : []);
+      let recList = Array.isArray(dash.recommendedBooks) ? dash.recommendedBooks : [];
       if (!recList.length) {
         try {
-          recList = await api<RecBook[]>('/api/recommendations/books?limit=3&sort=recommended');
+          const recApi = await api<RecBook[]>('/api/recommendations/books?limit=3&sort=recommended');
+          if (Array.isArray(recApi)) recList = recApi;
         } catch {
           /* keep empty, rails show their empty state */
         }
       }
       setRecs(recList);
-      setMyEvents(dash.registeredEvents ?? []);
+      setMyEvents(Array.isArray(dash.registeredEvents) ? dash.registeredEvents : []);
       try {
         const cs = await api<{ id: string; name: string }[]>('/api/circles');
-        setCircles(cs || []);
+        setCircles(Array.isArray(cs) ? cs : []);
       } catch {
         /* optional */
       }
@@ -218,19 +220,23 @@ export default function ReaderDashboard() {
       }
       try {
         const f = await api<FeedItem[] | DashboardResp>('/api/discussions');
-        setFeed(Array.isArray(f) ? f : (f.feed ?? f.discussions ?? []));
+        const feedItems = Array.isArray(f) ? f : (f.feed ?? f.discussions ?? []);
+        setFeed(Array.isArray(feedItems) ? feedItems : []);
         try {
-          setTrending(await api<TrendBook[]>('/api/books/trending?limit=3'));
+          const tb = await api<TrendBook[]>('/api/books/trending?limit=3');
+          setTrending(Array.isArray(tb) ? tb : []);
         } catch {
           /* rail keeps previous value */
         }
         try {
-          setRecs(await api<RecBook[]>('/api/recommendations/books?limit=3'));
+          const rb = await api<RecBook[]>('/api/recommendations/books?limit=3');
+          setRecs(Array.isArray(rb) ? rb : []);
         } catch {
           /* rail keeps previous value */
         }
         try {
-          setMyEvents(await api<RegEvent[]>('/api/users/me/registrations'));
+          const ev = await api<RegEvent[]>('/api/users/me/registrations');
+          setMyEvents(Array.isArray(ev) ? ev : []);
         } catch {
           /* rail keeps previous value */
         }
@@ -633,11 +639,11 @@ export default function ReaderDashboard() {
         <aside className="railcards" aria-label="Recommendations and events">
           <section className="panel" aria-labelledby="tTrend">
             <h3 id="tTrend">🔥 Trending Books</h3>
-            <div>
-              {trending.length === 0 ? (
+            <div className="rail-cards-track">
+              {(!trending || trending.length === 0) ? (
                 <div className="empty">No trending books yet.</div>
               ) : (
-                trending.slice(0, 3).map((b, i) => (
+                (trending || []).slice(0, 3).map((b, i) => (
                   <div className="rank" key={i}>
                     <span className="n">{i + 1}</span>
                     {b.coverImageUrl && (
@@ -655,11 +661,11 @@ export default function ReaderDashboard() {
           </section>
           <section className="panel" aria-labelledby="tRec">
             <h3 id="tRec">⭐ Recommended Books</h3>
-            <div>
-              {recs.length === 0 ? (
+            <div className="rail-cards-track">
+              {(!recs || recs.length === 0) ? (
                 <div className="empty">No recommendations yet.</div>
               ) : (
-                recs.slice(0, 3).map((b, i) => {
+                (recs || []).slice(0, 3).map((b, i) => {
                   const n = b.recommendedByCount ?? b.distinctRecommenders ?? b.upvotesCount ?? 0;
                   const cover = b.coverImageUrl || b.coverUrl;
                   return (
@@ -685,14 +691,14 @@ export default function ReaderDashboard() {
           </section>
           <section className="panel" aria-labelledby="tEv">
             <h3 id="tEv">📅 Registered Events</h3>
-            <div>
-              {myEvents.length === 0 ? (
+            <div className="rail-cards-track">
+              {(!myEvents || myEvents.length === 0) ? (
                 <div className="empty">
                   <b>Nothing registered</b>
                   Browse events and reserve a seat. New bookings appear here and in admin counts.
                 </div>
               ) : (
-                myEvents.slice(0, 4).map((e, i) => {
+                (myEvents || []).slice(0, 4).map((e, i) => {
                   const when = [e.eventDate, e.eventTime].filter(Boolean).join(' · ');
                   return (
                     <div className="ev" key={i}>

@@ -66,6 +66,103 @@ export default function ReaderLayout({
     };
   }, [mobileMenuOpen]);
 
+  // Edge-swipe navigation (Instagram-style) for mobile drawer
+  useEffect(() => {
+    const isMobile = () =>
+      window.matchMedia('(max-width: 800px)').matches || window.innerWidth <= 800;
+
+    let startX = 0;
+    let startY = 0;
+    let isTracking = false;
+    let isHorizontal = false;
+    let isCanceled = false;
+    let drawerOpenAtStart = false;
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (!isMobile() || e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      const target = e.target;
+      const elem = target instanceof Element ? target : (target as Node)?.parentElement;
+
+      // Prevent accidental opening while interacting with form controls, swipeable carousels, or no-swipe areas
+      if (elem && elem.closest('input, textarea, select, button, .rail-cards-track, [data-no-swipe]')) {
+        return;
+      }
+
+      drawerOpenAtStart = mobileMenuOpen;
+
+      if (!drawerOpenAtStart) {
+        // Edge-swipe zone: must start near left edge (<= 38px)
+        if (touch.clientX > 38) return;
+      } else {
+        // When drawer is open, swiping left on the drawer or backdrop closes it
+        const isDrawerOrBackdrop = elem && elem.closest('#rmobile-drawer, .rmobile-backdrop');
+        if (!isDrawerOrBackdrop) return;
+      }
+
+      startX = touch.clientX;
+      startY = touch.clientY;
+      isTracking = true;
+      isHorizontal = false;
+      isCanceled = false;
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!isTracking || isCanceled || e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startY;
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
+
+      // Determine gesture direction
+      if (!isHorizontal) {
+        if (absY > 8 && absY > absX) {
+          // Dominant vertical motion -> allow normal page scrolling, cancel edge swipe
+          isCanceled = true;
+          return;
+        }
+        if (absX > 10 && absX > absY * 1.25) {
+          isHorizontal = true;
+        }
+      }
+
+      if (isHorizontal) {
+        if (!drawerOpenAtStart) {
+          // Swipe right from left edge to open drawer
+          if (dx >= 45) {
+            setMobileMenuOpen(true);
+            isCanceled = true;
+          }
+        } else {
+          // Swipe left to close drawer
+          if (dx <= -40) {
+            setMobileMenuOpen(false);
+            isCanceled = true;
+          }
+        }
+      }
+    };
+
+    const onTouchEnd = () => {
+      isTracking = false;
+      isHorizontal = false;
+      isCanceled = false;
+    };
+
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onTouchEnd, { passive: true });
+    window.addEventListener('touchcancel', onTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('touchcancel', onTouchEnd);
+    };
+  }, [mobileMenuOpen]);
+
   async function handleSignOut() {
     if (isLoggingOut) return;
     setIsLoggingOut(true);
