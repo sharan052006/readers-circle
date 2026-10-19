@@ -333,6 +333,32 @@
     padding: 26px 16px 40px;
   }
 }
+@media (max-width: 480px) {
+  .auth-root .brand {
+    padding: 24px 16px;
+  }
+  .auth-root .brand h1 {
+    font-size: 28px;
+  }
+  .auth-root .stats {
+    gap: 12px;
+  }
+  .auth-root .panel {
+    padding: 16px 12px 30px;
+  }
+  .auth-root .card {
+    padding: 20px 14px;
+    border-radius: 16px;
+  }
+  .auth-root .api-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .auth-root .api-save {
+    width: 100%;
+    min-height: 42px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .auth-root * {
     transition: none !important;

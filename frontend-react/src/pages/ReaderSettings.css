@@ -325,6 +325,16 @@ h1.page{
   .frow label{text-align:left}
   .profile-actions{grid-template-columns:1fr;gap:10px}
   .nrow,.srow{flex-wrap:wrap;gap:10px}
-  .sbtn{margin-left:0;width:100%;text-align:center}
+  .sbtn{margin-left:0;width:100%;text-align:center;min-height:42px}
 }
+
+@media(max-width:420px){
+  .rset-wrap{padding:10px 10px 24px}
+  .card{padding:14px 12px}
+  .veil{padding:12px}
+  .veil .modal{padding:18px 14px;border-radius:14px}
+  .veil .modal .row{flex-direction:column;gap:8px}
+  .veil .modal .row .btn{width:100%;min-height:44px}
+}
+
 @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}

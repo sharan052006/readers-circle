@@ -241,4 +241,21 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
   .efo-head-actions { width: 100%; }
   .efo-sec { grid-template-columns: 1fr; }
   .efo-row2, .efo-row3 { grid-template-columns: 1fr; }
+  .mg-wrap { padding: 12px 14px 28px; }
+  .evcard { flex-direction: column; align-items: stretch; gap: 12px; }
+  .evthumb { width: 100%; height: 160px; }
+  .evside { width: 100%; flex-direction: row; flex-wrap: wrap; }
+  .mg-head { padding: 0 14px 12px; }
+  .mg-avatar { width: 64px; height: 64px; margin-top: -32px; }
+  .mg-title h1 { font-size: 20px; }
+  .mg-actions { width: 100%; }
+  .mg-actions .btn { flex: 1 1 auto; }
+}
+
+@media (max-width: 480px) {
+  .statrow { grid-template-columns: repeat(2, 1fr); }
+  .stat { padding: 8px 4px; }
+  .stat b { font-size: 17px; }
+  .stat span { font-size: 11px; }
+  .mg-tabs button { padding: 8px 9px; font-size: 12.5px; }
 }

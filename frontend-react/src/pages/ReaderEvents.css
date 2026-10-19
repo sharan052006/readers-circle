@@ -882,5 +882,24 @@ h1.page{font-family:'Fraunces',serif;font-size:38px;margin:0;letter-spacing:-.01
 .chatbox-composer.disabled button{cursor:not-allowed;background:#CBD5E1}
 
 @media(max-width:640px){
-  .eg-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+  .eg-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+  .eg-lightbox{padding:12px}
+  .eg-lb-topbar{top:12px;right:12px;gap:8px}
+  .eg-lb-download{padding:6px 12px;font-size:12px}
+  .evtop{grid-template-columns:1fr;gap:12px}
+  .evtop img{width:100%;height:160px}
+  .tabs{overflow-x:auto;padding-bottom:6px;gap:14px;white-space:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+}
+
+@media(max-width:480px){
+  .rapp .content{padding:10px 12px 28px;gap:14px}
+  h1.page{font-size:23px}
+  .ocard{padding:12px;border-radius:14px}
+  .odate{padding:6px 10px;border-radius:10px}
+  .odate b{font-size:24px}
+  .oactions .oabtn{min-height:42px;width:100%}
+  .createbtn{min-height:44px;display:flex;align-items:center;justify-content:center}
+  .eg-grid{grid-template-columns:repeat(2,1fr)}
+  .chat-closed-banner{margin:6px 0 10px;padding:10px 12px;font-size:12px}
 }

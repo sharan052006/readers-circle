@@ -1044,6 +1044,36 @@
   }
 }
 
+@media (max-width: 420px) {
+  .rdet-wrap {
+    padding: 10px 10px 24px;
+  }
+  .hero-cover-container img {
+    max-height: 180px;
+    object-fit: cover;
+  }
+  .post-title {
+    font-size: 18px;
+  }
+  .post-excerpt {
+    font-size: 13.5px;
+  }
+  .cmt {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 8px;
+  }
+  .cmt .face {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+  .kidbox {
+    margin-left: 6px;
+    padding-left: 8px;
+  }
+}
+
+
 /* Discussion post block inside the hero — mirrors the dashboard card */
 .post-block {
   margin-top: 16px;

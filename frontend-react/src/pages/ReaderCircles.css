@@ -436,12 +436,34 @@ h1.page{font-family:'Fraunces',serif;font-size:38px;margin:0;letter-spacing:-.01
 @media(max-width:760px){
   .rapp{grid-template-columns:1fr}
   .grid3,.grid4{grid-template-columns:1fr}
-  .tabs{overflow-x:auto;padding-bottom:4px;gap:16px;white-space:nowrap}
-  h1.page{font-size:28px}
+  .tabs{overflow-x:auto;padding-bottom:6px;gap:14px;white-space:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  h1.page{font-size:26px}
   .toolbar{flex-direction:column;align-items:stretch}
   .toolbar input[type=search]{min-width:100%}
   .bigrow{grid-template-columns:1fr}
   .bigrow img{width:100%;height:180px}
+  .minis{grid-template-columns:repeat(2, 1fr);gap:8px}
+  .stat3{grid-template-columns:repeat(3, 1fr);gap:6px}
+  .stat3 .mini{padding:8px 4px}
+  .stat3 .mini b{font-size:17px}
+  .cal th{padding:2px;font-size:11px}
+  .cal td{padding:3px 1px;font-size:11.5px}
+  .panel{padding:14px}
 }
-@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
 
+@media(max-width:480px){
+  .rapp .content{padding:10px 12px 28px;gap:14px}
+  h1.page{font-size:23px}
+  .sub{font-size:12.5px;margin-bottom:10px}
+  .secttl{flex-wrap:wrap;gap:6px}
+  .secttl h2{font-size:19px}
+  .cardbtn{min-height:42px}
+  .mini{padding:8px 6px}
+  .mini b{font-size:17px}
+  .mini span{font-size:10.5px}
+  .orgrow,.memrow{grid-template-columns:44px 1fr;gap:10px}
+  .memrow img{width:44px;height:44px}
+}
+
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}

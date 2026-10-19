@@ -24,7 +24,27 @@ export default function ReaderLayout({
   const [sync, setSync] = useState('Connecting…');
   const [notice, setNotice] = useState<null | { kind: 'promoted' | 'demoted'; userId: string }>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const topbarRef = useRef<HTMLDivElement>(null);
+
+  // Close mobile drawer on route changes or escape key
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [active]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileMenuOpen(false);
+    };
+    document.addEventListener('keydown', handleKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [mobileMenuOpen]);
 
   async function handleSignOut() {
     if (isLoggingOut) return;
@@ -217,8 +237,130 @@ export default function ReaderLayout({
         )}
       </aside>
       <div className="rmain">
+        {mobileMenuOpen && (
+          <div
+            className="rmobile-backdrop"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+        <div
+          className={'rmobile-drawer' + (mobileMenuOpen ? ' open' : '')}
+          aria-label="Mobile navigation"
+          aria-hidden={!mobileMenuOpen}
+        >
+          <div className="rmobile-drawer-head">
+            <div className="rbrand">
+              <span className="rmark">📖</span>
+              <b>Reader's Circle</b>
+            </div>
+            <button
+              type="button"
+              className="rmobile-drawer-close"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-label="Close navigation menu"
+            >
+              ✕
+            </button>
+          </div>
+          <nav className="rmobile-nav">
+            <NavLink
+              to="/reader"
+              className={active === 'dashboard' ? 'rmobile-nav-a on' : 'rmobile-nav-a'}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span>⌂</span> Dashboard
+            </NavLink>
+            <NavLink
+              to="/reader-circles"
+              className={active === 'circles' ? 'rmobile-nav-a on' : 'rmobile-nav-a'}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span>👥</span> Circles
+            </NavLink>
+            <NavLink
+              to="/reader-events"
+              className={active === 'events' ? 'rmobile-nav-a on' : 'rmobile-nav-a'}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span>📅</span> Events
+            </NavLink>
+            <NavLink
+              to="/reader-books"
+              className={active === 'books' ? 'rmobile-nav-a on' : 'rmobile-nav-a'}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span>📚</span> Books
+            </NavLink>
+            <NavLink
+              to="/reader-recommendations"
+              className={active === 'recommend' ? 'rmobile-nav-a on' : 'rmobile-nav-a'}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span>⭐</span> Recommendations
+            </NavLink>
+            <NavLink
+              to="/reader-chat"
+              className={active === 'chat' ? 'rmobile-nav-a on' : 'rmobile-nav-a'}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span>💬</span> Chat
+            </NavLink>
+            <NavLink
+              to="/reader-settings"
+              className={active === 'settings' ? 'rmobile-nav-a on' : 'rmobile-nav-a'}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span>⚙</span> Settings
+            </NavLink>
+          </nav>
+          <div className="rmobile-drawer-foot">
+            <div className="rmobile-userinfo">
+              <span className="rface">
+                <span>{initialsOf(me?.name || me?.email)}</span>
+                {me?.profilePictureUrl && (
+                  <img
+                    src={resolveMedia(me.profilePictureUrl)}
+                    alt=""
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                )}
+              </span>
+              <div className="rmobile-usernames">
+                <b>{me?.name || me?.email || 'Reader'}</b>
+                <small>{me?.role === 'ORGANIZER' ? 'Organiser' : me?.role === 'ADMIN' ? 'Admin' : 'Reader'}</small>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="rmobile-signout-btn"
+              onClick={handleSignOut}
+              disabled={isLoggingOut}
+            >
+              {isLoggingOut ? 'Signing out…' : 'Sign out'}
+            </button>
+          </div>
+        </div>
+
         <div className="rtopbar" ref={topbarRef}>
-          <div className="rsearch">{search}</div>
+          <div className="rmobile-bar">
+            <button
+              type="button"
+              className="rmobile-toggle"
+              onClick={() => setMobileMenuOpen(true)}
+              aria-label="Open navigation menu"
+              aria-expanded={mobileMenuOpen}
+            >
+              <span aria-hidden="true">☰</span>
+            </button>
+            <NavLink to="/reader" className="rmobile-brand" aria-label="Reader's Circle">
+              <span className="rmark">📖</span>
+              <b>Reader's Circle</b>
+            </NavLink>
+          </div>
+          {search ? <div className="rsearch">{search}</div> : null}
           <div className="rtopright">
             <button
               className="rbell"

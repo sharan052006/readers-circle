@@ -24,58 +24,252 @@
 .rdrop{position:absolute;top:56px;right:20px;background:#fff;border:1px solid #E5DED2;border-radius:14px;box-shadow:0 18px 44px rgba(36,26,18,.14);padding:8px;min-width:230px;z-index:20}
 .rdrop button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 11px;border-radius:9px;cursor:pointer;font:inherit}
 .rdrop button:hover{background:#F5F0E4}
+/* Desktop hide mobile navigation elements */
+.rmobile-bar,
+.rmobile-toggle,
+.rmobile-drawer,
+.rmobile-backdrop {
+  display: none !important;
+}
+
 @media(max-width:800px){
-  .rapp{grid-template-columns:1fr}
-  .rrail{
+  .rapp{grid-template-columns:1fr;min-width:0;max-width:100vw;overflow-x:clip}
+  .rrail{display:none !important}
+  .rmain{min-width:0;max-width:100vw;overflow-x:clip}
+
+  /* Mobile bar in topbar */
+  .rmobile-bar{
+    display:flex !important;
+    align-items:center;
+    gap:10px;
+    flex-shrink:0;
+  }
+  .rmobile-toggle{
+    display:inline-flex !important;
+    align-items:center;
+    justify-content:center;
+    width:38px;
+    height:38px;
+    border-radius:10px;
+    border:1px solid #E5DED2;
+    background:#fff;
+    cursor:pointer;
+    color:#241A12;
+    font-size:18px;
+    flex-shrink:0;
+  }
+  .rmobile-toggle:hover{background:#F5F0E4}
+  .rmobile-brand{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    text-decoration:none;
+    color:#241A12;
+  }
+  .rmobile-brand .rmark{
+    width:28px;
+    height:28px;
+    border-radius:8px;
+    font-size:15px;
+    background:#6B2A1F;
+    color:#fff;
+    display:grid;
+    place-items:center;
+    flex-shrink:0;
+  }
+  .rmobile-brand b{
+    font-family:'Fraunces',serif;
+    font-size:16px;
+    letter-spacing:-.01em;
+    white-space:nowrap;
+  }
+
+  /* Topbar responsive adjustments */
+  .rtopbar{
     position:sticky;
     top:0;
     z-index:30;
-    height:auto;
     padding:10px 14px;
-    flex-direction:row;
-    align-items:center;
-    justify-content:space-between;
+    gap:8px;
     flex-wrap:wrap;
-    border-right:none;
+    background:#FBFAF6;
     border-bottom:1px solid #E5DED2;
-    background:#FDFCF8;
-    overflow:visible;
-  }
-  .rbrand{padding:0}
-  .rnav{
-    display:flex;
-    flex-direction:row;
-    overflow-x:auto;
-    width:100%;
-    gap:4px;
-    padding:6px 0 2px;
-    -webkit-overflow-scrolling:touch;
-  }
-  .rnav-a{
-    padding:7px 12px;
-    font-size:13px;
-    white-space:nowrap;
-    flex-shrink:0;
-  }
-  .rsyncnote{display:none}
-  .rtopbar{
-    position:static;
-    padding:10px 14px;
-    gap:10px;
-    flex-wrap:wrap;
   }
   .rsearch{
-    order:2;
+    order:3;
     min-width:100%;
     max-width:100%;
+    margin-top:2px;
+  }
+  .rsearch input{
+    padding:9px 12px 9px 36px;
+    font-size:13.5px;
+    border-radius:10px;
   }
   .rtopright{
     margin-left:auto;
+    gap:8px;
+  }
+  .rbell{
+    width:36px;
+    height:36px;
+  }
+  .ruserchip{
+    padding:2px 4px;
+    gap:6px;
   }
   .rdrop{
-    right:12px;
-    top:62px;
-    max-width:calc(100vw - 24px);
+    right:10px;
+    top:calc(100% + 4px);
+    max-width:calc(100vw - 20px);
+    min-width:210px;
+    z-index:45;
   }
+  .rdrop button{
+    min-height:44px;
+    display:flex;
+    align-items:center;
+    padding:10px 12px;
+  }
+
+  /* Mobile Drawer & Backdrop */
+  .rmobile-backdrop{
+    display:block !important;
+    position:fixed;
+    inset:0;
+    background:rgba(36,26,18,0.48);
+    backdrop-filter:blur(3px);
+    z-index:9998;
+    animation:rfadein .2s ease-out;
+  }
+  .rmobile-drawer{
+    display:flex !important;
+    position:fixed;
+    top:0;
+    left:0;
+    bottom:0;
+    width:min(300px, 84vw);
+    background:#FDFCF8;
+    z-index:9999;
+    box-shadow:4px 0 28px rgba(36,26,18,.18);
+    flex-direction:column;
+    transform:translateX(-100%);
+    transition:transform .25s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:18px 16px;
+    border-right:1px solid #E5DED2;
+    box-sizing:border-box;
+  }
+  .rmobile-drawer.open{
+    transform:translateX(0);
+  }
+  .rmobile-drawer-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding-bottom:14px;
+    border-bottom:1px solid #E5DED2;
+  }
+  .rmobile-drawer-head .rbrand{
+    padding:0;
+  }
+  .rmobile-drawer-close{
+    width:34px;
+    height:34px;
+    border-radius:9px;
+    border:1px solid #E5DED2;
+    background:#fff;
+    cursor:pointer;
+    display:grid;
+    place-items:center;
+    font-size:16px;
+    color:#6B6257;
+  }
+  .rmobile-drawer-close:hover{
+    background:#F3EEE1;
+    color:#241A12;
+  }
+  .rmobile-nav{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    padding:14px 0;
+    flex:1;
+  }
+  .rmobile-nav-a{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:11px 14px;
+    border-radius:12px;
+    color:#241A12;
+    text-decoration:none;
+    font-size:14.5px;
+    font-weight:500;
+    min-height:44px;
+    box-sizing:border-box;
+  }
+  .rmobile-nav-a:hover{background:#F3EEE1}
+  .rmobile-nav-a.on{background:#F5E9DD;font-weight:700;color:#6B2A1F}
+  .rmobile-nav-a span{font-size:16px;width:20px;text-align:center}
+
+  .rmobile-drawer-foot{
+    margin-top:auto;
+    padding-top:14px;
+    border-top:1px solid #E5DED2;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .rmobile-userinfo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .rmobile-usernames{
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+  }
+  .rmobile-usernames b{
+    font-size:13.5px;
+    color:#241A12;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .rmobile-usernames small{
+    font-size:12px;
+    color:#6B6257;
+  }
+  .rmobile-signout-btn{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    width:100%;
+    padding:11px 16px;
+    border-radius:10px;
+    border:1px solid #E5DED2;
+    background:#fff;
+    color:#6B2A1F;
+    font-weight:700;
+    font-size:13.5px;
+    cursor:pointer;
+    min-height:44px;
+    transition:background .15s ease;
+  }
+  .rmobile-signout-btn:hover{background:#FAF5EE}
 }
 
+@media(max-width:540px){
+  .ruserchip b{display:none}
+  .rmobile-brand b{font-size:15px}
+  .rtopbar{padding:8px 12px;gap:6px}
+}
+
+@keyframes rfadein{
+  from{opacity:0}
+  to{opacity:1}
+}
