@@ -186,11 +186,13 @@ export default function ReaderLayout({
             <span>⚙</span> Settings
           </NavLink>
         </nav>
-        <div className="rsyncnote">
-          Same data as admin.
-          <br />
-          <b>{sync}</b>
-        </div>
+        {active !== 'dashboard' && (
+          <div className="rsyncnote">
+            Same data as admin.
+            <br />
+            <b>{sync}</b>
+          </div>
+        )}
       </aside>
       <div className="rmain">
         <div className="rtopbar" ref={topbarRef}>
