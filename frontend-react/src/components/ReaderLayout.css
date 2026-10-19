@@ -41,24 +41,33 @@
   .rmobile-bar{
     display:flex !important;
     align-items:center;
-    gap:10px;
+    gap:8px;
     flex-shrink:0;
   }
   .rmobile-toggle{
     display:inline-flex !important;
     align-items:center;
     justify-content:center;
-    width:38px;
-    height:38px;
-    border-radius:10px;
+    width:36px;
+    height:36px;
+    border-radius:9px;
     border:1px solid #E5DED2;
     background:#fff;
     cursor:pointer;
     color:#241A12;
-    font-size:18px;
+    padding:0;
     flex-shrink:0;
+    box-shadow:0 1px 3px rgba(36,26,18,.06);
+    transition:background .15s ease, color .15s ease, border-color .15s ease;
   }
-  .rmobile-toggle:hover{background:#F5F0E4}
+  .rmobile-toggle:hover{
+    background:#F5E9DD;
+    color:#6B2A1F;
+    border-color:#D9CBB8;
+  }
+  .rmobile-toggle:active{
+    transform:scale(0.96);
+  }
   .rmobile-brand{
     display:inline-flex;
     align-items:center;
@@ -84,13 +93,13 @@
     white-space:nowrap;
   }
 
-  /* Topbar responsive adjustments */
+  /* Topbar responsive adjustments - sticky on top */
   .rtopbar{
     position:sticky;
     top:0;
-    z-index:30;
+    z-index:60;
     padding:10px 14px;
-    gap:8px;
+    gap:8px 10px;
     flex-wrap:wrap;
     background:#FBFAF6;
     border-bottom:1px solid #E5DED2;
@@ -102,7 +111,7 @@
     margin-top:2px;
   }
   .rsearch input{
-    padding:9px 12px 9px 36px;
+    padding:8px 12px 8px 34px;
     font-size:13.5px;
     border-radius:10px;
   }
@@ -123,7 +132,7 @@
     top:calc(100% + 4px);
     max-width:calc(100vw - 20px);
     min-width:210px;
-    z-index:45;
+    z-index:70;
   }
   .rdrop button{
     min-height:44px;
@@ -132,76 +141,51 @@
     padding:10px 12px;
   }
 
-  /* Mobile Drawer & Backdrop */
+  /* Mobile Drawer & Backdrop - positioned below header */
   .rmobile-backdrop{
     display:block !important;
     position:fixed;
-    inset:0;
+    left:0;
+    right:0;
+    bottom:0;
     background:rgba(36,26,18,0.48);
-    backdrop-filter:blur(3px);
-    z-index:9998;
+    backdrop-filter:blur(2px);
+    z-index:50;
     animation:rfadein .2s ease-out;
   }
   .rmobile-drawer{
     display:flex !important;
     position:fixed;
-    top:0;
     left:0;
     bottom:0;
-    width:min(300px, 84vw);
+    width:min(280px, 80vw);
     background:#FDFCF8;
-    z-index:9999;
-    box-shadow:4px 0 28px rgba(36,26,18,.18);
+    z-index:55;
+    box-shadow:4px 0 24px rgba(36,26,18,.16);
     flex-direction:column;
     transform:translateX(-100%);
-    transition:transform .25s cubic-bezier(0.16, 1, 0.3, 1);
+    transition:transform .24s cubic-bezier(0.16, 1, 0.3, 1);
     overflow-y:auto;
     -webkit-overflow-scrolling:touch;
-    padding:18px 16px;
+    padding:14px 12px;
     border-right:1px solid #E5DED2;
     box-sizing:border-box;
   }
   .rmobile-drawer.open{
     transform:translateX(0);
   }
-  .rmobile-drawer-head{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding-bottom:14px;
-    border-bottom:1px solid #E5DED2;
-  }
-  .rmobile-drawer-head .rbrand{
-    padding:0;
-  }
-  .rmobile-drawer-close{
-    width:34px;
-    height:34px;
-    border-radius:9px;
-    border:1px solid #E5DED2;
-    background:#fff;
-    cursor:pointer;
-    display:grid;
-    place-items:center;
-    font-size:16px;
-    color:#6B6257;
-  }
-  .rmobile-drawer-close:hover{
-    background:#F3EEE1;
-    color:#241A12;
-  }
   .rmobile-nav{
     display:flex;
     flex-direction:column;
     gap:4px;
-    padding:14px 0;
+    padding:0 0 12px;
     flex:1;
   }
   .rmobile-nav-a{
     display:flex;
     align-items:center;
     gap:12px;
-    padding:11px 14px;
+    padding:10px 14px;
     border-radius:12px;
     color:#241A12;
     text-decoration:none;
@@ -209,18 +193,30 @@
     font-weight:500;
     min-height:44px;
     box-sizing:border-box;
+    transition:background .15s ease, color .15s ease;
   }
-  .rmobile-nav-a:hover{background:#F3EEE1}
-  .rmobile-nav-a.on{background:#F5E9DD;font-weight:700;color:#6B2A1F}
-  .rmobile-nav-a span{font-size:16px;width:20px;text-align:center}
+  .rmobile-nav-a:hover{
+    background:#F3EEE1;
+  }
+  .rmobile-nav-a.on{
+    background:#F5E9DD;
+    font-weight:700;
+    color:#6B2A1F;
+  }
+  .rmobile-nav-icon{
+    font-size:17px;
+    width:22px;
+    text-align:center;
+    flex-shrink:0;
+  }
 
   .rmobile-drawer-foot{
     margin-top:auto;
-    padding-top:14px;
+    padding-top:12px;
     border-top:1px solid #E5DED2;
     display:flex;
     flex-direction:column;
-    gap:12px;
+    gap:10px;
   }
   .rmobile-userinfo{
     display:flex;
@@ -266,7 +262,18 @@
 @media(max-width:540px){
   .ruserchip b{display:none}
   .rmobile-brand b{font-size:15px}
-  .rtopbar{padding:8px 12px;gap:6px}
+  .rtopbar{padding:8px 10px;gap:6px}
+  .rmobile-toggle{width:34px;height:34px}
+  .rbell{width:34px;height:34px}
+  .rmobile-drawer{width:min(260px, 84vw);padding:12px 10px}
+}
+
+@media(max-width:360px){
+  .rmobile-brand b{font-size:13.5px}
+  .rmobile-brand .rmark{width:26px;height:26px;font-size:14px}
+  .rmobile-toggle{width:32px;height:32px}
+  .rbell{width:32px;height:32px}
+  .rtopbar{padding:6px 8px;gap:4px}
 }
 
 @keyframes rfadein{

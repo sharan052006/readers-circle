@@ -26,23 +26,43 @@ export default function ReaderLayout({
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const topbarRef = useRef<HTMLDivElement>(null);
+  const [headerHeight, setHeaderHeight] = useState<number>(54);
 
-  // Close mobile drawer on route changes or escape key
+  // Close mobile drawer on route changes
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [active]);
 
+  // Dynamically track topbar height so drawer and backdrop sit directly below the header
+  useEffect(() => {
+    const updateHeaderHeight = () => {
+      if (topbarRef.current) {
+        setHeaderHeight(topbarRef.current.offsetHeight);
+      }
+    };
+    updateHeaderHeight();
+    window.addEventListener('resize', updateHeaderHeight);
+    return () => window.removeEventListener('resize', updateHeaderHeight);
+  }, [search]);
+
+  // Close mobile drawer on Escape key & lock body scroll without layout shift
   useEffect(() => {
     if (!mobileMenuOpen) return;
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMobileMenuOpen(false);
     };
     document.addEventListener('keydown', handleKey);
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     const prevOverflow = document.body.style.overflow;
+    const prevPaddingRight = document.body.style.paddingRight;
     document.body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
     return () => {
       document.removeEventListener('keydown', handleKey);
       document.body.style.overflow = prevOverflow;
+      document.body.style.paddingRight = prevPaddingRight;
     };
   }, [mobileMenuOpen]);
 
@@ -240,78 +260,74 @@ export default function ReaderLayout({
         {mobileMenuOpen && (
           <div
             className="rmobile-backdrop"
+            style={{ top: `${headerHeight}px` }}
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
         )}
         <div
+          id="rmobile-drawer"
           className={'rmobile-drawer' + (mobileMenuOpen ? ' open' : '')}
+          style={{ top: `${headerHeight}px`, height: `calc(100vh - ${headerHeight}px)` }}
           aria-label="Mobile navigation"
           aria-hidden={!mobileMenuOpen}
         >
-          <div className="rmobile-drawer-head">
-            <div className="rbrand">
-              <span className="rmark">📖</span>
-              <b>Reader's Circle</b>
-            </div>
-            <button
-              type="button"
-              className="rmobile-drawer-close"
-              onClick={() => setMobileMenuOpen(false)}
-              aria-label="Close navigation menu"
-            >
-              ✕
-            </button>
-          </div>
           <nav className="rmobile-nav">
             <NavLink
               to="/reader"
               className={active === 'dashboard' ? 'rmobile-nav-a on' : 'rmobile-nav-a'}
               onClick={() => setMobileMenuOpen(false)}
             >
-              <span>⌂</span> Dashboard
+              <span className="rmobile-nav-icon" aria-hidden="true">⌂</span>
+              <span>Dashboard</span>
             </NavLink>
             <NavLink
               to="/reader-circles"
               className={active === 'circles' ? 'rmobile-nav-a on' : 'rmobile-nav-a'}
               onClick={() => setMobileMenuOpen(false)}
             >
-              <span>👥</span> Circles
+              <span className="rmobile-nav-icon" aria-hidden="true">👥</span>
+              <span>Circles</span>
             </NavLink>
             <NavLink
               to="/reader-events"
               className={active === 'events' ? 'rmobile-nav-a on' : 'rmobile-nav-a'}
               onClick={() => setMobileMenuOpen(false)}
             >
-              <span>📅</span> Events
+              <span className="rmobile-nav-icon" aria-hidden="true">📅</span>
+              <span>Events</span>
             </NavLink>
             <NavLink
               to="/reader-books"
               className={active === 'books' ? 'rmobile-nav-a on' : 'rmobile-nav-a'}
               onClick={() => setMobileMenuOpen(false)}
             >
-              <span>📚</span> Books
+              <span className="rmobile-nav-icon" aria-hidden="true">📚</span>
+              <span>Books</span>
             </NavLink>
             <NavLink
               to="/reader-recommendations"
               className={active === 'recommend' ? 'rmobile-nav-a on' : 'rmobile-nav-a'}
               onClick={() => setMobileMenuOpen(false)}
             >
-              <span>⭐</span> Recommendations
+              <span className="rmobile-nav-icon" aria-hidden="true">⭐</span>
+              <span>Recommendations</span>
             </NavLink>
             <NavLink
               to="/reader-chat"
               className={active === 'chat' ? 'rmobile-nav-a on' : 'rmobile-nav-a'}
               onClick={() => setMobileMenuOpen(false)}
             >
-              <span>💬</span> Chat
+              <span className="rmobile-nav-icon" aria-hidden="true">💬</span>
+              <span>Chat</span>
             </NavLink>
             <NavLink
               to="/reader-settings"
               className={active === 'settings' ? 'rmobile-nav-a on' : 'rmobile-nav-a'}
               onClick={() => setMobileMenuOpen(false)}
             >
-              <span>⚙</span> Settings
+              <span className="rmobile-nav-icon" aria-hidden="true">⚙</span>
+              <span>Settings</span>
             </NavLink>
           </nav>
           <div className="rmobile-drawer-foot">
@@ -348,12 +364,47 @@ export default function ReaderLayout({
           <div className="rmobile-bar">
             <button
               type="button"
+              id="rmobile-drawer-toggle"
               className="rmobile-toggle"
-              onClick={() => setMobileMenuOpen(true)}
-              aria-label="Open navigation menu"
+              onClick={() => {
+                setMobileMenuOpen(!mobileMenuOpen);
+                setBellOpen(false);
+                setMeOpen(false);
+              }}
+              aria-label={mobileMenuOpen ? 'Close navigation drawer' : 'Open navigation drawer'}
               aria-expanded={mobileMenuOpen}
+              aria-controls="rmobile-drawer"
+              title={mobileMenuOpen ? 'Close navigation drawer' : 'Open navigation drawer'}
             >
-              <span aria-hidden="true">☰</span>
+              {mobileMenuOpen ? (
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              ) : (
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              )}
             </button>
             <NavLink to="/reader" className="rmobile-brand" aria-label="Reader's Circle">
               <span className="rmark">📖</span>
