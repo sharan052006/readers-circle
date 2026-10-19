@@ -157,7 +157,10 @@ export default function ReaderLayout({
         return;
       }
 
-      if (absX >= 28 && absX > absY) {
+      const screenWidth = window.innerWidth;
+      const edgeThreshold = Math.max(50, Math.min(75, screenWidth * 0.18));
+
+      if (absX >= 25 && absX > absY) {
         if (leftDrawerOpenAtStart) {
           // Left drawer is open: reverse swipe (right to left, dx <= -25) closes it
           if (dx <= -25 || absX >= 35) {
@@ -174,14 +177,15 @@ export default function ReaderLayout({
           }
         } else {
           // Both closed:
-          if (dx >= 28) {
-            // Swiping left to right -> opens left nav drawer
+          // 1. Swiping from left edge to right -> open left nav bar
+          if (startX <= edgeThreshold && dx >= 25) {
             setMobileMenuOpen(true);
             setRightPanelOpen(false);
             isCanceled = true;
             isTracking = false;
-          } else if (dx <= -28 && hasRightPanel) {
-            // Swiping right to left -> opens right side things
+          }
+          // 2. Swiping from right edge to left -> open right side things
+          else if (hasRightPanel && startX >= screenWidth - edgeThreshold && dx <= -25) {
             setRightPanelOpen(true);
             setMobileMenuOpen(false);
             isCanceled = true;
@@ -207,19 +211,19 @@ export default function ReaderLayout({
       const dy = lastY - startY;
       const absX = Math.abs(dx);
       const absY = Math.abs(dy);
+      const screenWidth = window.innerWidth;
+      const edgeThreshold = Math.max(50, Math.min(75, screenWidth * 0.18));
 
-      if (absX >= 28 && absX > absY) {
+      if (absX >= 25 && absX > absY) {
         if (leftDrawerOpenAtStart) {
           if (dx <= -25 || absX >= 35) setMobileMenuOpen(false);
         } else if (rightPanelOpenAtStart) {
           if (dx >= 25 || absX >= 35) setRightPanelOpen(false);
         } else {
-          if (dx >= 28) {
-            // Swiping left to right -> opens left nav drawer
+          if (startX <= edgeThreshold && dx >= 25) {
             setMobileMenuOpen(true);
             setRightPanelOpen(false);
-          } else if (dx <= -28 && hasRightPanel) {
-            // Swiping right to left -> opens right side things
+          } else if (hasRightPanel && startX >= screenWidth - edgeThreshold && dx <= -25) {
             setRightPanelOpen(true);
             setMobileMenuOpen(false);
           }
