@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { api, ackDemotion, ackPromotion, clearTokens, getAccess, initialsOf, isFreshDemotion, isFreshPromotion, resolveMedia, type Me } from '../lib/api';
+import { api, apiUrl, ackDemotion, ackPromotion, clearTokens, getAccess, initialsOf, isFreshDemotion, isFreshPromotion, resolveMedia, type Me } from '../lib/api';
 import './ReaderLayout.css';
 
 export default function ReaderLayout({
@@ -23,7 +23,29 @@ export default function ReaderLayout({
   const [notifs, setNotifs] = useState<Array<{ title: string; body?: string }>>([]);
   const [sync, setSync] = useState('Connecting…');
   const [notice, setNotice] = useState<null | { kind: 'promoted' | 'demoted'; userId: string }>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const topbarRef = useRef<HTMLDivElement>(null);
+
+  async function handleSignOut() {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    setMeOpen(false);
+    try {
+      await fetch(apiUrl('/api/auth/logout'), {
+        method: 'POST',
+        headers: {
+          ...(getAccess() ? { Authorization: 'Bearer ' + getAccess() } : {}),
+        },
+      }).catch(() => null);
+    } catch {
+      /* ignore server-side logout failure */
+    } finally {
+      clearTokens();
+      setMe(null);
+      setIsLoggingOut(false);
+      nav('/auth', { replace: true });
+    }
+  }
 
   useEffect(() => {
     if (!bellOpen && !meOpen) return;
@@ -238,50 +260,60 @@ export default function ReaderLayout({
               <b>{me?.name || me?.email || 'Reader'}</b>
               <span aria-hidden="true">▾</span>
             </button>
-          </div>
-        </div>
-        {bellOpen && (
-          <div className="rdrop" style={{ minWidth: 320, maxWidth: 360 }}>
-            {notifs.length ? (
-              <>
-                {notifs.map((n, i) => (
-                  <div key={i} style={{ padding: '9px 11px', borderBottom: '1px solid #F0EAD9' }}>
-                    <b style={{ fontSize: 13 }}>{n.title}</b>
-                    <div style={{ fontSize: 12, color: '#6B6257' }}>{n.body || ''}</div>
-                  </div>
-                ))}
+            {bellOpen && (
+              <div
+                className="rdrop"
+                style={{ minWidth: 320, maxWidth: 360 }}
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+              >
+                {notifs.length ? (
+                  <>
+                    {notifs.map((n, i) => (
+                      <div key={i} style={{ padding: '9px 11px', borderBottom: '1px solid #F0EAD9' }}>
+                        <b style={{ fontSize: 13 }}>{n.title}</b>
+                        <div style={{ fontSize: 12, color: '#6B6257' }}>{n.body || ''}</div>
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      style={{ border: 0, background: 'none', color: '#2F5D50', fontWeight: 700, padding: 9, cursor: 'pointer' }}
+                      onClick={markAll}
+                    >
+                      Mark all read
+                    </button>
+                  </>
+                ) : (
+                  <div style={{ padding: 12, fontSize: 13, color: '#6B6257' }}>No notifications.</div>
+                )}
+              </div>
+            )}
+            {meOpen && (
+              <div
+                className="rdrop"
+                onMouseDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+              >
                 <button
-                  style={{ border: 0, background: 'none', color: '#2F5D50', fontWeight: 700, padding: 9, cursor: 'pointer' }}
-                  onClick={markAll}
+                  type="button"
+                  onClick={() => {
+                    setMeOpen(false);
+                    nav('/reader-settings');
+                  }}
                 >
-                  Mark all read
+                  Settings
                 </button>
-              </>
-            ) : (
-              <div style={{ padding: 12, fontSize: 13, color: '#6B6257' }}>No notifications.</div>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  disabled={isLoggingOut}
+                >
+                  {isLoggingOut ? 'Signing out…' : 'Sign out'}
+                </button>
+              </div>
             )}
           </div>
-        )}
-        {meOpen && (
-          <div className="rdrop">
-            <button
-              onClick={() => {
-                setMeOpen(false);
-                nav('/reader-settings');
-              }}
-            >
-              Settings
-            </button>
-            <button
-              onClick={() => {
-                clearTokens();
-                nav('/auth');
-              }}
-            >
-              Sign out
-            </button>
-          </div>
-        )}
+        </div>
         {children}
         {notice && (
           <div

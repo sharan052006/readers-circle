@@ -50,8 +50,14 @@ export function setTokens(access?: string | null, refresh?: string | null) {
 }
 
 export function clearTokens() {
-  localStorage.removeItem(LS_A);
-  localStorage.removeItem(LS_R);
+  try {
+    localStorage.removeItem(LS_A);
+    localStorage.removeItem(LS_R);
+    localStorage.removeItem(LS_PROMO_ACK);
+    localStorage.removeItem(LS_DEMO_ACK);
+  } catch {
+    /* ignore storage errors */
+  }
 }
 
 const LS_PROMO_ACK = 'rc_promotion_ack';
