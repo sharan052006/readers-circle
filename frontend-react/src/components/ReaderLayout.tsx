@@ -25,12 +25,14 @@ export default function ReaderLayout({
   const [notice, setNotice] = useState<null | { kind: 'promoted' | 'demoted'; userId: string }>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const topbarRef = useRef<HTMLDivElement>(null);
   const [headerHeight, setHeaderHeight] = useState<number>(54);
 
-  // Close mobile drawer on route changes
+  // Close mobile drawers on route changes
   useEffect(() => {
     setMobileMenuOpen(false);
+    setRightPanelOpen(false);
   }, [active]);
 
   // Dynamically track topbar height so drawer and backdrop sit directly below the header
@@ -45,11 +47,14 @@ export default function ReaderLayout({
     return () => window.removeEventListener('resize', updateHeaderHeight);
   }, [search]);
 
-  // Close mobile drawer on Escape key & lock body scroll without layout shift
+  // Close mobile drawers on Escape key & lock body scroll without layout shift
   useEffect(() => {
-    if (!mobileMenuOpen) return;
+    if (!mobileMenuOpen && !rightPanelOpen) return;
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMobileMenuOpen(false);
+      if (e.key === 'Escape') {
+        setMobileMenuOpen(false);
+        setRightPanelOpen(false);
+      }
     };
     document.addEventListener('keydown', handleKey);
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -64,7 +69,7 @@ export default function ReaderLayout({
       document.body.style.overflow = prevOverflow;
       document.body.style.paddingRight = prevPaddingRight;
     };
-  }, [mobileMenuOpen]);
+  }, [mobileMenuOpen, rightPanelOpen]);
 
   // Edge-swipe navigation (Instagram-style) for mobile drawer
   useEffect(() => {
@@ -77,7 +82,8 @@ export default function ReaderLayout({
     let lastY = 0;
     let isTracking = false;
     let isCanceled = false;
-    let drawerOpenAtStart = false;
+    let leftDrawerOpenAtStart = false;
+    let rightPanelOpenAtStart = false;
 
     const onTouchStart = (e: TouchEvent) => {
       if (!isMobile() || e.touches.length !== 1) return;
@@ -95,12 +101,17 @@ export default function ReaderLayout({
         return;
       }
 
-      drawerOpenAtStart = mobileMenuOpen;
+      leftDrawerOpenAtStart = mobileMenuOpen;
+      rightPanelOpenAtStart = rightPanelOpen;
 
-      if (drawerOpenAtStart) {
-        // When drawer is open, swiping on the drawer or backdrop closes it
+      if (leftDrawerOpenAtStart) {
         const isDrawerOrBackdrop = elem && elem.closest('#rmobile-drawer, .rmobile-backdrop');
         if (!isDrawerOrBackdrop) return;
+      }
+
+      if (rightPanelOpenAtStart) {
+        const isRightOrBackdrop = elem && elem.closest('.railcards, .rdet-rail, aside, .rmobile-right-backdrop, .rmobile-right-drawer-header');
+        if (!isRightOrBackdrop) return;
       }
 
       startX = touch.clientX;
@@ -127,18 +138,34 @@ export default function ReaderLayout({
         return;
       }
 
-      // Responsive threshold: open drawer as soon as user swipes 35px horizontally from anywhere on screen
       if (absX >= 35 && absX > absY) {
-        if (!drawerOpenAtStart) {
-          // Open the left navigation drawer from anywhere on screen
-          setMobileMenuOpen(true);
-          isCanceled = true;
-          isTracking = false;
+        if (leftDrawerOpenAtStart) {
+          // Left nav open: swiping left closes it
+          if (dx <= -30) {
+            setMobileMenuOpen(false);
+            isCanceled = true;
+            isTracking = false;
+          }
+        } else if (rightPanelOpenAtStart) {
+          // Right panel open: swiping left closes it
+          if (dx <= -30) {
+            setRightPanelOpen(false);
+            isCanceled = true;
+            isTracking = false;
+          }
         } else {
-          // When drawer is open, swiping closes it
-          setMobileMenuOpen(false);
-          isCanceled = true;
-          isTracking = false;
+          // Both closed:
+          if (startX <= 45 && dx >= 35) {
+            // Left edge swipe rightward opens left nav drawer
+            setMobileMenuOpen(true);
+            isCanceled = true;
+            isTracking = false;
+          } else if (startX > 45 && dx >= 35) {
+            // Swiping rightward across screen reveals right-hand panel
+            setRightPanelOpen(true);
+            isCanceled = true;
+            isTracking = false;
+          }
         }
       }
     };
@@ -160,12 +187,17 @@ export default function ReaderLayout({
       const absX = Math.abs(dx);
       const absY = Math.abs(dy);
 
-      // Support quick flick gestures on release from anywhere on screen
       if (absX >= 35 && absX > absY) {
-        if (!drawerOpenAtStart) {
-          setMobileMenuOpen(true);
+        if (leftDrawerOpenAtStart) {
+          if (dx <= -30) setMobileMenuOpen(false);
+        } else if (rightPanelOpenAtStart) {
+          if (dx <= -30) setRightPanelOpen(false);
         } else {
-          setMobileMenuOpen(false);
+          if (startX <= 45 && dx >= 35) {
+            setMobileMenuOpen(true);
+          } else if (startX > 45 && dx >= 35) {
+            setRightPanelOpen(true);
+          }
         }
       }
 
@@ -339,7 +371,10 @@ export default function ReaderLayout({
   const linkCls = ({ isActive }: { isActive: boolean }) => (isActive ? 'rnav-a on' : 'rnav-a');
 
   return (
-    <div className="rapp">
+    <div
+      className={'rapp' + (rightPanelOpen ? ' r-right-open' : '')}
+      style={{ '--rh-top': `${headerHeight}px` } as React.CSSProperties}
+    >
       <aside className="rrail" aria-label="Reader navigation">
         <div className="rbrand">
           <span className="rmark">📖</span>
@@ -384,6 +419,33 @@ export default function ReaderLayout({
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
+        )}
+        {rightPanelOpen && (
+          <div
+            className="rmobile-right-backdrop"
+            style={{ top: `${headerHeight}px` }}
+            onClick={() => setRightPanelOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+        {rightPanelOpen && (
+          <div
+            className="rmobile-right-drawer-header"
+            style={{ top: `${headerHeight}px` }}
+          >
+            <div className="rmobile-rdh-title">
+              <span aria-hidden="true">📑</span>
+              <b>Page Highlights</b>
+            </div>
+            <button
+              type="button"
+              className="rmobile-rdh-close"
+              onClick={() => setRightPanelOpen(false)}
+              aria-label="Close page highlights"
+            >
+              ✕
+            </button>
+          </div>
         )}
         <div
           id="rmobile-drawer"
@@ -533,6 +595,21 @@ export default function ReaderLayout({
           </div>
           {search ? <div className="rsearch">{search}</div> : null}
           <div className="rtopright">
+            <button
+              type="button"
+              className={'rbell rmobile-right-toggle' + (rightPanelOpen ? ' active' : '')}
+              onClick={() => {
+                setRightPanelOpen(!rightPanelOpen);
+                setMobileMenuOpen(false);
+                setBellOpen(false);
+                setMeOpen(false);
+              }}
+              aria-label={rightPanelOpen ? 'Close page highlights' : 'Open page highlights'}
+              aria-expanded={rightPanelOpen}
+              title={rightPanelOpen ? 'Close page highlights' : 'Open page highlights'}
+            >
+              <span aria-hidden="true">📑</span>
+            </button>
             <button
               className="rbell"
               onClick={openBell}

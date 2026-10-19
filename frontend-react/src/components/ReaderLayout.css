@@ -28,7 +28,10 @@
 .rmobile-bar,
 .rmobile-toggle,
 .rmobile-drawer,
-.rmobile-backdrop {
+.rmobile-backdrop,
+.rmobile-right-toggle,
+.rmobile-right-backdrop,
+.rmobile-right-drawer-header {
   display: none !important;
 }
 
@@ -283,4 +286,152 @@
 @keyframes rfadein{
   from{opacity:0}
   to{opacity:1}
+}
+
+@keyframes rslidein-right{
+  from{transform:translateX(100%)}
+  to{transform:translateX(0)}
+}
+
+@media(max-width:800px){
+  .rmobile-right-toggle {
+    display: grid !important;
+    place-items: center;
+  }
+  .rmobile-right-toggle.active {
+    background: #F4ECE1 !important;
+    border-color: #6B2A1F !important;
+    color: #6B2A1F !important;
+  }
+
+  /* Right-panel backdrop */
+  .rmobile-right-backdrop {
+    display: block !important;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(36, 26, 18, 0.48);
+    backdrop-filter: blur(2px);
+    z-index: 60;
+    animation: rfadein .2s ease-out;
+    touch-action: none;
+    cursor: pointer;
+  }
+
+  /* Right-panel drawer header */
+  .rmobile-right-drawer-header {
+    display: flex !important;
+    position: fixed;
+    right: 0;
+    width: min(340px, 86vw);
+    height: 44px;
+    background: #F8F5EE;
+    border-left: 1px solid #E5DED2;
+    border-bottom: 1px solid #E5DED2;
+    z-index: 70;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    box-sizing: border-box;
+    animation: rslidein-right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .rmobile-rdh-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #241A12;
+    font-family: 'Fraunces', serif;
+  }
+  .rmobile-rdh-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    border: 1px solid #E5DED2;
+    background: #fff;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    color: #4A4238;
+    padding: 0;
+  }
+
+  /* By default on mobile screens, hide right sidebars so primary content is clean */
+  .railcards,
+  .rdet-rail,
+  .rapp .content aside,
+  .rec-grid > div:last-child {
+    display: none !important;
+  }
+
+  /* When right panel is opened via swipe right or toggle button */
+  .rapp.r-right-open .railcards,
+  .rapp.r-right-open .rdet-rail,
+  .rapp.r-right-open .rapp .content aside,
+  .rapp.r-right-open .rec-grid > div:last-child {
+    display: flex !important;
+    flex-direction: column !important;
+    position: fixed !important;
+    top: calc(var(--rh-top, 54px) + 44px) !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: min(340px, 86vw) !important;
+    height: calc(100vh - var(--rh-top, 54px) - 44px) !important;
+    background: #FDFCF8 !important; /* SINGLE UNIFIED BG */
+    border-left: 1px solid #E5DED2 !important;
+    border-top: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    box-shadow: -8px 0 32px rgba(36, 26, 18, 0.16) !important;
+    z-index: 68 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 16px 14px 40px !important;
+    gap: 14px !important;
+    box-sizing: border-box !important;
+    animation: rslidein-right 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  /* Single background harmony for items inside the mobile right drawer */
+  .rapp.r-right-open .railcards .panel,
+  .rapp.r-right-open .rdet-rail .panel,
+  .rapp.r-right-open .rapp .content aside .panel,
+  .rapp.r-right-open .rapp .content aside .roles-panel,
+  .rapp.r-right-open .rec-grid > div:last-child .rec-side {
+    background: transparent !important;
+    border: 0 !important;
+    border-bottom: 1px solid #EFE8DC !important;
+    border-radius: 0 !important;
+    padding: 0 0 14px 0 !important;
+    margin-bottom: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .rapp.r-right-open .railcards .panel:last-child,
+  .rapp.r-right-open .rdet-rail .panel:last-child,
+  .rapp.r-right-open .rapp .content aside .panel:last-child,
+  .rapp.r-right-open .rapp .content aside .roles-panel:last-child,
+  .rapp.r-right-open .rec-grid > div:last-child .rec-side:last-child {
+    border-bottom: 0 !important;
+  }
+
+  .rapp.r-right-open .railcards .rail-cards-track {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    overflow-x: visible !important;
+    padding: 0 !important;
+  }
+
+  .rapp.r-right-open .railcards .rail-cards-track .rank,
+  .rapp.r-right-open .railcards .rail-cards-track .ev {
+    flex: auto !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    background: #FAF7F0 !important;
+    border: 1px solid #E5DED2 !important;
+  }
 }
