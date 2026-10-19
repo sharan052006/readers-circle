@@ -238,7 +238,7 @@ export default function ReaderDashboard() {
       } catch {
         setFeed([]);
         setFeedError(
-          'Could not reach the backend at ' + apiBase() + '. Check the Spring Boot app on :8080, then reload.',
+          'Could not reach the backend at ' + apiBase() + '. Please check backend connectivity, then reload.',
         );
         setSync('Offline');
       }

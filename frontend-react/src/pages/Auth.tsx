@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { api, loginApi, registerApi, setTokens, type Me } from '../lib/api';
+import { api, apiBase, loginApi, registerApi, setTokens, type Me } from '../lib/api';
 import './Auth.css';
 
 type Mode = 'login' | 'register';
@@ -93,7 +93,7 @@ export default function Auth() {
       const msg = ex instanceof Error ? ex.message : String(ex);
       setError(
         msg === 'Failed to fetch'
-          ? 'Cannot reach backend server. Please verify backend is running on :8080.'
+          ? `Cannot reach backend server (${apiBase()}). Please verify the backend is running and accessible.`
           : msg,
       );
     } finally {

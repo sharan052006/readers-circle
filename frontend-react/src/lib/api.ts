@@ -2,8 +2,32 @@ const LS_API = 'rc_api_base';
 const LS_A = 'rc_access';
 const LS_R = 'rc_refresh';
 
+const ENV_API = (
+  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_BACKEND_URL ||
+  ''
+).trim().replace(/\/+$/, '');
+
+const DEFAULT_PROD_API = 'https://readers-circle.onrender.com';
+const DEFAULT_DEV_API = 'http://localhost:8080';
+
 export function apiBase(): string {
-  return (localStorage.getItem(LS_API) || 'http://localhost:8080').replace(/\/+$/, '');
+  const stored = localStorage.getItem(LS_API);
+  if (stored) {
+    const clean = stored.trim().replace(/\/+$/, '');
+    const isRemote =
+      typeof window !== 'undefined' &&
+      window.location.hostname !== 'localhost' &&
+      window.location.hostname !== '127.0.0.1';
+    if (!isRemote || !clean.includes('localhost')) {
+      return clean;
+    }
+  }
+  if (ENV_API) {
+    return ENV_API;
+  }
+  return import.meta.env.PROD ? DEFAULT_PROD_API : DEFAULT_DEV_API;
 }
 
 export function setApiBase(v: string) {

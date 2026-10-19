@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { api, fmtDate, initialsOf, resolveMedia, type Me } from '../lib/api';
+import { api, apiBase, fmtDate, initialsOf, resolveMedia, type Me } from '../lib/api';
 import { COVER_PLACEHOLDER } from '../lib/placeholders';
 import { AttendeesView, EventChatView, EventDetailView, EventsView, type OrgCircle } from './ManageEvents';
 import './CircleManage.css';
@@ -96,8 +96,7 @@ function EditCircleModal({
         fd.append('file', file);
         const t = localStorage.getItem('rc_access');
         const r = await fetch(
-          (localStorage.getItem('rc_api_base') || 'http://localhost:8080').replace(/\/+$/, '') +
-            '/api/circles/' + circle.id + '/cover',
+          apiBase() + '/api/circles/' + circle.id + '/cover',
           { method: 'POST', headers: t ? { Authorization: 'Bearer ' + t } : {}, body: fd },
         );
         const d = await r.json().catch(() => ({}));
