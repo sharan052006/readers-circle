@@ -85,35 +85,21 @@ export default function ReaderLayout({
       const target = e.target;
       const elem = target instanceof Element ? target : (target as Node)?.parentElement;
 
-      // Prevent triggering when interacting with form controls, forms, or content carousels
-      if (elem) {
-        if (
-          elem.closest(
-            'input, textarea, select, button, form, .rail-cards-track, [data-no-swipe], [role="slider"], [role="tablist"]'
-          )
-        ) {
-          return;
-        }
-
-        // Dynamically detect any parent container with horizontal scrolling/carousel behavior
-        let cur: Element | null = elem;
-        while (cur && cur !== document.body && cur !== document.documentElement) {
-          const style = window.getComputedStyle(cur);
-          if (
-            (style.overflowX === 'auto' || style.overflowX === 'scroll') &&
-            cur.scrollWidth > cur.clientWidth
-          ) {
-            return;
-          }
-          cur = cur.parentElement;
-        }
+      // Prevent triggering when interacting with form controls or carousels
+      if (
+        elem &&
+        elem.closest(
+          'input, textarea, select, button, form, .rail-cards-track, [data-no-swipe], [role="slider"]'
+        )
+      ) {
+        return;
       }
 
       drawerOpenAtStart = mobileMenuOpen;
 
       if (!drawerOpenAtStart) {
-        // Only open when a rightward gesture starts within approximately 20–30px of the viewport's left edge
-        if (touch.clientX > 30) return;
+        // Natural left-edge zone (<= 45px from extreme left edge)
+        if (touch.clientX > 45) return;
       } else {
         // When drawer is open, swiping left on the drawer or backdrop closes it
         const isDrawerOrBackdrop = elem && elem.closest('#rmobile-drawer, .rmobile-backdrop');
@@ -138,19 +124,19 @@ export default function ReaderLayout({
       const absX = Math.abs(dx);
       const absY = Math.abs(dy);
 
-      // Do not trigger the drawer when the user scrolls vertically
-      if (absY > 8 && absY >= absX) {
+      // Cancel if user is scrolling vertically (vertical movement significantly dominates)
+      if (absY > 20 && absY > absX * 1.4) {
         isCanceled = true;
         return;
       }
 
-      // Meaningful horizontal movement of at least 60px where horizontal > vertical
-      if (absX >= 60 && absX > absY) {
-        if (!drawerOpenAtStart && dx >= 60) {
+      // Responsive threshold: open drawer as soon as user swipes 35px rightward from left edge
+      if (absX >= 35 && absX > absY) {
+        if (!drawerOpenAtStart && dx >= 35) {
           setMobileMenuOpen(true);
           isCanceled = true;
           isTracking = false;
-        } else if (drawerOpenAtStart && dx <= -60) {
+        } else if (drawerOpenAtStart && dx <= -30) {
           setMobileMenuOpen(false);
           isCanceled = true;
           isTracking = false;
@@ -175,11 +161,11 @@ export default function ReaderLayout({
       const absX = Math.abs(dx);
       const absY = Math.abs(dy);
 
-      // Evaluate touch start and touch end positions (require at least 60px horizontal > vertical)
-      if (absX >= 60 && absX > absY) {
-        if (!drawerOpenAtStart && dx >= 60) {
+      // Support quick flick gestures on release
+      if (absX >= 35 && absX > absY) {
+        if (!drawerOpenAtStart && dx >= 35) {
           setMobileMenuOpen(true);
-        } else if (drawerOpenAtStart && dx <= -60) {
+        } else if (drawerOpenAtStart && dx <= -30) {
           setMobileMenuOpen(false);
         }
       }
