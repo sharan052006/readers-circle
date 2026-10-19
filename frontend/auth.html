@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reader's Circle — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F9F8F4;
+    --card:#EEECE5;
+    --border:#CFCCC7;
+    --ink:#0F100D;
+    --secondary:#445B73;
+    --burgundy:#693524;
+    --brown:#3D2916;
+    --muted-brown:#956342;
+    --beige:#C49D7C;
+    --green:#6B8F73;
+    --sage:#DDE7DF;
+    --lavender:#6D63A8;
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    min-height:100vh; display:flex;
+  }
+  .shell{display:grid; grid-template-columns:1.05fr 1fr; width:100%; min-height:100vh}
+  /* Left brand panel */
+  .brand{
+    background:
+      radial-gradient(900px 500px at 20% 10%, rgba(196,157,124,.35), transparent 60%),
+      radial-gradient(700px 500px at 90% 90%, rgba(149,99,66,.35), transparent 60%),
+      linear-gradient(160deg, var(--burgundy) 0%, #54281b 45%, var(--brown) 100%);
+    color:#F9F8F4; padding:56px 52px; display:flex; flex-direction:column; justify-content:space-between;
+    position:relative; overflow:hidden;
+  }
+  .brand::after{
+    content:"“"; position:absolute; right:24px; bottom:-40px;
+    font-family:'Fraunces',serif; font-size:340px; line-height:1;
+    color:rgba(249,248,244,.08); pointer-events:none;
+  }
+  .logo{display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:.2px}
+  .mark{
+    width:42px; height:42px; border-radius:12px; display:grid; place-items:center;
+    background:#F9F8F4; color:var(--burgundy);
+    font-family:'Fraunces',serif; font-weight:700; font-size:22px;
+  }
+  .brand h1{
+    font-family:'Fraunces',serif; font-weight:600;
+    font-size:clamp(38px,4.5vw,62px); line-height:1.02; margin:32px 0 16px;
+    letter-spacing:-.02em; max-width:12ch;
+  }
+  .brand p.sub{color:#EADFCF; max-width:44ch; line-height:1.6; margin:0; font-size:16px}
+  .quote-card{
+    margin-top:36px; background:rgba(249,248,244,.1);
+    border:1px solid rgba(249,248,244,.22);
+    border-radius:16px; padding:20px 20px 18px; max-width:460px;
+    backdrop-filter: blur(6px);
+  }
+  .quote-card blockquote{margin:0 0 12px; font-family:'Fraunces',serif; font-size:19px; line-height:1.5}
+  .quote-card cite{font-style:normal; font-size:13px; color:var(--beige); font-weight:600}
+  .stats{display:flex; gap:28px; margin-top:32px}
+  .stats div b{display:block; font-size:22px}
+  .stats div span{font-size:13px; color:#EADFCF}
+  /* Right form side */
+  .panel{display:flex; align-items:center; justify-content:center; padding:40px 28px}
+  .card{
+    width:100%; max-width:460px; background:var(--card);
+    border:1px solid var(--border); border-radius:var(--radius);
+    padding:32px 30px 28px; box-shadow:0 20px 50px rgba(61,41,22,.08);
+  }
+  .card h2{font-family:'Fraunces',serif; font-size:30px; margin:0 0 6px; letter-spacing:-.01em}
+  .card p.lead{margin:0 0 20px; color:var(--secondary); font-size:14.5px; line-height:1.55}
+  .tabs{
+    display:grid; grid-template-columns:1fr 1fr; background:#E2DFD6;
+    border:1px solid var(--border); border-radius:999px; padding:4px; margin-bottom:22px;
+  }
+  .tabs button{
+    border:0; border-radius:999px; padding:11px; font-weight:700; font-size:14px;
+    cursor:pointer; background:transparent; color:var(--secondary);
+  }
+  .tabs button[aria-selected="true"]{background:var(--burgundy); color:#fff; box-shadow:0 6px 16px rgba(105,53,36,.3)}
+  .tabs button:focus-visible, a:focus-visible, input:focus-visible, button.primary:focus-visible{
+    outline:3px solid var(--lavender); outline-offset:2px;
+  }
+  label{display:block; font-size:13px; font-weight:600; margin:14px 0 7px}
+  input{
+    width:100%; padding:13px 14px; border-radius:12px;
+    border:1.5px solid var(--border); background:#FFFEFB; font-size:15px; color:var(--ink);
+  }
+  input::placeholder{color:#9AA0A6}
+  input:focus{border-color:var(--burgundy); outline:none; box-shadow:0 0 0 4px rgba(105,53,36,.12)}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .pw-wrap{position:relative}
+  .pw-toggle{
+    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    border:0; background:transparent; color:var(--muted-brown);
+    font-weight:700; font-size:12.5px; cursor:pointer; padding:8px;
+  }
+  .hint{font-size:12.5px; color:var(--secondary); margin-top:6px}
+  .error{
+    display:none; margin-top:14px; padding:12px 14px; border-radius:12px;
+    background:#FDECEC; border:1px solid #E8AFAF; color:#7A1F1F; font-size:13.5px; line-height:1.5;
+  }
+  .success{
+    display:none; margin-top:14px; padding:12px 14px; border-radius:12px;
+    background:var(--sage); border:1px solid var(--green); color:#23402b; font-size:13.5px; line-height:1.5;
+  }
+  button.primary{
+    width:100%; margin-top:20px; border:0; cursor:pointer;
+    background:var(--burgundy); color:#fff; font-weight:700; font-size:15.5px;
+    padding:14px; border-radius:13px; transition:transform .12s ease, background .15s ease;
+  }
+  button.primary:hover{background:var(--brown)}
+  button.primary:active{transform:translateY(1px)}
+  button.primary:disabled{opacity:.6; cursor:not-allowed}
+  .divider{display:flex; align-items:center; gap:12px; margin:20px 0 6px; color:var(--muted-brown); font-size:12.5px}
+  .divider::before,.divider::after{content:""; height:1px; flex:1; background:var(--border)}
+  .foot{margin-top:14px; font-size:13px; color:var(--secondary); text-align:center; line-height:1.6}
+  .foot a{color:var(--lavender); font-weight:700; text-decoration:none}
+  .foot a:hover{text-decoration:underline}
+  .api-row{display:flex; gap:8px; align-items:center; margin-top:16px}
+  .api-row input{font-size:12.5px; padding:10px 12px; font-family:ui-monospace,monospace}
+  @media (max-width:900px){
+    .shell{grid-template-columns:1fr}
+    .brand{padding:36px 26px; min-height:auto}
+    .brand h1{font-size:38px}
+    .stats{gap:18px}
+    .panel{padding:26px 16px 40px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="brand" aria-label="About Reader's Circle">
+    <div>
+      <div class="logo"><span class="mark">R</span> Reader&rsquo;s Circle</div>
+      <h1>Where readers become a circle.</h1>
+      <p class="sub">Join reading circles, reserve seats at intimate events, share gallery moments and keep the conversation going — all in one warm place.</p>
+      <div class="quote-card">
+        <blockquote>&ldquo;A reader lives a thousand lives before he dies. The man who never reads lives only one.&rdquo;</blockquote>
+        <cite>— George R.R. Martin · this week's circle pick</cite>
+      </div>
+      <div class="stats" aria-label="Community stats">
+        <div><b>2.4k</b><span>readers</span></div>
+        <div><b>48</b><span>active circles</span></div>
+        <div><b>120+</b><span>events hosted</span></div>
+      </div>
+    </div>
+    <p style="margin:28px 0 0;font-size:12.5px;color:#EADFCF">API: <code id="apiLabel">http://localhost:8080</code> · connected to Spring Boot backend</p>
+  </aside>
+
+  <main class="panel">
+    <section class="card" aria-labelledby="title">
+      <h2 id="title">Welcome back</h2>
+      <p class="lead" id="subtitle">Sign in to your circle to see events, messages and your memberships.</p>
+
+      <div class="tabs" role="tablist" aria-label="Authentication mode">
+        <button id="tabLogin" role="tab" aria-selected="true" type="button">Sign in</button>
+        <button id="tabRegister" role="tab" aria-selected="false" type="button">Create account</button>
+      </div>
+
+      <form id="authForm" method="post" action="javascript:void(0)" novalidate>
+        <div id="nameField" hidden>
+          <label for="name">Full name</label>
+          <input id="name" type="text" placeholder="Asha Sharma" autocomplete="name" />
+        </div>
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="you@example.com" autocomplete="email" required />
+        <div>
+          <label for="password">Password</label>
+          <div class="pw-wrap">
+            <input id="password" type="password" placeholder="Minimum 8 characters" autocomplete="current-password" required minlength="8" />
+            <button class="pw-toggle" type="button" id="pwToggle" aria-label="Show password">Show</button>
+          </div>
+          <div class="hint" id="pwHint">Use at least 8 characters.</div>
+        </div>
+        <div class="error" id="errorBox" role="alert"></div>
+        <div class="success" id="okBox" role="status"></div>
+        <button class="primary" id="submitBtn" type="submit">Sign in →</button>
+      </form>
+
+      <div class="divider">secured by JWT · 15 min access</div>
+      <p class="foot">Having trouble? Tokens are stored locally after login.<br><a href="#" id="meLink">Check my profile: GET /api/users/me</a></p>
+
+      <div class="api-row">
+        <input id="apiBase" value="http://localhost:8080" aria-label="API base URL" />
+        <button type="button" id="saveApi" style="border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px 12px;font-weight:700;cursor:pointer">Save</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+(function(){
+  const API_KEY = 'rc_api_base';
+  const apiInput = document.getElementById('apiBase');
+  const apiLabel = document.getElementById('apiLabel');
+  const saved = localStorage.getItem(API_KEY);
+  if(saved){ apiInput.value = saved; apiLabel.textContent = saved; }
+
+  let mode = 'login';
+  const tabLogin = document.getElementById('tabLogin');
+  const tabRegister = document.getElementById('tabRegister');
+  const title = document.getElementById('title');
+  const subtitle = document.getElementById('subtitle');
+  const nameField = document.getElementById('nameField');
+  const submitBtn = document.getElementById('submitBtn');
+  const form = document.getElementById('authForm');
+  const err = document.getElementById('errorBox');
+  const ok = document.getElementById('okBox');
+  const pw = document.getElementById('password');
+  const pwToggle = document.getElementById('pwToggle');
+
+  function setMode(m){
+    mode = m;
+    const isLogin = m === 'login';
+    tabLogin.setAttribute('aria-selected', isLogin);
+    tabRegister.setAttribute('aria-selected', !isLogin);
+    title.textContent = isLogin ? 'Welcome back' : 'Join the circle';
+    subtitle.textContent = isLogin
+      ? 'Sign in to your circle to see events, messages and your memberships.'
+      : 'Create a reader account to request joins, register for events and chat.';
+    nameField.hidden = isLogin;
+    submitBtn.textContent = isLogin ? 'Sign in →' : 'Create account →';
+    pw.setAttribute('autocomplete', isLogin ? 'current-password' : 'new-password');
+    hideMsg();
+  }
+  tabLogin.onclick = () => setMode('login');
+  tabRegister.onclick = () => setMode('register');
+
+  pwToggle.onclick = () => {
+    const show = pw.type === 'password';
+    pw.type = show ? 'text' : 'password';
+    pwToggle.textContent = show ? 'Hide' : 'Show';
+  };
+
+  function base(){ return (apiInput.value || '').replace(/\/+$/,''); }
+  function showError(m){ err.textContent = m; err.style.display='block'; ok.style.display='none'; }
+  function showOk(m){ ok.textContent = m; ok.style.display='block'; err.style.display='none'; }
+  function hideMsg(){ err.style.display='none'; ok.style.display='none'; }
+
+  document.getElementById('saveApi').onclick = () => {
+    localStorage.setItem(API_KEY, base());
+    apiLabel.textContent = base();
+    showOk('API base saved: ' + base());
+  };
+
+  form.onsubmit = async (e) => {
+    e.preventDefault(); hideMsg();
+    const email = document.getElementById('email').value.trim();
+    const password = pw.value;
+    const name = document.getElementById('name').value.trim();
+    if(!email || !password){ return showError('Enter your email and password.'); }
+    if(password.length < 8){ return showError('Password must be at least 8 characters.'); }
+    if(mode === 'register' && !name){ return showError('Tell us your name so circles recognise you.'); }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Please wait…';
+    try{
+      const url = base() + (mode === 'login' ? '/api/auth/login' : '/api/auth/register');
+      const body = mode === 'login' ? { email, password } : { name, email, password };
+      const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      const data = await res.json().catch(()=> ({}));
+      if(!res.ok){
+        const msg = data.message || data.error || ('Request failed: ' + res.status);
+        throw new Error(Array.isArray(msg) ? msg.join(', ') : msg);
+      }
+      // Backend returns TokenResponse(accessToken, refreshToken)
+      const access = data.accessToken || data.access_token || data.token;
+      const refresh = data.refreshToken || data.refresh_token;
+      if(access) localStorage.setItem('rc_access', access);
+      if(refresh) localStorage.setItem('rc_refresh', refresh);
+      showOk('Signed in successfully. Redirecting to Admin Console…');
+
+      // Check role and redirect: ADMIN -> admin console, others -> reader home
+      try {
+        const meRes = await fetch(base() + '/api/users/me', { headers: { Authorization: 'Bearer ' + access } });
+        const me = await meRes.json();
+        if (me.role === 'ADMIN') {
+          window.location.href = 'admin.html';
+        } else {
+          window.location.href = 'reader.html';
+          return;
+        }
+      } catch (err) {
+        window.location.href = 'admin.html';
+      }
+      return;
+    }catch(ex){
+      showError(ex.message === 'Failed to fetch'
+        ? 'Cannot reach ' + base() + '. Is the Spring Boot backend running on :8080?'
+        : ex.message);
+    }finally{
+      submitBtn.disabled = false;
+      submitBtn.textContent = mode === 'login' ? 'Sign in →' : 'Create account →';
+    }
+  };
+
+  document.getElementById('meLink').onclick = async (e) => {
+    e.preventDefault(); hideMsg();
+    const token = localStorage.getItem('rc_access');
+    if(!token) return showError('No access token yet — sign in first.');
+    try{
+      const res = await fetch(base() + '/api/users/me', { headers:{ Authorization:'Bearer ' + token }});
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.message || res.status);
+      showOk('Hello, ' + (data.name || data.email) + ' (' + (data.role || 'admin') + '). <a href="admin.html" style="color:#693524;font-weight:700;margin-left:6px">Open Admin Console →</a>');
+    }catch(ex){ showError(String(ex.message || ex)); }
+  };
+
+  // If already signed in, forward to the right home
+  const existingToken = localStorage.getItem('rc_access');
+  if(existingToken){
+    fetch(base() + '/api/users/me', { headers: { Authorization: 'Bearer ' + existingToken } })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(me){
+        if(!me){ return; }
+        if(me.role === 'ADMIN'){ window.location.href = 'admin.html'; }
+        else { window.location.href = 'reader.html'; }
+      })
+      .catch(function(){ /* stay on sign-in page */ });
+  }
+})();
+</script>
+</body>
+</html>

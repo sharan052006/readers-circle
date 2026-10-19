@@ -1,0 +1,44 @@
+.landing-wrap {
+  margin: 0;
+  background: #F9F8F4;
+  color: #1C1611;
+  font-family: 'Inter', system-ui, sans-serif;
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+}
+.landing-card {
+  background: #FFFDF8;
+  border: 1px solid #D8D3C6;
+  border-radius: 20px;
+  padding: 36px;
+  max-width: 480px;
+  width: calc(100% - 32px);
+  text-align: center;
+}
+.landing-card h1 {
+  font-family: 'Fraunces', serif;
+  margin: 0 0 6px;
+  font-size: 32px;
+}
+.landing-card p {
+  color: #5C6672;
+  margin: 0 0 20px;
+}
+.landing-card a {
+  display: block;
+  text-decoration: none;
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 13px;
+  margin-top: 10px;
+}
+.landing-a {
+  background: #693524;
+  color: #fff;
+}
+.landing-b {
+  background: #fff;
+  color: #1C1611;
+  border: 1px solid #D8D3C6;
+}

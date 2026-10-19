@@ -12,7 +12,10 @@ import com.readerscircle.events.dto.AttendeeDto;
 import com.readerscircle.events.dto.RegistrationDto;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -61,6 +64,13 @@ public class RegistrationService {
 
     if (!circle.isActive()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot register for an event in an inactive circle");
+    }
+
+    boolean readerActive =
+        userRepository.findById(readerId).map(User::isActive).orElse(false);
+    if (!readerActive) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "Your account has been blocked by the administrator. You cannot participate in events.");
     }
 
     assertApprovedMemberOrOrganizer(circle, readerId, readerRole);
@@ -147,7 +157,7 @@ public class RegistrationService {
             .findById(event.getCircleId())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Circle not found"));
 
-    if (actorRole != Role.ADMIN && (actorId == null || !circle.getOrganizerId().equals(actorId))) {
+    if (actorRole != Role.ADMIN && !isEffectiveOrganizer(circle, actorId)) {
       throw new ResponseStatusException(
           HttpStatus.FORBIDDEN, "Only the circle organizer or an admin can view attendees");
     }
@@ -164,9 +174,144 @@ public class RegistrationService {
                   .orElse(null);
           String name = user != null ? user.getName() : "Unknown Reader";
           String email = user != null ? user.getEmail() : "";
-          return new AttendeeDto(reg.getReaderId(), name, email, reg.getRegisteredAt());
+          String avatar = user != null ? user.getProfilePictureUrl() : null;
+          return new AttendeeDto(reg.getReaderId(), name, email, reg.getRegisteredAt(), avatar, reg.isAttended());
         })
         .toList();
+  }
+
+  /**
+   * Member-visible roster preview for the event cards/detail (names + faces,
+   * no emails). Any approved circle member, the organizer, or an admin.
+   */
+  @Transactional(readOnly = true)
+  public List<Map<String, Object>> getAttendeePreview(UUID eventId, UUID actorId, Role actorRole) {
+    Event event =
+        eventRepository
+            .findById(eventId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+    Circle circle =
+        circleRepository
+            .findById(event.getCircleId())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Circle not found"));
+    assertCanViewRoster(circle, actorId, actorRole);
+    List<Map<String, Object>> out = new java.util.ArrayList<>();
+    for (EventRegistration reg :
+        registrationRepository.findByEventIdAndStatusOrderByRegisteredAtAsc(
+            eventId, RegistrationStatus.REGISTERED)) {
+      User user = userRepository.findById(reg.getReaderId()).orElse(null);
+      Map<String, Object> m = new java.util.LinkedHashMap<>();
+      m.put("readerId", reg.getReaderId().toString());
+      m.put("name", user != null ? user.getName() : "Reader");
+      m.put("avatarUrl", user == null ? null : user.getProfilePictureUrl());
+      m.put("attended", reg.isAttended());
+      out.add(m);
+    }
+    return out;
+  }
+
+  /**
+   * Organizer/admin marks a registered reader attended or not (Past tab
+   * Attended / Did Not Attend).
+   */
+  @Transactional
+  public AttendeeDto markAttendance(
+      UUID eventId, UUID readerId, boolean attended, UUID actorId, Role actorRole) {
+    Event event =
+        eventRepository
+            .findById(eventId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+    Circle circle =
+        circleRepository
+            .findById(event.getCircleId())
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Circle not found"));
+    if (actorRole != Role.ADMIN && !isEffectiveOrganizer(circle, actorId)) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "Only the circle organizer or an admin can mark attendance");
+    }
+    EventRegistration reg =
+        registrationRepository
+            .findByEventIdAndReaderId(eventId, readerId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Registration not found"));
+    try {
+      reg.markAttended(attended);
+    } catch (IllegalStateException e) {
+      throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, e.getMessage());
+    }
+    EventRegistration saved = registrationRepository.save(reg);
+    User user = userRepository.findById(readerId).orElse(null);
+    return new AttendeeDto(
+        readerId,
+        user != null ? user.getName() : "Unknown Reader",
+        user != null ? user.getEmail() : "",
+        saved.getRegisteredAt(),
+        user != null ? user.getProfilePictureUrl() : null,
+        saved.isAttended());
+  }
+
+  /**
+   * Event Stats rails: my registered/upcoming/completed/attended/missed plus
+   * total attendees across my events.
+   */
+  @Transactional(readOnly = true)
+  public Map<String, Long> getMyEventStats(UUID readerId) {
+    List<EventRegistration> regs =
+        registrationRepository.findByReaderIdAndStatusOrderByRegisteredAtDesc(
+            readerId, RegistrationStatus.REGISTERED);
+    long upcoming = 0;
+    long completed = 0;
+    long attended = 0;
+    long totalAttendees = 0;
+    LocalDate today = LocalDate.now(clock);
+    LocalTime nowTime = LocalTime.now(clock);
+    java.util.Set<UUID> counted = new java.util.HashSet<>();
+    for (EventRegistration reg : regs) {
+      Event event = eventRepository.findById(reg.getEventId()).orElse(null);
+      if (event == null) {
+        continue;
+      }
+      // Datetime-aware like the listings: a passed PUBLISHED event counts as
+      // completed even before anyone marks it COMPLETED.
+      if (event.getStatus() == EventStatus.COMPLETED
+          || (event.getStatus() == EventStatus.PUBLISHED
+              && EventService.isPastDateTime(event, today, nowTime))) {
+        completed++;
+        attended++;
+      } else if (event.getStatus() == EventStatus.PUBLISHED) {
+        upcoming++;
+      }
+      if (counted.add(event.getId())) {
+        totalAttendees +=
+            registrationRepository.countByEventIdAndStatus(event.getId(), RegistrationStatus.REGISTERED);
+      }
+    }
+    Map<String, Long> out = new java.util.LinkedHashMap<>();
+    out.put("registered", (long) regs.size());
+    out.put("upcoming", upcoming);
+    out.put("completed", completed);
+    out.put("attended", attended);
+    out.put("missed", completed - attended);
+    out.put("totalAttendees", totalAttendees);
+    return out;
+  }
+
+  private void assertCanViewRoster(Circle circle, UUID actorId, Role actorRole) {
+    if (actorRole == Role.ADMIN) {
+      return;
+    }
+    if (actorId != null && isEffectiveOrganizer(circle, actorId)) {
+      return;
+    }
+    boolean member =
+        actorId != null
+            && membershipRepository
+                .findByCircleIdAndReaderId(circle.getId(), actorId)
+                .map(m -> m.getStatus() == MembershipStatus.APPROVED)
+                .orElse(false);
+    if (!member) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "Must be an approved member, circle organizer, or admin to view attendees");
+    }
   }
 
   @Transactional(readOnly = true)
@@ -185,9 +330,10 @@ public class RegistrationService {
 
   private void assertApprovedMemberOrOrganizer(Circle circle, UUID readerId, Role readerRole) {
     if (readerRole == Role.ADMIN) {
-      return;
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Admins do not register for events; view attendee roster instead");
     }
-    if (circle.getOrganizerId().equals(readerId)) {
+    if (isEffectiveOrganizer(circle, readerId)) {
       return;
     }
     Membership membership =
@@ -201,9 +347,31 @@ public class RegistrationService {
     }
   }
 
+  /**
+   * Effective organizer = assigned as the circle's organizer AND still holding
+   * a live ORGANIZER/ADMIN role. Role is read from the DB (not the JWT) so a
+   * demotion takes effect immediately, even for tokens minted before it.
+   */
+  private boolean isEffectiveOrganizer(Circle circle, UUID userId) {
+    if (circle == null || userId == null || !userId.equals(circle.getOrganizerId())) {
+      return false;
+    }
+    Role role = userRepository.findById(userId).map(User::getRole).orElse(null);
+    return role == Role.ORGANIZER || role == Role.ADMIN;
+  }
+
   private RegistrationDto toRegistrationDto(EventRegistration reg, Event event) {
     String title = event != null ? event.getTitle() : "Unknown Event";
     UUID circleId = event != null ? event.getCircleId() : null;
+    String circleName = null;
+    if (circleId != null) {
+      circleName = circleRepository.findById(circleId).map(Circle::getName).orElse(null);
+    }
+    long registeredCount = 0;
+    if (event != null) {
+      registeredCount =
+          registrationRepository.countByEventIdAndStatus(event.getId(), RegistrationStatus.REGISTERED);
+    }
     return new RegistrationDto(
         reg.getId(),
         reg.getEventId(),
@@ -212,6 +380,14 @@ public class RegistrationService {
         reg.getReaderId(),
         reg.getStatus(),
         reg.getRegisteredAt(),
-        reg.getCancelledAt());
+        reg.getCancelledAt(),
+        event != null ? event.getEventDate() : null,
+        event != null ? event.getEventTime() : null,
+        event != null ? event.getVenue() : null,
+        event != null ? event.getCoverImageUrl() : null,
+        circleName,
+        event != null ? event.getCapacity() : null,
+        registeredCount,
+        reg.isAttended());
   }
 }

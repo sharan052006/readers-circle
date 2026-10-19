@@ -1,0 +1,58 @@
+/* Shared Book Recommendations styles — same look for admin, reader, organiser.
+   Carries its own theme vars + button/error styles (scoped under .rec-scope)
+   so reader pages don't need the admin stylesheet. */
+:root{
+  --paper:#F9F8F4; --card:#FFFDF8; --card2:#EEECE5; --border:#D8D3C6;
+  --ink:#1C1611; --muted:#5C6672; --burgundy:#693524; --brown:#3D2916;
+  --clay:#956342; --beige:#C49D7C; --sage:#DDE7DF; --moss:#3E6B4F;
+  --blush:#F6E3D8; --sky:#DFE9EF; --butter:#F4E6C3; --lav:#E4E1F2;
+  --radius:16px;
+}
+.rec-scope .btn{background:var(--burgundy);color:#fff;border:0;border-radius:11px;padding:10px 16px;font-weight:700;cursor:pointer}
+.rec-scope .btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.rec-scope .err{border:1px solid #E3A9A9;background:#FDECEC;color:#7A1F1F;border-radius:12px;padding:12px 14px;margin:0 0 12px}
+.rec-scope .sub{font-size:12px;color:var(--muted);margin:0 0 12px}
+.rec-banner{background:linear-gradient(100deg,#FCF1EA 0%,#FFF6F2 60%,#FBEAF4 100%);border:1px solid #F1E2D8;border-radius:14px;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:14px;overflow:hidden}
+.rec-banner-left{display:flex;align-items:center;gap:14px}
+.rec-banner-ic{width:48px;height:48px;border-radius:12px;background:#F8DED7;color:#7B211A;display:grid;place-items:center;font-size:22px;flex:none}
+.rec-banner h2{font-family:'Fraunces',serif;color:#731E17;font-size:24px;margin:0;letter-spacing:.02em}
+.rec-banner p{margin:2px 0 0;color:#7A6A62;font-size:12.5px}
+.rec-filters{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.rec-filters select{border:1px solid var(--border);border-radius:10px;padding:8px 12px;background:#fff;font-size:12.5px}
+.rec-grid{display:grid;grid-template-columns:minmax(0,1fr) 288px;gap:14px;align-items:start}
+.rec-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+.rec-top{display:flex;gap:14px}
+.rec-cover{width:80px;height:104px;object-fit:cover;border-radius:8px;background:#F3ECE2;flex:none;display:grid;place-items:center;color:#8B8079;font-size:11px;text-align:center}
+.rec-card h3{margin:0;font-family:'Fraunces',serif;color:#731E17;font-size:15px;letter-spacing:.03em}
+.rec-author{font-size:12.5px;color:#4B413C;margin:2px 0}
+.rec-byline{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin:6px 0}
+.rec-mini-av{width:24px;height:24px;border-radius:50%;background:#F4E6C3;display:grid;place-items:center;font-size:11px;font-weight:700;color:#7A5A1E}
+.rec-stars{color:#C98A1B;font-size:14px;letter-spacing:2px}
+.rec-stars .off{color:#DCD5CC}
+.rec-review{font-size:13px;color:#4B413C;margin:8px 0}
+.bd-tagpill{background:#FBE9E4;color:#8A3B2E;border-radius:999px;padding:2px 10px;font-size:11.5px;font-weight:600}
+.bd-empty{color:var(--muted);font-size:13px;text-align:center;padding:30px 10px}
+.rec-actions{display:flex;align-items:center;gap:16px;border-top:1px solid #F1EAE4;margin-top:10px;padding-top:10px;font-size:12.5px}
+.rec-act{background:none;border:0;cursor:pointer;color:#6D625C;font-size:12.5px;padding:2px 0}
+.rec-act.liked{color:var(--burgundy);font-weight:700}
+.rec-save{margin-left:auto;background:none;border:0;cursor:pointer;font-size:16px;color:#7A5A3A}
+.rec-cbox textarea{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px;min-height:56px;font:inherit;margin-top:10px;background:#FFFEFA}
+.rec-cbox .row{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+.rec-side{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
+.rec-side h3{margin:0 0 10px;font-size:13.5px;font-family:'Fraunces',serif;color:#731E17;letter-spacing:.04em}
+.rec-trow{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #F3ECE5;font-size:12.5px}
+.rec-trow:last-child{border-bottom:0}
+.rec-rank{font-weight:700;color:#7A5A3A;width:14px}
+.rec-modal-veil{position:fixed;inset:0;background:rgba(60,40,30,.45);display:grid;place-items:center;z-index:50;padding:18px}
+.rec-modal{background:#FFFDF8;border-radius:16px;max-width:640px;width:100%;max-height:92vh;overflow:auto;padding:26px 28px}
+.rec-modal h2{font-family:'Fraunces',serif;color:#731E17;text-align:center;margin:0 0 16px;font-size:22px;letter-spacing:.03em}
+.rec-modal label{display:block;font-size:12.5px;font-weight:600;margin:10px 0 6px}
+.rec-modal input[type=text],.rec-modal select,.rec-modal textarea{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font:inherit;background:#fff}
+.rec-modal textarea{min-height:96px;resize:vertical}
+.rec-coverrow{display:flex;gap:14px}
+.rec-coverprev{width:110px;height:130px;border-radius:10px;background:#F3ECE5;display:grid;place-items:center;color:#A89C90;font-size:34px;flex:none;overflow:hidden}
+.rec-coverprev img{width:100%;height:100%;object-fit:cover}
+.rec-rate button{background:none;border:0;font-size:22px;cursor:pointer;color:#DCD5CC;padding:0 2px}
+.rec-rate button.lit{color:#D9962B}
+.rec-tagchip{display:inline-block;background:#F4E6C3;border-radius:999px;padding:3px 10px;font-size:11.5px;margin:4px 6px 0 0}
+@media (max-width:1020px){.rec-grid{grid-template-columns:1fr}}

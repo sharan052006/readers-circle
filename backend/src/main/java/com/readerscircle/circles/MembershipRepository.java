@@ -16,4 +16,15 @@ public interface MembershipRepository extends JpaRepository<Membership, UUID> {
   List<Membership> findByReaderId(UUID readerId);
 
   long countByCircleIdAndStatus(UUID circleId, MembershipStatus status);
+
+  long countByCircleIdAndStatusAndReaderIdNot(UUID circleId, MembershipStatus status, UUID readerId);
+
+  long countByStatus(MembershipStatus status);
+
+  long countByStatusAndRequestedAtAfter(MembershipStatus status, java.time.OffsetDateTime after);
+
+  long countByCircleIdAndStatusAndDecidedAtAfter(
+      UUID circleId, MembershipStatus status, java.time.OffsetDateTime after);
+
+  List<Membership> findTop10ByStatusOrderByDecidedAtDesc(MembershipStatus status);
 }

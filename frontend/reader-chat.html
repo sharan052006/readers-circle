@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reader's Circle — Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBFAF6; --card:#FFFDF9; --border:#E5DED2;
+  --ink:#241A12; --muted:#6B6257; --faint:#8A8175;
+  --burgundy:#6B2A1F; --burgundy-deep:#4E1E15;
+  --palm:#2F5D50;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.55}
+:focus-visible{outline:3px solid var(--palm);outline-offset:2px;border-radius:8px}
+button,input{font:inherit}
+.app{display:grid;grid-template-columns:224px minmax(0,1fr);min-height:100vh}
+.rail{border-right:1px solid var(--border);background:#FDFCF8;padding:18px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 8px 14px}
+.brand .mark{width:32px;height:32px;border-radius:9px;background:var(--burgundy);color:#fff;display:grid;place-items:center;font-size:18px}
+.brand b{font-family:'Fraunces',serif;font-size:17px;letter-spacing:-.01em}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;color:var(--ink);text-decoration:none;font-weight:500}
+.nav a:hover{background:#F3EEE1}
+.nav a[aria-current="page"]{background:#F5E9DD;font-weight:700}
+.syncnote{margin-top:auto;border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:var(--card);font-size:12px;color:var(--muted)}
+.syncnote b{color:var(--palm)}
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;gap:14px;padding:12px 26px;border-bottom:1px solid var(--border);background:var(--paper);position:sticky;top:0;z-index:5}
+.topbar h1{font-family:'Fraunces',serif;font-size:22px;margin:0}
+.userchip{margin-left:auto;display:flex;align-items:center;gap:9px;border:0;background:transparent;padding:4px 6px;border-radius:12px}
+.userchip .face{width:32px;height:32px;border-radius:50%;background:#EAD9C2;display:grid;place-items:center;font-weight:700}
+.content{padding:20px 26px 48px;max-width:1280px;width:100%}
+/* chat workspace (reader theme, same backend as admin General Chat) */
+.gchat-banner{background:linear-gradient(100deg,#FCF1EA 0%,#FFF6F2 55%,#FBEAF4 100%);border:1px solid #F1E2D8;border-radius:14px;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:14px}
+.gchat-banner h2{font-family:'Fraunces',serif;color:#731E17;font-size:24px;margin:0;letter-spacing:.02em}
+.gchat-banner p{margin:2px 0 0;color:#7A6A62;font-size:13px}
+.gchat-grid{display:grid;grid-template-columns:252px minmax(0,1fr) 288px;gap:14px;align-items:start}
+.gchat-left{display:flex;flex-direction:column;gap:10px;min-width:0}
+.gchat-search{position:relative}
+.gchat-search input{width:100%;border:1px solid var(--border);border-radius:10px;padding:9px 12px 9px 34px;background:#fff}
+.gchat-search span{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#A49790}
+.gchat-seclbl{font-size:11px;font-weight:700;letter-spacing:.08em;color:#9A8C84;margin:4px 4px 0}
+.gchat-chan{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid transparent;background:transparent;border-radius:11px;padding:9px 11px;cursor:pointer;color:var(--ink)}
+.gchat-chan:hover{background:#FBF5F2}
+.gchat-chan.on{background:#FAEDE8;border-color:#F3D5CB}
+.gchat-badge{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;flex:none;font-weight:700;background:#FBE2DC;color:#8B231C}
+.gchat-chan b{display:block;font-size:12.5px;letter-spacing:.02em}
+.gchat-chan small{display:block;font-size:11.5px;color:#897E77}
+.gchat-tick{margin-left:auto;color:#7B1E18;font-weight:700}
+.gchat-mid{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-height:560px}
+.gchat-head{display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid #EEE7E1}
+.gchat-head h3{margin:0;font-size:14px;letter-spacing:.03em}
+.gchat-head small{color:#8B8079;font-size:11.5px}
+.gchat-dot{width:8px;height:8px;border-radius:50%;background:#25A25B;margin-left:auto}
+.gchat-msgs{flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:14px;min-height:320px}
+.gchat-row{display:flex;gap:10px;max-width:86%}
+.gchat-row.own{align-self:flex-end;flex-direction:row-reverse}
+.gchat-av{width:34px;height:34px;border-radius:50%;background:#F9E3DD;color:#82221B;display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
+.gchat-meta{font-size:12px;color:var(--muted);margin-bottom:3px}
+.gchat-meta b{color:var(--ink);font-size:12.5px;margin-right:6px}
+.gchat-bub{background:#FFFEFA;border:1px solid #EBE3DC;border-radius:12px;padding:10px 14px}
+.gchat-bub p{margin:0;font-size:13.5px}
+.gchat-comp{border-top:1px solid #F2EBE5;padding:12px 16px}
+.gchat-pill{display:flex;align-items:center;gap:8px;border:1px solid #E5DED8;border-radius:999px;padding:5px 6px 5px 14px;background:#fff}
+.gchat-pill input{flex:1;border:0;outline:0;background:transparent;font:inherit;min-width:0}
+.gchat-send{width:36px;height:36px;border-radius:50%;border:0;background:var(--burgundy);color:#fff;cursor:pointer;font-size:15px}
+.gchat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+.gchat-card h3{margin:0;font-size:13.5px}
+.gchat-big{width:68px;height:68px;border-radius:50%;background:#FCEDEA;color:#7B1E18;display:grid;place-items:center;font-family:'Fraunces',serif;font-size:30px;font-weight:700;margin:12px auto 8px}
+.gchat-cname{text-align:center;font-weight:700;font-size:14px;margin:0}
+.gchat-csub{text-align:center;color:#8B807A;font-size:11.5px;margin:0 0 8px}
+.gchat-stat{display:flex;justify-content:space-between;border-top:1px solid #F1EAE4;margin-top:8px;padding-top:10px;font-size:12.5px;color:#6D625C}
+.gchat-rules{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;font-size:12.5px;color:#4B413C}
+.gchat-rules li{display:flex;gap:9px}
+.gchat-ok{color:#1EA759;font-weight:700}
+.err{border:1px solid #E3A9A9;background:#FDECEC;color:#7A1F1F;border-radius:12px;padding:12px 14px;margin:0 0 12px}
+.notice{border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:#FFF8E8;font-size:13px;margin:0 0 12px}
+@media (max-width:1100px){.gchat-grid{grid-template-columns:230px minmax(0,1fr)}.gchat-right{display:none}}
+@media (max-width:760px){.app{grid-template-columns:1fr}.rail{position:static;height:auto}.gchat-grid{grid-template-columns:minmax(0,1fr)}.gchat-left{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail" aria-label="Reader navigation">
+    <div class="brand"><span class="mark">📖</span><b>Reader's Circle</b></div>
+    <nav class="nav">
+      <a href="reader.html"><span>⌂</span> Dashboard</a>
+      <a href="reader-circles.html"><span>👥</span> Circles</a>
+      <a href="reader-events.html"><span>📅</span> Events</a>
+      <a href="reader-chat.html" aria-current="page"><span>💬</span> Chat</a>
+      <a href="reader-settings.html"><span>⚙</span> Settings</a>
+    </nav>
+    <div class="syncnote">Circle chat — same backend as admin.<br><b id="syncState">Connecting…</b></div>
+  </aside>
+  <div class="main">
+    <div class="topbar"><h1>Chat</h1>
+      <span class="userchip"><span class="face" id="meFace">R</span><b id="meName">Reader</b></span>
+    </div>
+    <div class="content">
+      <div id="pageErr" class="err" hidden></div>
+      <div class="gchat-banner">
+        <div><h2>GENERAL CHAT</h2><p>Talk books and ideas with your circles. Only circles you joined appear here.</p></div>
+        <div style="font-size:40px" aria-hidden="true">🌿📚☕</div>
+      </div>
+      <div class="gchat-grid">
+        <aside aria-label="My circles">
+          <div class="gchat-left">
+            <div class="gchat-search"><span>🔍</span><input id="gchatSearch" placeholder="Search my circles..." aria-label="Search my circles" /></div>
+            <div class="gchat-seclbl">MY CIRCLES</div>
+            <div id="gchatList" style="display:flex;flex-direction:column;gap:4px"></div>
+          </div>
+        </aside>
+        <div class="gchat-mid" aria-label="Conversation">
+          <div class="gchat-head">
+            <span class="gchat-badge" id="gchatHeadAv">C</span>
+            <div><h3 id="gchatHeadName">—</h3><small id="gchatHeadSub">Select a circle</small></div>
+            <span class="gchat-dot" title="Connected"></span>
+          </div>
+          <div class="gchat-msgs" id="gchatMsgs" aria-live="polite"></div>
+          <div id="gchatErr" class="err" hidden style="margin:8px 16px 0"></div>
+          <div class="gchat-comp">
+            <div class="gchat-pill">
+              <input id="gchatInput" placeholder="Join a circle to chat..." maxlength="2000" aria-label="Type a message" autocomplete="off" disabled />
+              <button class="gchat-send" id="gchatSend" type="button" title="Send message">➤</button>
+            </div>
+          </div>
+        </div>
+        <aside class="gchat-right" aria-label="Circle information">
+          <div class="gchat-card">
+            <h3>Circle Information</h3>
+            <div class="gchat-big" id="gchatBigAv">C</div>
+            <p class="gchat-cname" id="gchatInfoName">—</p>
+            <p class="gchat-csub" id="gchatInfoSub">—</p>
+            <div class="gchat-stat"><span>Members</span><b id="gchatStatVal">–</b></div>
+          </div>
+          <div class="gchat-card">
+            <h3>Circle Guidelines</h3>
+            <ul class="gchat-rules">
+              <li><span class="gchat-ok">✓</span><span>Keep the conversation respectful and friendly.</span></li>
+              <li><span class="gchat-ok">✓</span><span>Avoid spoilers (use spoiler tags if needed).</span></li>
+              <li><span class="gchat-ok">✓</span><span>Stay on topic and relevant to the circle.</span></li>
+              <li><span class="gchat-ok">✓</span><span>No hate speech or personal attacks.</span></li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  function base(){ return (localStorage.getItem('rc_api_base')||'http://localhost:8080').replace(/\/+$/,''); }
+  function tok(){ return localStorage.getItem('rc_access'); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  if(!tok()){ location.href='auth.html'; return; }
+  async function api(p,opt){
+    opt=opt||{};
+    var r=await fetch(base()+p,{method:opt.method||'GET',headers:Object.assign({Authorization:'Bearer '+tok()},{'Content-Type':'application/json'}),body:opt.body});
+    if(r.status===401){ location.href='auth.html'; throw new Error('Session expired. Sign in again.'); }
+    var d=null; try{ d=await r.json(); }catch(e){}
+    if(!r.ok){ var m=(d&&(d.message||d.error))||('Request failed: '+r.status); throw new Error(Array.isArray(m)?m.join(', '):m); }
+    return d;
+  }
+  var state={circles:[],selected:null,meId:null,timer:null};
+  function setSync(t){ document.getElementById('syncState').textContent=t; }
+  function setErr(m){ var e=document.getElementById('gchatErr'); if(!m){e.hidden=true;return;} e.hidden=false; e.textContent=m; }
+  function initials(n){ n=String(n||'C').trim(); return n?n[0].toUpperCase():'C'; }
+
+  async function init(){
+    setSync('Syncing…');
+    try{
+      var me=await api('/api/users/me');
+      state.meId=me.id||null;
+      document.getElementById('meName').textContent=me.name||me.email||'Reader';
+      document.getElementById('meFace').textContent=initials(me.name||me.email);
+    }catch(e){}
+    try{
+      var mine=await api('/api/users/me/memberships');
+      var approved=(mine||[]).filter(function(m){return m.status==='APPROVED';});
+      var all=await api('/api/circles?sort=name_asc');
+      var byId={}; (all||[]).forEach(function(c){byId[c.id]=c;});
+      state.circles=approved.map(function(m){
+        var c=byId[m.circleId]||{};
+        return {id:m.circleId,name:m.circleName||c.name||'Circle',memberCount:c.memberCount!=null?c.memberCount:1,cover:c.coverImageUrl};
+      });
+      // Organisers have no membership row for their own circles — merge organised ones in too.
+      try{
+        var org=await api('/api/users/me/organized-circles').catch(function(){return [];});
+        var seen={}; state.circles.forEach(function(c){seen[String(c.id)]=1;});
+        (org||[]).forEach(function(o){
+          if(o.id==null||seen[String(o.id)]) return;
+          seen[String(o.id)]=1;
+          var full=byId[o.id]||{};
+          state.circles.push({id:o.id,name:o.name||full.name||'Circle',memberCount:full.memberCount!=null?full.memberCount:(o.memberCount!=null?o.memberCount:1),cover:full.coverImageUrl||o.coverImageUrl});
+        });
+      }catch(e){}
+      if(!state.circles.length){
+        document.getElementById('gchatList').innerHTML='';
+        document.getElementById('gchatMsgs').innerHTML='<div class="notice"><b>No circles yet.</b><br>Join a circle from Circles page — approved circles appear here for chat.</div>';
+        document.getElementById('gchatHeadName').textContent='No circles';
+        document.getElementById('gchatHeadSub').textContent='Join a circle first';
+        setSync('Synced');
+        return;
+      }
+      // ?circle=xxx deep link support
+      var want=null; try{ var q=new URLSearchParams(location.search); want=q.get('circle'); }catch(e){}
+      var first=state.circles[0];
+      if(want){ var f=state.circles.find(function(c){return String(c.id)===String(want);}); if(f) first=f; }
+      renderList();
+      await select(first.id,true);
+      if(state.timer)clearInterval(state.timer);
+      state.timer=setInterval(function(){ if(state.selected) loadMessages(true); },6000);
+      setSync('Synced with admin just now');
+    }catch(e){
+      document.getElementById('pageErr').hidden=false;
+      document.getElementById('pageErr').textContent=e.message;
+      setSync('Offline');
+    }
+  }
+  function renderList(){
+    var q=(document.getElementById('gchatSearch').value||'').toLowerCase();
+    var list=state.circles.filter(function(c){return !q||(c.name||'').toLowerCase().indexOf(q)>=0;});
+    document.getElementById('gchatList').innerHTML=list.map(function(c){
+      var on=state.selected&&String(state.selected)===String(c.id);
+      return '<button type="button" class="gchat-chan'+(on?' on':'')+'" data-id="'+esc(c.id)+'">'
+        +'<span class="gchat-badge">'+esc(initials(c.name))+'</span>'
+        +'<span><b>'+esc(String(c.name).toUpperCase())+'</b><small>'+esc(c.memberCount)+' '+(c.memberCount===1?'member':'members')+'</small></span>'
+        +(on?'<span class="gchat-tick">✓</span>':'')+'</button>';
+    }).join('')||'<p style="color:var(--muted);font-size:13px">No matches.</p>';
+    document.querySelectorAll('#gchatList .gchat-chan').forEach(function(b){b.onclick=function(){select(b.getAttribute('data-id'));};});
+  }
+  document.getElementById('gchatSearch').addEventListener('input',renderList);
+  async function select(id,silent){
+    state.selected=id;
+    renderList();
+    var c=state.circles.find(function(x){return String(x.id)===String(id);});
+    if(!c)return;
+    document.getElementById('gchatHeadName').textContent=String(c.name).toUpperCase();
+    document.getElementById('gchatHeadSub').textContent=c.memberCount+(c.memberCount===1?' member':' members');
+    document.getElementById('gchatHeadAv').textContent=initials(c.name);
+    document.getElementById('gchatInfoName').textContent=String(c.name).toUpperCase();
+    document.getElementById('gchatInfoSub').textContent=c.memberCount+(c.memberCount===1?' member':' members');
+    document.getElementById('gchatBigAv').textContent=initials(c.name);
+    document.getElementById('gchatStatVal').textContent=c.memberCount;
+    document.getElementById('gchatInput').disabled=false;
+    document.getElementById('gchatInput').placeholder='Type a message...';
+    await loadMessages(silent);
+  }
+  async function loadMessages(silent){
+    if(!state.selected)return;
+    try{
+      if(!silent)setErr('');
+      var m=await api('/api/circles/'+state.selected+'/messages?size=50');
+      var rows=(Array.isArray(m)?m:[]).filter(function(x){return !x.deleted;});
+      document.getElementById('gchatMsgs').innerHTML=rows.length?rows.map(function(x){
+        var own=state.meId&&String(x.senderId)===String(state.meId);
+        var t=''; try{t=new Date(x.sentAt).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});}catch(e){}
+        return '<div class="gchat-row'+(own?' own':'')+'"><span class="gchat-av">'+esc(initials(x.senderName))+'</span>'
+          +'<div><div class="gchat-meta"><b>'+esc(x.senderName||'Member')+'</b><span>'+esc(t)+'</span></div>'
+          +'<div class="gchat-bub"><p>'+esc(x.content)+'</p></div></div></div>';
+      }).join(''):'<div class="notice">No messages yet — say hello to the circle.</div>';
+      var box=document.getElementById('gchatMsgs'); box.scrollTop=box.scrollHeight;
+    }catch(e){ if(!silent)setErr(e.message); }
+  }
+  async function send(){
+    var inp=document.getElementById('gchatInput');
+    var v=inp.value.trim();
+    if(!v||!state.selected)return;
+    inp.value='';
+    try{ await api('/api/circles/'+state.selected+'/messages',{method:'POST',body:JSON.stringify({content:v})}); await loadMessages(true); }
+    catch(e){ setErr(e.message); inp.value=v; }
+  }
+  document.getElementById('gchatSend').onclick=send;
+  document.getElementById('gchatInput').addEventListener('keydown',function(e){if(e.key==='Enter')send();});
+  init();
+})();
+</script>
+</body>
+</html>

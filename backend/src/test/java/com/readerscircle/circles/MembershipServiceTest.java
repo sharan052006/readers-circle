@@ -62,6 +62,37 @@ class MembershipServiceTest {
   }
 
   @Test
+  void requestToJoinByCircleOrganizerThrowsBadRequest() {
+    UUID circleId = UUID.randomUUID();
+    UUID organizerId = UUID.randomUUID();
+    Circle c = new Circle("Classics", "Rajshahi", "Desc", organizerId);
+    when(circleRepository.findById(circleId)).thenReturn(Optional.of(c));
+    when(userRepository.findById(organizerId))
+        .thenReturn(Optional.of(new User("Org", "org@test.com", "hash", Role.ORGANIZER)));
+
+    assertThatThrownBy(() -> membershipService.requestToJoin(circleId, organizerId))
+        .isInstanceOf(ResponseStatusException.class)
+        .matches(e -> ((ResponseStatusException) e).getStatusCode() == HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  void requestToJoinByDemotedOrganizerIsAllowed() {
+    UUID circleId = UUID.randomUUID();
+    UUID readerId = UUID.randomUUID();
+    Circle c = new Circle("Classics", "Rajshahi", "Desc", readerId);
+    when(circleRepository.findById(circleId)).thenReturn(Optional.of(c));
+    when(userRepository.findById(readerId))
+        .thenReturn(Optional.of(new User("Ex-Org", "ex@test.com", "hash", Role.READER)));
+    when(membershipRepository.findByCircleIdAndReaderId(circleId, readerId)).thenReturn(Optional.empty());
+    when(membershipRepository.saveAndFlush(any(Membership.class)))
+        .thenAnswer(inv -> inv.getArgument(0));
+
+    MembershipDto dto = membershipService.requestToJoin(circleId, readerId);
+
+    assertThat(dto.status()).isEqualTo(MembershipStatus.PENDING);
+  }
+
+  @Test
   void decideJoinRequestSucceedsForCircleOrganizer() {
     UUID circleId = UUID.randomUUID();
     UUID organizerId = UUID.randomUUID();
@@ -72,12 +103,36 @@ class MembershipServiceTest {
 
     when(membershipRepository.findById(membershipId)).thenReturn(Optional.of(m));
     when(circleRepository.findById(circleId)).thenReturn(Optional.of(c));
+    when(userRepository.findById(organizerId))
+        .thenReturn(Optional.of(new User("Org", "org@test.com", "hash", Role.ORGANIZER)));
     when(membershipRepository.save(any(Membership.class))).thenAnswer(inv -> inv.getArgument(0));
 
     MemberDto res = membershipService.decideJoinRequest(membershipId, "APPROVE", organizerId, Role.ORGANIZER);
 
     assertThat(res.status()).isEqualTo(MembershipStatus.APPROVED);
     assertThat(m.getStatus()).isEqualTo(MembershipStatus.APPROVED);
+  }
+
+  @Test
+  void decideJoinRequestRejectsDemotedOrganizerWithForbidden() {
+    UUID circleId = UUID.randomUUID();
+    UUID organizerId = UUID.randomUUID();
+    UUID membershipId = UUID.randomUUID();
+
+    Circle c = new Circle("SciFi", "Dhaka", "Desc", organizerId);
+    Membership m = new Membership(circleId, UUID.randomUUID());
+
+    when(membershipRepository.findById(membershipId)).thenReturn(Optional.of(m));
+    when(circleRepository.findById(circleId)).thenReturn(Optional.of(c));
+    when(userRepository.findById(organizerId))
+        .thenReturn(Optional.of(new User("Ex-Org", "ex@test.com", "hash", Role.READER)));
+
+    assertThatThrownBy(
+            () ->
+                membershipService.decideJoinRequest(
+                    membershipId, "APPROVE", organizerId, Role.ORGANIZER))
+        .isInstanceOf(ResponseStatusException.class)
+        .matches(e -> ((ResponseStatusException) e).getStatusCode() == HttpStatus.FORBIDDEN);
   }
 
   @Test

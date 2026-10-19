@@ -21,14 +21,19 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * Refresh tokens carry no role claim and are therefore rejected here by design.
  * Invalid/expired tokens clear the context and fall through to the 401 entry point —
  * never to an authenticated session.
+ *
+ * <p>Blocked users ({@code active=false}) are rejected on every request even when the
+ * token itself is still valid — this terminates their active sessions immediately.
  */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
   private final JwtService jwt;
+  private final UserRepository users;
 
-  public JwtAuthFilter(JwtService jwt) {
+  public JwtAuthFilter(JwtService jwt, UserRepository users) {
     this.jwt = jwt;
+    this.users = users;
   }
 
   @Override
@@ -43,13 +48,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         Claims claims = jwt.parse(header.substring(7)).getPayload();
         UUID userId = UUID.fromString(claims.getSubject());
         Role role = Role.valueOf(claims.get("role", String.class));
-        var auth =
-            new UsernamePasswordAuthenticationToken(
-                userId.toString(),
-                null,
-                List.of(new SimpleGrantedAuthority("ROLE_" + role.name())));
-        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(auth);
+        boolean active =
+            users.findById(userId).map(User::isActive).orElse(false);
+        if (!active) {
+          SecurityContextHolder.clearContext();
+        } else {
+          var auth =
+              new UsernamePasswordAuthenticationToken(
+                  userId.toString(),
+                  null,
+                  List.of(new SimpleGrantedAuthority("ROLE_" + role.name())));
+          auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+          SecurityContextHolder.getContext().setAuthentication(auth);
+        }
       } catch (JwtException | IllegalArgumentException e) {
         SecurityContextHolder.clearContext();
       }

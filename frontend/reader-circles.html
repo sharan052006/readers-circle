@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reader's Circle — Circles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBFAF6; --card:#FFFDF9; --border:#E5DED2; --soft:#F5EFE2;
+  --ink:#241A12; --muted:#6B6257; --faint:#8A8175;
+  --burgundy:#6B2A1F; --burgundy-deep:#4E1E15;
+  --palm:#2F5D50; --marigold:#D9A21B; --pill:#F1EDE3;
+  --green-bg:#E9F3EA; --green-tx:#2C5A36; --amber-bg:#FBF0DC; --amber-tx:#8A5A12; --red-bg:#FBE7E4; --red-tx:#8F2B22;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.55}
+:focus-visible{outline:3px solid var(--palm);outline-offset:2px;border-radius:8px}
+button,input,select{font:inherit}
+.app{display:grid;grid-template-columns:224px minmax(0,1fr);min-height:100vh}
+.rail{border-right:1px solid var(--border);background:#FDFCF8;padding:18px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 8px 14px}
+.brand .mark{width:32px;height:32px;border-radius:9px;background:var(--burgundy);color:#fff;display:grid;place-items:center;font-size:18px}
+.brand b{font-family:'Fraunces',serif;font-size:17px;letter-spacing:-.01em}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;color:var(--ink);text-decoration:none;font-weight:500}
+.nav a:hover{background:#F3EEE1}
+.nav a[aria-current="page"]{background:#F5E9DD;font-weight:700}
+.syncnote{margin-top:auto;border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:var(--card);font-size:12px;color:var(--muted)}
+.syncnote b{color:var(--palm)}
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;gap:14px;padding:12px 26px;border-bottom:1px solid var(--border);background:var(--paper);position:sticky;top:0;z-index:5}
+.search{flex:1;max-width:560px;position:relative}
+.search input{width:100%;border:1px solid var(--border);border-radius:12px;padding:10px 14px 10px 38px;background:#fff}
+.search .lens{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--faint)}
+.topright{margin-left:auto;display:flex;align-items:center;gap:12px}
+.bell{position:relative;border:1px solid var(--border);background:#fff;border-radius:50%;width:38px;height:38px;display:grid;place-items:center;cursor:pointer}
+.bell .dot{position:absolute;top:7px;right:8px;width:9px;height:9px;border-radius:50%;background:#D33;border:2px solid #fff}
+.bell .count{position:absolute;top:-6px;right:-6px;background:var(--burgundy);color:#fff;font-size:10.5px;font-weight:700;border-radius:999px;padding:1px 6px}
+.userchip{display:flex;align-items:center;gap:9px;border:0;background:transparent;cursor:pointer;padding:4px 6px;border-radius:12px}
+.userchip .face{width:32px;height:32px;border-radius:50%;background:#EAD9C2;display:grid;place-items:center;font-weight:700}
+.content{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;padding:20px 26px 48px;max-width:1280px;width:100%;align-items:start}
+h1.page{font-family:'Fraunces',serif;font-size:38px;margin:0;letter-spacing:-.015em}
+.sub{color:var(--muted);margin:4px 0 14px}
+.tabs{display:flex;gap:26px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.tabs button{border:0;background:none;padding:10px 2px;cursor:pointer;font-weight:500;color:var(--ink);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{font-weight:700;border-bottom-color:var(--burgundy)}
+.tabs .cbadge{background:var(--burgundy);color:#fff;font-size:11px;font-weight:700;border-radius:7px;padding:1px 7px;margin-left:6px}
+.secttl{display:flex;align-items:baseline;gap:10px;margin:18px 0 4px}
+.secttl h2{font-family:'Fraunces',serif;font-size:22px;margin:0}
+.countpill{background:var(--soft);border-radius:999px;font-size:12.5px;font-weight:600;padding:2px 12px;color:var(--ink)}
+.secttl a{margin-left:auto;font-size:13px;color:var(--ink);font-weight:600;text-decoration:none}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:10px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:10px}
+.ccard{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.ccard img.cover{width:100%;height:132px;object-fit:cover;display:block;background:#EEE5D3}
+.ccard .cb{padding:12px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.ccard h4{margin:0;font-family:'Fraunces',serif;font-size:16.5px}
+.ccard .meta{font-size:12.5px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}
+.ccard .desc{font-size:12.5px;color:var(--muted);margin:0}
+.tagrow{display:flex;flex-wrap:wrap;gap:6px}
+.tagrow span{background:var(--pill);border-radius:999px;padding:3px 10px;font-size:11.5px;color:#4A4238}
+.cardbtn{margin-top:auto;border:0;border-radius:10px;padding:10px;font-weight:600;cursor:pointer;background:#F3E8D8;color:var(--ink)}
+.cardbtn:hover{background:#EBDCC4}
+.cardbtn.solid{background:var(--burgundy);color:#fff}
+.cardbtn.solid:hover{background:var(--burgundy-deep)}
+.cardbtn:disabled{opacity:.55;cursor:default}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px}
+.panel h3{font-family:'Fraunces',serif;font-size:17px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.panel h3 .cbadge{background:var(--burgundy);color:#fff;font-size:11px;border-radius:7px;padding:1px 7px}
+.panel h3 a{margin-left:auto;font-size:12.5px;font-family:'Inter',sans-serif;font-weight:600;color:var(--ink);text-decoration:none}
+.req{display:flex;gap:10px;align-items:center;border:1px solid var(--border);border-radius:12px;padding:9px;margin-bottom:9px;background:#FFFEFA}
+.req img{width:52px;height:52px;border-radius:9px;object-fit:cover;flex:none;background:#EEE}
+.req b{font-size:13px;display:block;line-height:1.3}
+.req span{font-size:11.5px;color:var(--muted);display:block}
+.statuspill{font-size:11.5px;font-weight:700;border-radius:999px;padding:3px 11px;white-space:nowrap}
+.statuspill.pending{background:var(--amber-bg);color:var(--amber-tx)}
+.statuspill.accepted{background:var(--green-bg);color:var(--green-tx)}
+.statuspill.declined{background:var(--red-bg);color:var(--red-tx)}
+.plainbtn{width:100%;border:0;border-radius:10px;background:#F3E8D8;padding:10px;font-weight:600;cursor:pointer}
+.ghostbtn{border:1px solid var(--border);border-radius:10px;background:#fff;padding:8px 14px;font-weight:600;cursor:pointer;font-size:12.5px}
+.frow{margin:10px 0}
+.frow b{font-size:13px;display:block;margin-bottom:6px}
+.check{display:flex;align-items:center;gap:9px;padding:3px 0;font-size:13px;cursor:pointer}
+.check input{width:16px;height:16px;accent-color:var(--burgundy)}
+.radio{display:flex;align-items:center;gap:9px;padding:3px 0;font-size:13px;cursor:pointer}
+.radio input{width:16px;height:16px;accent-color:var(--burgundy)}
+.applybtn{width:100%;border:0;border-radius:10px;background:var(--burgundy);color:#fff;font-weight:700;padding:11px;cursor:pointer;margin-top:10px}
+.clearbtn{display:block;margin:8px auto 0;border:0;background:none;color:var(--muted);cursor:pointer;font-size:12.5px}
+.statline{display:flex;align-items:center;gap:10px;padding:8px 2px;font-size:13.5px;border-bottom:1px solid #F0EAD9}
+.statline:last-child{border-bottom:0}
+.statline a{margin-left:auto;color:var(--faint);text-decoration:none}
+.bigrow{border:1px solid var(--border);border-radius:14px;padding:14px;display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:14px;align-items:center;margin-bottom:12px;background:var(--card)}
+.bigrow img{width:110px;height:86px;object-fit:cover;border-radius:10px;background:#EEE}
+.bigrow h4{margin:0;font-size:15.5px}
+.bigrow p{margin:3px 0;font-size:12.5px;color:var(--muted)}
+.bigrow .mrow{font-size:12px;color:var(--muted);display:flex;gap:14px;margin-top:4px}
+.side{display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+.howto{background:#FDF6E8}
+.howto ol{margin:8px 0 0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.howto li{display:flex;gap:10px;font-size:13px}
+.howto .n{width:26px;height:26px;border-radius:50%;background:#F3E3C8;display:grid;place-items:center;font-weight:700;flex:none;font-size:12.5px}
+.banner{border-radius:16px;overflow:hidden;border:1px solid var(--border);background:var(--card)}
+.banner img.hero{width:100%;height:190px;object-fit:cover;display:block;background:#E5D6BC}
+.chead{display:grid;grid-template-columns:120px minmax(0,1fr) auto;gap:16px;padding:16px 18px;align-items:start}
+.chead img.thumb{width:120px;height:110px;object-fit:cover;border-radius:12px;background:#EEE}
+.chead h2{font-family:'Fraunces',serif;font-size:27px;margin:0}
+.memberpill{display:inline-flex;align-items:center;gap:6px;background:var(--green-bg);color:var(--green-tx);font-weight:700;font-size:12.5px;border-radius:9px;padding:6px 12px}
+.evrow{border:1px solid var(--border);border-radius:14px;padding:12px;display:grid;grid-template-columns:130px minmax(0,1fr) auto;gap:14px;margin-bottom:12px;background:var(--card);align-items:center}
+.evrow img{width:130px;height:100px;object-fit:cover;border-radius:10px;background:#EEE}
+.evrow h4{margin:0;font-family:'Fraunces',serif;font-size:16px;color:var(--burgundy)}
+.evrow p{margin:3px 0;font-size:12.5px;color:var(--muted)}
+.evwhen{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:3px;margin-bottom:8px;min-width:170px}
+.orgrow{display:grid;grid-template-columns:64px minmax(0,1fr) minmax(0,1.2fr) auto;gap:14px;border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px;background:var(--card);align-items:start}
+.orgrow img{width:64px;height:64px;border-radius:50%;object-fit:cover;background:#E5D6BC}
+.orgrow h4{margin:0;font-size:15px}
+.orgrow .loc{font-size:12px;color:var(--muted)}
+.orgrow p.bio{font-size:13px;color:#3E352B;margin:0}
+.memrow{display:grid;grid-template-columns:52px minmax(0,.9fr) minmax(0,1.4fr) auto;gap:12px;padding:11px 4px;border-bottom:1px solid #F0EAD9;align-items:start}
+.memrow img{width:52px;height:52px;border-radius:50%;object-fit:cover;background:#E5D6BC}
+.memrow h4{margin:0;font-size:14px}
+.memrow .loc{font-size:11.5px;color:var(--muted)}
+.rolepill{font-size:11px;font-weight:700;border-radius:999px;padding:2px 10px;background:#F3E3C8;color:#7A4A12}
+.rolepill.member{background:#EEE9DC;color:#5C554A}
+.minis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.mini{background:#FFFEFA;border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+.mini b{font-family:'Fraunces',serif;font-size:21px;display:block}
+.mini span{font-size:11.5px;color:var(--muted)}
+.stat3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat3 .mini b{font-size:20px}
+.cal{width:100%;border-collapse:collapse;font-size:12.5px;text-align:center}
+.cal th{color:var(--faint);font-weight:600;padding:4px}
+.cal td{padding:5px;border-radius:50%}
+.cal td.ev{background:var(--burgundy);color:#fff;font-weight:700}
+.cal td.dim{color:#C9C0B1}
+.toolbar{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap;align-items:center}
+.toolbar input[type=search]{flex:1;min-width:200px;border:1px solid var(--border);border-radius:10px;padding:9px 12px;background:#fff}
+.toolbar select{border:1px solid var(--border);border-radius:10px;padding:9px 11px;background:#fff}
+.notice{border:1px solid var(--border);border-radius:14px;padding:16px;background:#FFF8E8;font-size:13px}
+.err{border:1px solid #E3A9A9;background:#FDECEC;color:#7A1F1F;border-radius:14px;padding:14px 16px}
+.empty{text-align:center;color:var(--muted);padding:30px 10px}
+.drop{position:absolute;top:56px;right:20px;background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 18px 44px rgba(36,26,18,.14);padding:8px;min-width:230px;z-index:20}
+.drop button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 11px;border-radius:9px;cursor:pointer}
+.drop button:hover{background:#F5F0E4}
+.backlink{display:inline-block;margin-bottom:10px;color:var(--ink);text-decoration:none;font-size:13.5px}
+.aboutlist{list-style:none;margin:12px 0 0;padding:12px 0 0;border-top:1px solid #F0EAD9;display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--muted)}
+.aboutlist li{display:flex;gap:10px}
+.avatars{display:flex;align-items:center;margin-top:8px}
+.avatars span{width:26px;height:26px;border-radius:50%;background:#E7DCC8;border:2px solid #fff;margin-left:-8px;display:grid;place-items:center;font-size:10px;font-weight:700;overflow:hidden}
+.avatars span:first-child{margin-left:0}
+.avatars img{width:100%;height:100%;object-fit:cover}
+@media(max-width:1080px){.content{grid-template-columns:1fr}.grid3{grid-template-columns:1fr 1fr}.grid4{grid-template-columns:1fr 1fr}.bigrow,.evrow{grid-template-columns:1fr}.orgrow,.memrow{grid-template-columns:52px 1fr}}
+@media(max-width:760px){.app{grid-template-columns:1fr}.rail{position:static;height:auto}.grid3,.grid4{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail" aria-label="Reader navigation">
+    <div class="brand"><span class="mark">📖</span><b>Reader's Circle</b></div>
+    <nav class="nav">
+      <a href="reader.html"><span>⌂</span> Dashboard</a>
+      <a href="reader-circles.html" aria-current="page"><span>👥</span> Circles</a>
+      <a href="reader-events.html"><span>📅</span> Events</a>
+      <a href="reader-chat.html"><span>💬</span> Chat</a>
+      <a href="reader-settings.html"><span>⚙</span> Settings</a>
+    </nav>
+    <div class="syncnote">Same circles admin manages.<br><b id="syncState">Connecting…</b></div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="search"><span class="lens" aria-hidden="true">🔍</span>
+        <input id="q" type="search" placeholder="Search books, discussions, circles…" aria-label="Search books, discussions, circles" autocomplete="off" />
+      </div>
+      <div class="topright">
+        <button class="bell" id="bell" aria-label="Notifications"><span aria-hidden="true">🔔</span><span class="dot" id="bellDot" hidden></span><span class="count" id="bellCount" hidden>0</span></button>
+        <button class="userchip" id="meBtn"><span class="face" id="meFace">S</span><b id="meName">Reader</b><span aria-hidden="true">▾</span></button>
+      </div>
+    </div>
+    <div class="drop" id="meDrop" hidden><button id="logout">Sign out</button></div>
+    <div class="drop" id="bellDrop" hidden style="min-width:320px"></div>
+    <div class="content">
+      <main id="view" aria-live="polite" style="min-width:0"></main>
+      <aside id="side" aria-label="Details"></aside>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var API_KEY='rc_api_base';
+  function base(){ return (localStorage.getItem(API_KEY)||'http://localhost:8080').replace(/\/+$/,''); }
+  function tok(){ return localStorage.getItem('rc_access'); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  if(!tok()){ location.href='auth.html'; return; }
+  async function api(p,opt){
+    opt=opt||{};
+    var r=await fetch(base()+p,{method:opt.method||'GET',headers:Object.assign({Authorization:'Bearer '+tok()},{'Content-Type':'application/json'}),body:opt.body});
+    if(r.status===401){ location.href='auth.html'; throw new Error('Session expired. Sign in again.'); }
+    var d=null; try{ d=await r.json(); }catch(e){}
+    if(!r.ok){ var m=(d&&(d.message||d.error))||('Request failed: '+r.status); throw new Error(Array.isArray(m)?m.join(', '):m); }
+    return d;
+  }
+  var view=document.getElementById('view'), side=document.getElementById('side');
+  var FALLBACK='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="260"><rect width="100%" height="100%" fill="#EFE6D2"/><text x="50%" y="52%" font-family="Georgia" font-size="24" text-anchor="middle" fill="#6B2A1F">Reader\u2019s Circle</text></svg>');
+  window.rcImg=function(el){ el.onerror=null; el.src=FALLBACK; };
+  function setSync(t){ document.getElementById('syncState').textContent=t; }
+  function initials(n){ n=String(n||'R').trim(); return n?n[0].toUpperCase():'R'; }
+  function timeAgo(iso){
+    if(!iso) return '';
+    var t=new Date(iso).getTime(), diff=Date.now()-t;
+    if(isNaN(diff)||diff<0) return '';
+    var m=Math.floor(diff/60000);
+    if(m<1) return 'just now'; if(m<60) return m+'m ago';
+    var h=Math.floor(m/60); if(h<24) return (h===1?'an hour ago':h+' hours ago');
+    var d=Math.floor(h/24); if(d===1) return 'a day ago'; if(d<7) return d+' days ago';
+    var w=Math.floor(d/7); if(w<5) return (w===1?'a week ago':w+' weeks ago');
+    return new Date(iso).toLocaleDateString();
+  }
+  function fmtDate(d){ if(!d) return ''; var x=new Date(d.length<=10?d+'T00:00:00':d); return isNaN(x)?String(d):x.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}); }
+  function fmtTime(t){ if(!t) return ''; var p=String(t).split(':'); var h=+p[0], m=p[1]||'00'; var ap=h>=12?'PM':'AM'; h=h%12||12; return h+':'+m+' '+ap; }
+  function tagsOf(c){ var t=(c.tags&&c.tags.length?c.tags:(c.category?[c.category]:[])).slice(0,4); return t.map(function(x){return '<span>'+esc(x)+'</span>';}).join(''); }
+  function circleTags(c){ return (c.tags&&c.tags.length?c.tags:(c.category?[c.category]:[])); }
+  function route(){ var h=(location.hash||'#/my').replace(/^#\/?/,''); return h.split('/'); }
+  function go(h){ location.hash='#/'+h; }
+
+  /* ---------- shared data (same endpoints admin uses) ---------- */
+  var cache={circles:null,events:null,mine:null,me:null};
+  async function getCircles(force){
+    if(!cache.circles||force){ cache.circles=await api('/api/circles?sort=name_asc'); }
+    return cache.circles;
+  }
+  async function getEvents(force){
+    if(!cache.events||force){ try{ cache.events=await api('/api/events'); }catch(e){ cache.events=[]; } }
+    return cache.events;
+  }
+  async function getMine(force){
+    if(!cache.mine||force){ cache.mine=await api('/api/users/me/memberships'); }
+    return cache.mine;
+  }
+  async function upcomingCounts(){
+    var ev=await getEvents();
+    var map={};
+    ev.forEach(function(e){
+      var st=String(e.status||'').toUpperCase();
+      if(st==='PUBLISHED'){ map[e.circleId]=(map[e.circleId]||0)+1; }
+    });
+    return map;
+  }
+  function myStatusMap(mine){ var m={}; (mine||[]).forEach(function(x){ m[x.circleId]={status:x.status,id:x.id}; }); return m; }
+
+  function circleCard(c,up,st){
+    var action='';
+    if(!st) action='<button class="cardbtn" data-join="'+esc(c.id)+'">➕ Request to Join</button>';
+    else if(st.status==='PENDING') action='<button class="cardbtn" disabled>Requested — pending</button>';
+    else if(st.status==='APPROVED') action='<button class="cardbtn solid" data-open="'+esc(c.id)+'">Open Circle →</button>';
+    else action='<button class="cardbtn" data-join="'+esc(c.id)+'">Request again</button>';
+    return '<div class="ccard"><img class="cover" src="'+esc(c.coverImageUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" />'
+      +'<div class="cb"><h4>'+esc(c.name)+'</h4>'
+      +'<div class="meta"><span>👥 '+esc(c.memberCount)+' members</span><span>📅 '+(up||0)+' upcoming events</span></div>'
+      +'<p class="desc">'+esc(c.description||'')+'</p>'
+      +'<div class="tagrow">'+tagsOf(c)+'</div>'+action+'</div></div>';
+  }
+
+  /* ---------- views ---------- */
+  async function vMy(){
+    setSync('Syncing with admin data…');
+    var mine=await getMine(), circles=await getCircles(), up=await upcomingCounts();
+    var sm=myStatusMap(mine);
+    var approved=circles.filter(function(c){ return sm[c.id]&&sm[c.id].status==='APPROVED'; });
+    var pending=mine.filter(function(x){ return x.status==='PENDING'; });
+    var rec=[]; try{ rec=await api('/api/users/me/recommended-circles?limit=4'); }catch(e){}
+    view.innerHTML='<h1 class="page">Circles</h1><p class="sub">Discover reading circles, join communities, and be part of meaningful discussions.</p>'
+      +tabs('my',pending.length)
+      +'<div class="secttl"><h2>My Circles</h2><span class="countpill">'+approved.length+'</span><a href="#/explore">View all →</a></div>'
+      +'<div class="grid3">'+(approved.length?approved.map(function(c){return circleCard(c,up[c.id],sm[c.id]);}).join(''):'<div class="empty">No circles yet — explore and send your first join request.</div>')+'</div>'
+      +'<div class="secttl"><h2>Recommended for You</h2><a href="#/explore">View all →</a></div><p class="sub">Circles you might be interested in based on your reading activity.</p>'
+      +'<div class="grid4">'+(rec.length?rec.map(function(c){return circleCard(c,up[c.id],sm[c.id]);}).join(''):'<div class="empty">Join a circle to get recommendations.</div>')+'</div>';
+    side.innerHTML='<section class="panel"><h3>Join Requests <span class="cbadge">'+pending.length+'</span><a href="#/requests">View all →</a></h3>'
+      +(pending.length?pending.slice(0,3).map(function(x){
+        return '<div class="req"><img src="'+esc(x.circleCoverImageUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" /><div><b>'+esc(x.circleName)+'</b><span>Requested '+esc(timeAgo(x.requestedAt))+'</span><span class="statuspill pending">Pending</span></div></div>';
+      }).join(''):'<div class="empty">No pending requests.</div>')
+      +'<button class="plainbtn" data-nav="requests">View All Requests</button></section>';
+    setSync('Synced with admin just now');
+  }
+  function tabs(active,pendCount){
+    return '<div class="tabs" role="tablist">'
+      +'<button role="tab" data-tab="my" class="'+(active==='my'?'on':'')+'">My Circles</button>'
+      +'<button role="tab" data-tab="explore" class="'+(active==='explore'?'on':'')+'">Explore Circles</button>'
+      +'<button role="tab" data-tab="requests" class="'+(active==='requests'?'on':'')+'">Join Requests'+(pendCount?'<span class="cbadge">'+pendCount+'</span>':'')+'</button></div>';
+  }
+
+  var FILTERS={cats:[],band:'any',sort:'members_desc',q:''};
+  var ALLCATS=['Fiction','Non-Fiction','Tamil Literature','History','Science Fiction','Self Help','Philosophy','Technology','Politics','Society'];
+  async function vExplore(){
+    var mine=await getMine(), circles=await getCircles(), up=await upcomingCounts();
+    var sm=myStatusMap(mine);
+    var pend=mine.filter(function(x){return x.status==='PENDING';}).length;
+    var appr=mine.filter(function(x){return x.status==='APPROVED';}).length;
+    var rej=mine.filter(function(x){return x.status==='REJECTED';}).length;
+    view.innerHTML='<h1 class="page">Circles</h1><p class="sub">Discover reading circles, join communities, and be part of meaningful discussions.</p>'
+      +tabs('explore',pend)
+      +'<div class="toolbar"><div class="search" style="flex:1;min-width:200px"><span class="lens">🔍</span><input id="exQ" type="search" placeholder="Search circles by name, genre, topic…" value="'+esc(FILTERS.q)+'" /></div>'
+      +'<label style="font-size:13px;color:var(--muted)">Sort by</label><select id="exSort"><option value="members_desc">Most Members</option><option value="name_asc">Name A–Z</option><option value="newest">Newest</option></select></div>'
+      +'<div class="grid3" id="exGrid"></div>';
+    side.innerHTML='<section class="panel"><h3>🔻 Filters</h3><div class="frow"><b>Categories</b>'
+      +ALLCATS.map(function(c){return '<label class="check"><input type="checkbox" data-cat="'+esc(c)+'" '+(FILTERS.cats.indexOf(c)>=0?'checked':'')+' /> '+esc(c)+'</label>';}).join('')
+      +'</div><div class="frow"><b>Member Count</b>'
+      +[['any','Any'],['0-50','0 - 50'],['51-100','51 - 100'],['101-500','101 - 500'],['500+','500+']].map(function(o){return '<label class="radio"><input type="radio" name="band" value="'+o[0]+'" '+(FILTERS.band===o[0]?'checked':'')+' /> '+o[1]+'</label>';}).join('')
+      +'</div><button class="applybtn" id="applyF">Apply Filters</button><button class="clearbtn" id="clearF">Clear Filters</button></section>'
+      +'<section class="panel"><h3>👥 My Membership Status</h3>'
+      +'<div class="statline">📩 '+pend+' Pending Requests <a href="#/requests">›</a></div>'
+      +'<div class="statline">📚 '+appr+' Joined Circles <a href="#/my">›</a></div>'
+      +'<div class="statline">ⓘ '+rej+' Declined Requests <a href="#/requests">›</a></div></section>';
+    document.getElementById('exSort').value=FILTERS.sort;
+    await applyExplore();
+    var deb=null;
+    document.getElementById('exQ').addEventListener('input',function(e){
+      clearTimeout(deb); deb=setTimeout(function(){ FILTERS.q=e.target.value; applyExplore(); },350);
+    });
+    document.getElementById('exSort').addEventListener('change',function(e){ FILTERS.sort=e.target.value; applyExplore(); });
+    document.getElementById('applyF').addEventListener('click',function(){
+      FILTERS.cats=Array.prototype.slice.call(document.querySelectorAll('[data-cat]:checked')).map(function(x){return x.getAttribute('data-cat');});
+      var b=document.querySelector('input[name=band]:checked'); FILTERS.band=b?b.value:'any';
+      applyExplore();
+    });
+    document.getElementById('clearF').addEventListener('click',function(){ FILTERS={cats:[],band:'any',sort:'members_desc',q:''}; vExplore(); });
+    async function applyExplore(){
+      var p='?sort='+encodeURIComponent(FILTERS.sort||'members_desc');
+      if(FILTERS.q) p+='&search='+encodeURIComponent(FILTERS.q);
+      if(FILTERS.cats.length) p+='&categories='+encodeURIComponent(FILTERS.cats.join(','));
+      var bands={'0-50':[0,50],'51-100':[51,100],'101-500':[101,500],'500+':[500,null]};
+      var b=bands[FILTERS.band];
+      if(b){ if(b[0]) p+='&minMembers='+b[0]; if(b[1]) p+='&maxMembers='+b[1]; }
+      var list=await api('/api/circles'+p);
+      var ups=await upcomingCounts();
+      var g=document.getElementById('exGrid');
+      g.innerHTML=list.length?list.map(function(c){return circleCard(c,ups[c.id],sm[c.id]);}).join(''):'<div class="empty">No circles match these filters.</div>';
+    }
+  }
+
+  async function vRequests(){
+    var mine=await getMine(), circles=await getCircles();
+    var byId={}; circles.forEach(function(c){ byId[c.id]=c; });
+    var pend=mine.filter(function(x){return x.status==='PENDING';});
+    var acc=mine.filter(function(x){return x.status==='APPROVED';});
+    var dec=mine.filter(function(x){return x.status==='REJECTED';});
+    function row(x,st){
+      var c=byId[x.circleId]||{};
+      var pill=st==='PENDING'?'<span class="statuspill pending">🕐 Pending</span>':st==='APPROVED'?'<span class="statuspill accepted">✔ Accepted</span>':'<span class="statuspill declined">✖ Declined</span>';
+      var btn=st==='PENDING'?'<button class="ghostbtn" data-cancel="'+esc(x.id)+'">Cancel Request</button>':st==='APPROVED'?'<button class="cardbtn solid" data-open="'+esc(x.circleId)+'" style="margin:0;padding:9px 18px">Open Circle →</button>':'<button class="ghostbtn" data-open="'+esc(x.circleId)+'">View Circle</button>';
+      var when=st==='PENDING'?'Requested '+timeAgo(x.requestedAt):st==='APPROVED'?'Accepted '+timeAgo(x.decidedAt):'Declined '+timeAgo(x.decidedAt);
+      return '<div class="bigrow"><img src="'+esc(c.coverImageUrl||x.circleCoverImageUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" /><div><h4>'+esc(x.circleName)+'</h4><p>'+esc(c.description||'')+'</p><div class="mrow"><span>👥 '+(c.memberCount!=null?c.memberCount+' members':'')+'</span><span>📅 '+esc(when)+'</span></div></div><div class="side">'+pill+btn+'</div></div>';
+    }
+    view.innerHTML='<h1 class="page">Circles</h1><p class="sub">Discover reading circles, join communities, and be part of meaningful discussions.</p>'
+      +tabs('requests',pend.length)
+      +'<div class="secttl"><h2>Pending Requests</h2><span class="countpill">'+pend.length+'</span></div><p class="sub">These are circles you have requested to join.</p>'
+      +(pend.length?pend.map(function(x){return row(x,'PENDING');}).join(''):'<div class="empty">No pending requests.</div>')
+      +'<div class="secttl"><h2>Accepted Requests</h2><span class="countpill">'+acc.length+'</span></div><p class="sub">You are now a member of these circles.</p>'
+      +(acc.length?acc.map(function(x){return row(x,'APPROVED');}).join(''):'<div class="empty">No accepted requests yet.</div>')
+      +'<div class="secttl"><h2>Declined Requests</h2><span class="countpill">'+dec.length+'</span></div><p class="sub">These requests were declined by the organizers.</p>'
+      +(dec.length?dec.map(function(x){return row(x,'REJECTED');}).join(''):'<div class="empty">No declined requests.</div>');
+    side.innerHTML='<section class="panel"><h3>📋 Request Summary</h3>'
+      +'<div class="statline">🕐 '+pend.length+' Pending Requests</div>'
+      +'<div class="statline">✔ '+acc.length+' Accepted (Now a Member)</div>'
+      +'<div class="statline">✖ '+dec.length+' Declined Request'+(dec.length===1?'':'s')+'</div></section>'
+      +'<section class="panel howto"><h3>💡 How it works?</h3><ol>'
+      +'<li><span class="n">1</span> Explore circles you\u2019re interested in.</li>'
+      +'<li><span class="n">2</span> Send a join request.</li>'
+      +'<li><span class="n">3</span> Wait for the organizer to approve.</li>'
+      +'<li><span class="n">4</span> Once approved, you\u2019ll become a member and can access the circle\u2019s discussions, events and more.</li></ol></section>';
+  }
+
+  async function circleCtx(id){
+    var c=await api('/api/circles/'+id);
+    var ov=null; try{ ov=await api('/api/circles/'+id+'/overview'); }catch(e){}
+    var ups=await upcomingCounts();
+    return {c:c,ov:ov,upcoming:ups[id]||((ov&&ov.counts&&ov.counts.upcomingEvents)||0)};
+  }
+  function aboutRail(c,up){
+    return '<section class="panel"><h3>📖 About this circle</h3><p style="font-size:13px;color:var(--muted);margin:0">'+esc(c.description||'')+'</p>'
+      +'<ul class="aboutlist"><li>📅 Created on '+esc(fmtDate(c.createdAt))+'</li><li>🔒 Private circle (Join request required)</li><li>🏷 Focus: '+esc(c.category||'General')+'</li></ul></section>';
+  }
+  async function orgPreview(id){
+    try{
+      var o=await api('/api/circles/'+id+'/organizers');
+      var cur=o.current||[];
+      return '<section class="panel"><h3>👥 Organizers <span class="countpill">'+cur.length+'</span><a href="#/circle/'+id+'/organizers">View all →</a></h3>'
+        +cur.slice(0,2).map(function(x){return '<div class="statline"><span class="face" style="width:30px;height:30px;border-radius:50%;background:#EAD9C2;display:grid;place-items:center;font-weight:700">'+esc(initials(x.name))+'</span> '+esc(x.name)+' <span class="rolepill">Organizer</span></div>';}).join('')+'</section>';
+    }catch(e){ return ''; }
+  }
+  async function memPreview(id){
+    try{
+      var s=await api('/api/circles/'+id+'/member-stats');
+      var m=await api('/api/circles/'+id+'/members');
+      var faces=m.slice(0,5).map(function(x){
+        return x.avatarUrl?'<span><img src="'+esc(x.avatarUrl)+'" alt="" onerror="rcImg(this)" /></span>':'<span>'+esc(initials(x.readerName))+'</span>';
+      }).join('');
+      return '<section class="panel"><h3>👥 Members <span class="countpill">'+s.totalMembers+'</span><a href="#/circle/'+id+'/members">View all →</a></h3><div class="avatars">'+faces+'<span>+'+Math.max(0,s.totalMembers-5)+'</span></div></section>';
+    }catch(e){ return ''; }
+  }
+  async function evPreview(id){
+    try{
+      var ev=await api('/api/circles/'+id+'/events?scope=upcoming');
+      return '<section class="panel"><h3>📅 Upcoming Events <span class="countpill">'+ev.length+'</span><a href="#/circle/'+id+'/events">View all →</a></h3>'
+        +ev.slice(0,2).map(function(e){return '<div class="req"><img src="'+esc(e.coverImageUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" /><div><b>'+esc(e.title)+'</b><span>'+esc(fmtDate(e.eventDate))+' · '+esc(fmtTime(e.eventTime))+'</span></div></div>';}).join('')+'</section>';
+    }catch(e){ return ''; }
+  }
+
+  async function vDetail(id){
+    var ctx=await circleCtx(id), c=ctx.c;
+    var mine=await getMine(), sm=myStatusMap(mine);
+    var st=sm[id];
+    var badge=!st?'<span class="statuspill pending">Not a member</span>':st.status==='APPROVED'?'<span class="memberpill">✔ Member</span>':st.status==='PENDING'?'<span class="statuspill pending">Requested</span>':'<span class="statuspill declined">Declined</span>';
+    var ev=await api('/api/circles/'+id+'/events?scope=upcoming').catch(function(){return [];});
+    view.innerHTML='<a class="backlink" href="#/my">← Back to Circles</a>'
+      +'<div class="banner"><img class="hero" src="'+esc(c.coverImageUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" />'
+      +'<div class="chead"><img class="thumb" src="'+esc(c.coverImageUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" />'
+      +'<div><h2>'+esc(c.name)+'</h2><p class="sub">'+esc(c.description||'')+'</p>'
+      +'<div class="meta" style="font-size:13px;color:var(--muted)">👥 <b>'+esc(c.memberCount)+' members</b> &nbsp; 📅 <b>'+ev.length+' upcoming events</b></div>'
+      +'<div class="tagrow" style="margin-top:8px">'+tagsOf(c)+'</div></div>'
+      +'<div style="display:flex;gap:8px;align-items:center">'+badge+'</div></div></div>'
+      +'<div class="secttl"><h2>📅 Upcoming Events</h2><span class="countpill">'+ev.length+'</span><a href="#/circle/'+id+'/events">View All Events →</a></div>'
+      +ev.slice(0,4).map(evRow).join('');
+    side.innerHTML=aboutRail(c)+await orgPreview(id)+await memPreview(id)+await evPreview(id);
+    function evRow(e){
+      var reg=e.isRegistered?'<span class="statuspill accepted">✔ Registered</span>':'<span class="statuspill pending">Registration Open</span>';
+      return '<div class="evrow"><img src="'+esc(e.coverImageUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" /><div><h4>'+esc(e.title)+'</h4><p>'+esc(e.description||e.readingTopic||'')+'</p></div>'
+        +'<div><div class="evwhen"><span>📅 '+esc(fmtDate(e.eventDate))+'</span><span>🕐 '+esc(fmtTime(e.eventTime))+'</span><span>📍 '+esc(e.venue||'')+'</span></div>'+reg
+        +'<div style="margin-top:8px"><button class="cardbtn solid" data-register="'+esc(e.id)+'">Register Event →</button></div></div></div>';
+    }
+  }
+
+  async function vCircleEvents(id,scope){
+    scope=(scope==='past')?'past':'upcoming';
+    var ctx=await circleCtx(id), c=ctx.c;
+    var ev=await api('/api/circles/'+id+'/events?scope='+scope);
+    var allUp=await api('/api/circles/'+id+'/events?scope=upcoming').catch(function(){return [];});
+    var past=await api('/api/circles/'+id+'/events?scope=past').catch(function(){return [];});
+    var other=scope==='past'?'upcoming':'past';
+    var months={}; ev.concat(allUp,past).forEach(function(e){ if(e.eventDate){ var k=String(e.eventDate).slice(0,7); months[k]=(months[k]||0)+1; } });
+    view.innerHTML='<a class="backlink" href="#/circle/'+id+'">← Back to '+esc(c.name)+'</a>'
+      +'<h1 class="page">Circle Events</h1><p class="sub">Upcoming and past events from this circle.</p>'
+      +'<div class="tabs"><button data-scope="upcoming" class="'+(scope==='upcoming'?'on':'')+'">Upcoming Events <span class="countpill">'+allUp.length+'</span></button>'
+      +'<button data-scope="past" class="'+(scope==='past'?'on':'')+'">Past Events <span class="countpill">'+past.length+'</span></button></div>'
+      +'<div class="toolbar"><div class="search" style="flex:1;min-width:180px;max-width:none"><span class="lens">🔍</span><input id="evQ" type="search" placeholder="Search events…" /></div>'
+      +'<select id="evVenue"><option value="">All Locations</option></select> <select id="evMonth"><option value="">All Months</option></select></div>'
+      +'<div id="evList"></div>';
+    var venues={}; ev.concat(allUp,past).forEach(function(e){ if(e.venue) venues[e.venue]=1; });
+    var vs=document.getElementById('evVenue');
+    Object.keys(venues).forEach(function(v){ var o=document.createElement('option'); o.value=v; o.textContent=v; vs.appendChild(o); });
+    var ms=document.getElementById('evMonth');
+    Object.keys(months).sort().forEach(function(k){ var o=document.createElement('option'); o.value=k; o.textContent=new Date(k+'-01T00:00:00').toLocaleDateString(undefined,{month:'long',year:'numeric'}); ms.appendChild(o); });
+    var baseEv=ev;
+    function paint(list){
+      document.getElementById('evList').innerHTML=list.length?list.map(function(e){
+        var reg=e.isRegistered?'<span class="statuspill accepted">✔ Registered</span>':'<span class="statuspill pending">🕐 Registration Open</span>';
+        return '<div class="evrow"><img src="'+esc(e.coverImageUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" /><div><h4>'+esc(e.title)+'</h4><p>'+esc(e.description||e.readingTopic||'')+'</p><div class="mrow" style="font-size:12px;color:var(--muted)">👥 '+esc(e.registeredCount||0)+' registered</div></div>'
+          +'<div><div class="evwhen"><span>📅 '+esc(fmtDate(e.eventDate))+'</span><span>🕐 '+esc(fmtTime(e.eventTime))+'</span><span>📍 '+esc(e.venue||'')+'</span></div>'+reg
+          +'<div style="margin-top:8px">'+(scope==='upcoming'?'<button class="cardbtn solid" data-register="'+esc(e.id)+'">Register Event →</button>':'')+'</div></div></div>';
+      }).join(''):'<div class="empty">No '+scope+' events.</div>';
+    }
+    paint(baseEv);
+    var deb=null;
+    document.getElementById('evQ').addEventListener('input',function(e){ clearTimeout(deb); deb=setTimeout(refilter,300); });
+    vs.addEventListener('change',refilter); ms.addEventListener('change',refilter);
+    async function refilter(){
+      var q=document.getElementById('evQ').value, v=vs.value, mo=ms.value;
+      var p='scope='+scope;
+      if(v) p+='&venue='+encodeURIComponent(v);
+      if(mo) p+='&month='+encodeURIComponent(mo);
+      var list=await api('/api/circles/'+id+'/events?'+p);
+      if(q) { var l=q.toLowerCase(); list=list.filter(function(e){ return ((e.title||'')+' '+(e.readingTopic||'')+' '+(e.venue||'')).toLowerCase().indexOf(l)>=0; }); }
+      paint(list);
+    }
+    view.querySelectorAll('[data-scope]').forEach(function(b){ b.addEventListener('click',function(){ go('circle/'+id+'/events?scope='+b.getAttribute('data-scope')); }); });
+    // calendar rail
+    var calDate=new Date(); var calKey=calDate.toISOString().slice(0,7);
+    var evDates={}; allUp.concat(past).forEach(function(e){ if(e.eventDate) evDates[String(e.eventDate).slice(0,10)]=1; });
+    side.innerHTML='<section class="panel"><h3>📖 Circle</h3><div class="req"><img src="'+esc(c.coverImageUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" /><div><b>'+esc(c.name)+'</b><span>'+esc(c.description||'').slice(0,90)+'</span></div></div><button class="ghostbtn" data-open="'+esc(c.id)+'" style="width:100%">View Circle →</button></section>'
+      +'<section class="panel"><h3>📅 Event Calendar</h3><div id="cal"></div></section>'
+      +'<section class="panel"><h3>📅 Upcoming Events <a href="#/circle/'+id+'/events">View all →</a></h3>'
+      +allUp.slice(0,3).map(function(e){return '<div class="req"><img src="'+esc(e.coverImageUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" /><div><b>'+esc(e.title)+'</b><span>'+esc(fmtDate(e.eventDate))+' · '+esc(fmtTime(e.eventTime))+'</span></div></div>';}).join('')+'</section>';
+    paintCal(calKey);
+    function paintCal(key){
+      var y=+key.slice(0,4), mo=+key.slice(5,7)-1;
+      var first=new Date(y,mo,1), startDay=first.getDay(), days=new Date(y,mo+1,0).getDate();
+      var label=first.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+      var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><button class="ghostbtn" id="calP">‹</button><b>'+label+'</b><button class="ghostbtn" id="calN">›</button></div>';
+      html+='<table class="cal"><tr><th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th></tr><tr>';
+      var prevDays=new Date(y,mo,0).getDate();
+      for(var i=startDay-1;i>=0;i--){ html+='<td class="dim">'+(prevDays-i)+'</td>'; }
+      for(var d=1;d<=days;d++){
+        var k=key+'-'+String(d).padStart(2,'0');
+        html+=(evDates[k]?'<td class="ev">'+d+'</td>':'<td>'+d+'</td>');
+        if((startDay+d)%7===0&&d!==days) html+='</tr><tr>';
+      }
+      html+='</tr></table>';
+      document.getElementById('cal').innerHTML=html;
+      document.getElementById('calP').onclick=function(){ var dt=new Date(y,mo-1,1); paintCal(dt.toISOString().slice(0,7)); };
+      document.getElementById('calN').onclick=function(){ var dt=new Date(y,mo+1,1); paintCal(dt.toISOString().slice(0,7)); };
+    }
+  }
+
+  async function vOrganizers(id){
+    var ctx=await circleCtx(id), c=ctx.c;
+    var o=await api('/api/circles/'+id+'/organizers');
+    function card(x,past){
+      return '<div class="orgrow"><img src="'+esc(x.avatarUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" /><div><h4>'+esc(x.name)+' '+(past?'':'👑')+'</h4>'
+        +'<span class="rolepill'+(past?' member':'')+'">'+(past?'Former Organizer':'Organizer')+'</span>'
+        +'<div class="loc">📍 '+esc(x.city?x.city+', TN':x.city||'')+'</div><div class="loc">📅 Joined '+esc(fmtDate(x.joinedAt||x.addedAt))+'</div></div>'
+        +'<p class="bio">'+esc(x.bio||'')+'</p><div class="tagrow">'+((x.interests||[]).map(function(t){return '<span>'+esc(t)+'</span>';}).join(''))+'</div></div>';
+    }
+    view.innerHTML='<a class="backlink" href="#/circle/'+id+'">← Back to '+esc(c.name)+'</a>'
+      +'<h1 class="page">Circle Organizers <span class="countpill">'+o.currentCount+'</span></h1><p class="sub">People who manage and organize this circle.</p>'
+      +'<div class="secttl"><h2>👥 Current Organizers</h2><span class="countpill">'+o.currentCount+'</span></div>'
+      +(o.current.map(function(x){return card(x,false);}).join('')||'<div class="empty">No organizers.</div>')
+      +'<div class="secttl"><h2>🕐 Past Organizers</h2><span class="countpill">'+o.pastCount+'</span></div>'
+      +(o.past.map(function(x){return card(x,true);}).join('')||'<div class="empty">No past organizers.</div>');
+    side.innerHTML=aboutRail(c)+await memPreview(id)+await evPreview(id)
+      +'<section class="panel"><h3>📊 Circle Stats</h3><div class="minis"><div class="mini"><b>'+c.memberCount+'</b><span>Members</span></div><div class="mini"><b>'+ctx.upcoming+'</b><span>Events</span></div></div></section>';
+  }
+
+  async function vMembers(id){
+    var ctx=await circleCtx(id), c=ctx.c;
+    var s=await api('/api/circles/'+id+'/member-stats');
+    var all=await api('/api/circles/'+id+'/members');
+    var orgs=[]; try{ orgs=(await api('/api/circles/'+id+'/organizers')).current||[]; }catch(e){}
+    var orgIds={}; orgs.forEach(function(o){ orgIds[o.userId]=1; });
+    view.innerHTML='<a class="backlink" href="#/circle/'+id+'">← Back to '+esc(c.name)+'</a>'
+      +'<h1 class="page">Circle Members <span class="countpill">'+s.totalMembers+'</span></h1><p class="sub">People who are part of this circle.</p>'
+      +'<div class="toolbar"><div class="search" style="flex:1;min-width:180px;max-width:none"><span class="lens">🔍</span><input id="mQ" type="search" placeholder="Search members…" /></div>'
+      +'<select id="mRole"><option value="all">All Roles</option><option value="ORGANIZER">Organizer</option><option value="READER">Reader</option></select></div>'
+      +'<div id="memList"></div>';
+    function paint(list){
+      document.getElementById('memList').innerHTML=list.length?list.map(function(x){
+        var isOrg=orgIds[x.readerId];
+        return '<div class="memrow"><img src="'+esc(x.avatarUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" /><div><h4>'+esc(x.readerName)+(isOrg?' 👑':'')+'</h4>'
+          +'<span class="rolepill'+(isOrg?'':' member')+'">'+(isOrg?'Organizer':'Member')+'</span>'
+          +'<div class="loc">📍 '+esc(x.city?x.city+', TN':x.city||'')+'</div><div class="loc">📅 Joined '+esc(fmtDate(x.requestedAt))+'</div></div>'
+          +'<div><p class="bio" style="font-size:13px;margin:0">'+esc(x.bio||'')+'</p><div class="tagrow" style="margin-top:6px">'+((x.interests||[]).map(function(t){return '<span>'+esc(t)+'</span>';}).join(''))+'</div></div><div></div></div>';
+      }).join(''):'<div class="empty">No members match.</div>';
+    }
+    paint(all);
+    var deb=null;
+    async function refilter(){
+      var q=document.getElementById('mQ').value, rf=document.getElementById('mRole').value;
+      var p='?'; if(rf&&rf!=='all') p+='role='+rf+'&';
+      var list=await api('/api/circles/'+id+'/members'+p);
+      if(q){ var l=q.toLowerCase(); list=list.filter(function(x){ return ((x.readerName||'')+' '+(x.bio||'')).toLowerCase().indexOf(l)>=0; }); }
+      paint(list);
+    }
+    document.getElementById('mQ').addEventListener('input',function(){ clearTimeout(deb); deb=setTimeout(refilter,300); });
+    document.getElementById('mRole').addEventListener('change',refilter);
+    side.innerHTML=aboutRail(c)
+      +'<section class="panel"><h3>📊 Member Stats</h3><div class="stat3"><div class="mini"><b>'+s.totalMembers+'</b><span>Total Members</span></div><div class="mini"><b>'+s.pendingRequests+'</b><span>Pending Requests</span></div><div class="mini"><b>'+s.regularMembers+'</b><span>Regular Members</span></div></div></section>';
+  }
+
+  /* ---------- actions (event delegation) ---------- */
+  document.addEventListener('click',async function(e){
+    var t=e.target.closest('[data-tab],[data-nav],[data-join],[data-open],[data-cancel],[data-register]');
+    if(!t) return;
+    if(t.hasAttribute('data-tab')||t.hasAttribute('data-nav')){ go(t.getAttribute('data-tab')||t.getAttribute('data-nav')); return; }
+    if(t.hasAttribute('data-open')){ go('circle/'+t.getAttribute('data-open')); return; }
+    try{
+      if(t.hasAttribute('data-join')){
+        t.disabled=true;
+        await api('/api/circles/'+t.getAttribute('data-join')+'/join-requests',{method:'POST'});
+        cache.mine=null; router();
+      }else if(t.hasAttribute('data-cancel')){
+        t.disabled=true;
+        await api('/api/join-requests/'+t.getAttribute('data-cancel'),{method:'DELETE'});
+        cache.mine=null; router();
+      }else if(t.hasAttribute('data-register')){
+        t.disabled=true; t.textContent='Registering…';
+        await api('/api/events/'+t.getAttribute('data-register')+'/register',{method:'POST'});
+        cache.events=null; t.textContent='Registered ✔'; router();
+      }
+    }catch(err){ alert(err.message); t.disabled=false; router(); }
+  });
+  document.getElementById('q').addEventListener('input',function(e){
+    var v=e.target.value;
+    clearTimeout(window.__qt); window.__qt=setTimeout(function(){ if(route()[0]==='explore'){ FILTERS.q=v; vExplore(); } },400);
+  });
+
+  /* ---------- chrome: me + bell ---------- */
+  async function loadMe(){
+    try{
+      var me=await api('/api/users/me'); cache.me=me;
+      document.getElementById('meName').textContent=me.name||me.email||'Reader';
+      document.getElementById('meFace').textContent=initials(me.name||me.email);
+    }catch(e){}
+    try{
+      var u=await api('/api/notifications/unread-count');
+      var n=Number(u.unreadCount||0);
+      document.getElementById('bellCount').hidden=n<=0;
+      document.getElementById('bellDot').hidden=n<=0;
+      document.getElementById('bellCount').textContent=n;
+    }catch(e){}
+  }
+  document.getElementById('meBtn').addEventListener('click',function(){
+    var d=document.getElementById('meDrop'); d.hidden=!d.hidden;
+  });
+  document.getElementById('logout').addEventListener('click',function(){
+    localStorage.removeItem('rc_access'); localStorage.removeItem('rc_refresh'); location.href='auth.html';
+  });
+  document.getElementById('bell').addEventListener('click',async function(){
+    var dd=document.getElementById('bellDrop'); dd.hidden=!dd.hidden;
+    if(dd.hidden) return;
+    dd.innerHTML='Loading…';
+    try{
+      var list=await api('/api/notifications');
+      dd.innerHTML=list.length?list.slice(0,6).map(function(n){return '<div style="padding:9px 11px;border-bottom:1px solid #F0EAD9"><b style="font-size:13px">'+esc(n.title)+'</b><div style="font-size:12px;color:#6B6257">'+esc(n.body||'')+'</div></div>';}).join(''):'<div style="padding:12px;font-size:13px">No notifications.</div>';
+    }catch(e){ dd.innerHTML='Could not load notifications.'; }
+  });
+
+  /* ---------- router ---------- */
+  async function router(){
+    var r=route(), name=r[0]||'my';
+    try{
+      if(name==='my') await vMy();
+      else if(name==='explore') await vExplore();
+      else if(name==='requests') await vRequests();
+      else if(name==='circle'&&r[1]&&r[2]==='events'){
+        var sc='upcoming', qi=(r[3]||'').indexOf('scope=');
+        if(qi>=0) sc=(r[3].slice(qi+6).split('&')[0]||'upcoming');
+        await vCircleEvents(r[1],sc);
+      }
+      else if(name==='circle'&&r[1]&&r[2]==='organizers') await vOrganizers(r[1]);
+      else if(name==='circle'&&r[1]&&r[2]==='members') await vMembers(r[1]);
+      else if(name==='circle'&&r[1]) await vDetail(r[1]);
+      else await vMy();
+    }catch(err){
+      view.innerHTML='<div class="err">'+esc(err.message)+'</div>'; side.innerHTML='';
+    }
+    window.scrollTo(0,0);
+  }
+  window.addEventListener('hashchange',router);
+  loadMe(); router();
+})();
+</script>
+</body>
+</html>

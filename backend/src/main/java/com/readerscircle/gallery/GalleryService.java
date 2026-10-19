@@ -9,8 +9,10 @@ import com.readerscircle.circles.Membership;
 import com.readerscircle.circles.MembershipRepository;
 import com.readerscircle.circles.MembershipStatus;
 import com.readerscircle.events.Event;
+import com.readerscircle.events.EventRegistrationRepository;
 import com.readerscircle.events.EventRepository;
 import com.readerscircle.events.EventStatus;
+import com.readerscircle.events.RegistrationStatus;
 import com.readerscircle.gallery.dto.AddGalleryMediaRequest;
 import com.readerscircle.gallery.dto.GalleryItemDto;
 import java.util.List;
@@ -30,6 +32,7 @@ public class GalleryService {
   private final MembershipRepository membershipRepository;
   private final UserRepository userRepository;
   private final FileStorageService fileStorageService;
+  private final EventRegistrationRepository eventRegistrationRepository;
 
   public GalleryService(
       GalleryItemRepository galleryRepository,
@@ -37,13 +40,15 @@ public class GalleryService {
       CircleRepository circleRepository,
       MembershipRepository membershipRepository,
       UserRepository userRepository,
-      FileStorageService fileStorageService) {
+      FileStorageService fileStorageService,
+      EventRegistrationRepository eventRegistrationRepository) {
     this.galleryRepository = galleryRepository;
     this.eventRepository = eventRepository;
     this.circleRepository = circleRepository;
     this.membershipRepository = membershipRepository;
     this.userRepository = userRepository;
     this.fileStorageService = fileStorageService;
+    this.eventRegistrationRepository = eventRegistrationRepository;
   }
 
   @Transactional
@@ -145,8 +150,8 @@ public class GalleryService {
             .findById(event.getCircleId())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Circle not found"));
 
-    // Gate: caller must be circle member (APPROVED) or organizer or Admin (FR-15 / PRD Q4)
-    assertApprovedMemberOrOrganizer(circle, callerId, callerRole);
+    // Gate: caller must be registered attendee, organizer, or Admin
+    assertRegisteredAttendeeOrOrganizerOrAdmin(circle, eventId, callerId, callerRole);
 
     List<GalleryItem> items =
         galleryRepository.findByEventIdOrderByUploadedAtAsc(eventId);
@@ -191,28 +196,43 @@ public class GalleryService {
     if (callerRole == Role.ADMIN) {
       return;
     }
-    if (callerId == null || !circle.getOrganizerId().equals(callerId)) {
+    if (!isEffectiveOrganizer(circle, callerId)) {
       throw new ResponseStatusException(
           HttpStatus.FORBIDDEN, "Only the circle organizer or admin can perform this action");
     }
   }
 
-  private void assertApprovedMemberOrOrganizer(Circle circle, UUID callerId, Role callerRole) {
+  /**
+   * Effective organizer = assigned as the circle's organizer AND still holding
+   * a live ORGANIZER/ADMIN role. Role is read from the DB (not the JWT) so a
+   * demotion takes effect immediately, even for tokens minted before it.
+   */
+  private boolean isEffectiveOrganizer(Circle circle, UUID callerId) {
+    if (circle == null || callerId == null || !callerId.equals(circle.getOrganizerId())) {
+      return false;
+    }
+    Role role = userRepository.findById(callerId).map(User::getRole).orElse(null);
+    return role == Role.ORGANIZER || role == Role.ADMIN;
+  }
+
+  private void assertRegisteredAttendeeOrOrganizerOrAdmin(
+      Circle circle, UUID eventId, UUID callerId, Role callerRole) {
     if (callerRole == Role.ADMIN) {
       return;
     }
-    if (callerId != null && circle.getOrganizerId().equals(callerId)) {
+    if (isEffectiveOrganizer(circle, callerId)) {
       return;
     }
-    Membership membership =
-        membershipRepository
-            .findByCircleIdAndReaderId(circle.getId(), callerId)
-            .orElse(null);
-
-    if (membership == null || membership.getStatus() != MembershipStatus.APPROVED) {
-      throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN, "Only approved members of this circle can view the event gallery");
+    if (callerId != null
+        && eventRegistrationRepository
+            .findByEventIdAndReaderId(eventId, callerId)
+            .map(r -> r.getStatus() == RegistrationStatus.REGISTERED)
+            .orElse(false)) {
+      return;
     }
+    throw new ResponseStatusException(
+        HttpStatus.FORBIDDEN,
+        "Only registered attendees, circle organizers, or admins can view the event gallery");
   }
 
   private GalleryItemDto toDto(GalleryItem item, String uploaderName) {

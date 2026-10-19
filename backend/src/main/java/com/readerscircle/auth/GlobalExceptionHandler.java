@@ -70,6 +70,12 @@ public class GlobalExceptionHandler {
         .body(ErrorBody.of(HttpStatus.CONFLICT, "conflict"));
   }
 
+  @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+  ResponseEntity<ErrorBody> payloadTooLarge(org.springframework.web.multipart.MaxUploadSizeExceededException ex) {
+    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+        .body(ErrorBody.of(HttpStatus.PAYLOAD_TOO_LARGE, "File upload exceeds maximum permitted size of 50MB"));
+  }
+
   @ExceptionHandler(Exception.class)
   ResponseEntity<ErrorBody> unexpected(Exception ex) {
     log.error("Unhandled error", ex);

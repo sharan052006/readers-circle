@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reader's Circle — Settings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBF8F1; --card:#FFFDF9; --border:#E7DFD2;
+  --ink:#241A12; --muted:#6B6257; --slate:#7A8A9B;
+  --burgundy:#6B2A1F; --maroon:#8B1E1E; --maroon-deep:#5E1414; --peach:#FBEDE9;
+  --palm:#2F5D50;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.55}
+:focus-visible{outline:3px solid var(--palm);outline-offset:2px;border-radius:8px}
+button,input{font:inherit}
+.app{display:grid;grid-template-columns:224px minmax(0,1fr);min-height:100vh}
+.rail{border-right:1px solid var(--border);background:#FDFCF8;padding:18px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 8px 14px}
+.brand .mark{width:32px;height:32px;border-radius:9px;background:var(--burgundy);color:#fff;display:grid;place-items:center;font-size:18px}
+.brand b{font-family:'Fraunces',serif;font-size:18px;letter-spacing:-.01em;color:var(--maroon)}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;color:var(--maroon);text-decoration:none;font-weight:500}
+.nav a:hover{background:#F3EEE1}
+.nav a[aria-current="page"]{background:var(--peach);font-weight:700}
+.syncnote{margin-top:auto;border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:var(--card);font-size:12px;color:var(--muted)}
+.syncnote b{color:var(--palm)}
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;gap:14px;padding:12px 26px;border-bottom:1px solid var(--border);background:var(--paper);position:sticky;top:0;z-index:5}
+.search{flex:1;max-width:560px;position:relative}
+.search input{width:100%;border:1px solid var(--border);border-radius:12px;padding:10px 14px 10px 38px;background:#fff}
+.search .lens{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--slate)}
+.topright{margin-left:auto;display:flex;align-items:center;gap:12px}
+.bell{position:relative;border:1px solid var(--border);background:#fff;border-radius:50%;width:38px;height:38px;display:grid;place-items:center;cursor:pointer}
+.bell .count{position:absolute;top:-6px;right:-6px;background:var(--maroon);color:#fff;font-size:10.5px;font-weight:700;border-radius:999px;padding:1px 6px}
+.userchip{display:flex;align-items:center;gap:9px;border:0;background:transparent;cursor:pointer;padding:4px 6px;border-radius:12px}
+.userchip .face{width:32px;height:32px;border-radius:50%;background:#EFE6D8;display:grid;place-items:center;font-weight:700}
+.drop{position:absolute;top:58px;right:22px;background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 18px 44px rgba(36,26,18,.14);padding:8px;min-width:220px;z-index:20}
+.drop button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 11px;border-radius:9px;cursor:pointer}
+.drop button:hover{background:#F5F0E4}
+.content{padding:20px 26px 48px;max-width:1100px;width:100%}
+h1.page{font-family:'Fraunces',serif;font-size:38px;line-height:1.1;margin:0;color:var(--maroon);letter-spacing:-.01em}
+.sub{color:#8A7A72;margin:4px 0 16px;max-width:70ch}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin-bottom:16px}
+.card h2{font-family:'Fraunces',serif;color:var(--maroon);font-size:22px;margin:0;letter-spacing:-.01em}
+.card .csub{color:var(--slate);font-size:13px;margin:0 0 12px;max-width:70ch}
+.profile-grid{display:grid;grid-template-columns:250px 1fr;gap:24px;align-items:start}
+.photo-col{text-align:center;border-right:1px solid #F0EAD9;padding-right:24px}
+.avatar-wrap{position:relative;display:inline-block}
+.bigav{width:96px;height:96px;border-radius:50%;background:#F1E8DC;color:var(--ink);display:grid;place-items:center;font-size:38px;font-weight:500;margin:8px auto;overflow:hidden}
+.bigav img{width:100%;height:100%;object-fit:cover}
+.cambadge{position:absolute;right:2px;bottom:14px;width:30px;height:30px;border-radius:50%;background:var(--maroon);color:#fff;display:grid;place-items:center;font-size:14px;border:3px solid #fff}
+.photobtn{border:1px solid var(--maroon);background:#fff;color:var(--maroon);border-radius:9px;padding:8px 16px;font-weight:600;cursor:pointer;font-size:13px}
+.frow{display:grid;grid-template-columns:110px minmax(0,1fr);gap:14px;align-items:center;margin:12px 0}
+.frow label{font-size:13.5px;font-weight:500}
+.frow input{width:100%;border:1px solid #DCE3EA;border-radius:9px;padding:10px 14px;background:#fff}
+.frow input:disabled{background:#F4F6F8;color:var(--muted)}
+.saved{font-size:12px;color:#2C7A3B;min-height:18px;margin-top:8px}
+/* notification rows */
+.nrow{display:flex;align-items:center;gap:14px;padding:11px 0;border-top:1px solid #F0EAD9}
+.nrow:first-of-type{border-top:0}
+.nicon{width:38px;height:38px;border-radius:50%;background:var(--peach);color:var(--maroon);display:grid;place-items:center;font-size:17px;flex:none}
+.nrow b{display:block;font-size:13.5px;font-weight:500}
+.nrow small{display:block;font-size:12.5px;color:var(--slate);max-width:70ch}
+.tgl{margin-left:auto;position:relative;width:48px;height:27px;flex:none}
+.tgl input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.tgl i{position:absolute;inset:0;background:#D8D3C6;border-radius:999px;transition:background .15s}
+.tgl i::after{content:'';position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .15s}
+.tgl input:checked + i{background:var(--maroon)}
+.tgl input:checked + i::after{left:24px}
+.tgl input:focus-visible + i{outline:3px solid var(--palm);outline-offset:2px}
+/* security rows */
+.srow{display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid #F0EAD9}
+.srow:first-of-type{border-top:0}
+.sbtn{margin-left:auto;border:1px solid var(--maroon);background:#fff;color:var(--maroon);border-radius:9px;padding:9px 18px;font-weight:600;cursor:pointer;white-space:nowrap;font-size:13px}
+.err{border:1px solid #E3A9A9;background:#FDECEC;color:#7A1F1F;border-radius:12px;padding:12px 14px;margin:0 0 12px}
+.veil{position:fixed;inset:0;background:rgba(60,40,30,.45);display:grid;place-items:center;z-index:50;padding:18px}
+.modal{background:#FFFDF8;border-radius:16px;max-width:440px;width:100%;padding:24px 26px}
+.modal h2{font-family:'Fraunces',serif;color:var(--maroon);margin:0 0 6px;font-size:22px}
+.modal label{display:block;font-size:12.5px;font-weight:600;margin:10px 0 6px}
+.modal input{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:#fff}
+.modal .row{display:flex;gap:10px;margin-top:16px}
+.btn{background:var(--burgundy);color:#fff;border:0;border-radius:10px;padding:10px 16px;font-weight:700;cursor:pointer;flex:1}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+@media(max-width:860px){.profile-grid{grid-template-columns:1fr}.photo-col{border-right:0;border-bottom:1px solid #F0EAD9;padding:0 0 14px}.frow{grid-template-columns:1fr;gap:6px}}
+@media(max-width:760px){.app{grid-template-columns:1fr}.rail{position:static;height:auto}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail" aria-label="Reader navigation">
+    <div class="brand"><span class="mark">📖</span><b>Reader's Circle</b></div>
+    <nav class="nav">
+      <a href="reader.html"><span>⌂</span> Dashboard</a>
+      <a href="reader-circles.html"><span>👥</span> Circles</a>
+      <a href="reader-events.html"><span>📅</span> Events</a>
+      <a href="reader-chat.html"><span>💬</span> Chat</a>
+      <a href="reader-settings.html" aria-current="page"><span>⚙</span> Settings</a>
+    </nav>
+    <div class="syncnote">Settings sync with backend.<br><b id="syncState">Connecting…</b></div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="search"><span class="lens">🔍</span><input id="q" type="search" placeholder="Search books, discussions, circles..." aria-label="Search" /></div>
+      <div class="topright">
+        <button class="bell" id="bell" aria-label="Notifications" aria-haspopup="true">🔔<span class="count" id="bellCount">3</span></button>
+        <button class="userchip" id="meBtn" aria-haspopup="true"><span class="face" id="meFaceTop">S</span><b id="meNameTop">Reader</b><span aria-hidden="true">▾</span></button>
+      </div>
+    </div>
+    <div class="drop" id="bellDrop" hidden style="min-width:320px;max-width:360px"></div>
+    <div class="drop" id="meDrop" hidden>
+      <button id="dropSettings">Settings</button>
+      <button id="dropLogout">Sign out</button>
+    </div>
+    <div class="content">
+      <h1 class="page">Settings</h1>
+      <p class="sub">Manage your account and notification preferences.</p>
+      <div id="pageErr" class="err" hidden></div>
+
+      <section class="card" aria-labelledby="tProfile">
+        <h2 id="tProfile">Profile</h2>
+        <p class="csub">Manage your account details.</p>
+        <div class="profile-grid">
+          <div class="photo-col">
+            <div class="avatar-wrap"><div class="bigav" id="bigAv">S</div><span class="cambadge">📷</span></div>
+            <div><label class="photobtn" style="display:inline-block;cursor:pointer">📷 Change Photo<input id="photoFile" type="file" accept="image/*" hidden /></label></div>
+            <div class="saved" id="photoSaved"></div>
+          </div>
+          <div class="fields">
+            <div class="frow"><label for="fName">Name</label><input id="fName" autocomplete="name" /></div>
+            <div class="frow"><label for="fEmail">Email</label><input id="fEmail" disabled /></div>
+            <div class="frow"><label for="fRole">Role</label><input id="fRole" disabled /></div>
+            <div class="saved" id="profileSaved" aria-live="polite"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="tNotif">
+        <h2 id="tNotif">Notification Settings</h2>
+        <p class="csub">Choose what notifications you want to receive.</p>
+        <div id="notifRows"></div>
+      </section>
+
+      <section class="card" aria-labelledby="tSec">
+        <h2 id="tSec">Security Settings</h2>
+        <p class="csub">Manage your account security.</p>
+        <div class="srow"><span class="nicon">🔑</span><div><b>Change password</b><small>Update your account password.</small></div><button class="sbtn" id="pwBtn">🔑 Change Password</button></div>
+        <div class="srow"><span class="nicon">💳</span><div><b>Sign out of all devices</b><small>Sign out from all devices where your account is currently logged in.</small></div><button class="sbtn" id="signAllBtn">⏏ Sign Out All</button></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="veil" id="pwVeil" hidden>
+  <div class="modal" role="dialog" aria-label="Change password">
+    <h2>Change password</h2>
+    <p class="csub" style="color:var(--muted);font-size:13px;margin:0">Minimum 8 characters.</p>
+    <div id="pwErr" class="err" hidden style="margin-top:10px"></div>
+    <label for="pwCur">Current password</label><input id="pwCur" type="password" autocomplete="current-password" />
+    <label for="pwNew">New password</label><input id="pwNew" type="password" autocomplete="new-password" />
+    <div class="row"><button class="btn ghost" id="pwCancel">Cancel</button><button class="btn" id="pwGo">Update</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  function base(){ return (localStorage.getItem('rc_api_base')||'http://localhost:8080').replace(/\/+$/,''); }
+  function tok(){ return localStorage.getItem('rc_access'); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  if(!tok()){ location.href='auth.html'; return; }
+  async function api(p,opt){
+    opt=opt||{};
+    var r=await fetch(base()+p,{method:opt.method||'GET',headers:Object.assign({Authorization:'Bearer '+tok()},{'Content-Type':'application/json'}),body:opt.body});
+    if(r.status===401){ location.href='auth.html'; throw new Error('Session expired. Sign in again.'); }
+    if(r.status===204) return null;
+    var d=null; try{ d=await r.json(); }catch(e){}
+    if(!r.ok){ var m=(d&&(d.message||d.error))||('Request failed: '+r.status); throw new Error(Array.isArray(m)?m.join(', '):m); }
+    return d;
+  }
+  function setSync(t){ document.getElementById('syncState').textContent=t; }
+  function initials(n){ n=String(n||'R').trim(); return n?n[0].toUpperCase():'R'; }
+  function showErr(m){ var e=document.getElementById('pageErr'); e.hidden=false; e.textContent=m; }
+
+  var NOTIFS=[
+    {key:'joinRequest',icon:'👥',t:'New join request',s:'Notify when your request to join a circle is accepted or rejected.'},
+    {key:'memberJoined',icon:'👤',t:'New member joined',s:'Notify when a new member joins a circle you\u2019re part of.'},
+    {key:'eventCreated',icon:'📅',t:'New event created',s:'Notify when an organizer creates a new event in your circle.'},
+    {key:'discussion',icon:'💬',t:'New discussion',s:'Notify when a member starts a new discussion in your circle.'},
+    {key:'bookRecommendation',icon:'📖',t:'New book recommendation',s:'Notify when a member creates a new book recommendation.'},
+    {key:'chatMessage',icon:'💬',t:'Chat messages',s:'Notify when you receive new messages in your circle chats.'},
+    {key:'replies',icon:'↩',t:'New replies',s:'Notify when someone replies to your discussions or comments.'}
+  ];
+
+  async function loadAll(){
+    setSync('Syncing…');
+    try{
+      var me=await api('/api/users/me');
+      document.getElementById('fName').value=me.name||'';
+      document.getElementById('fEmail').value=me.email||'';
+      document.getElementById('fRole').value=(me.role||'READER').charAt(0)+(me.role||'READER').slice(1).toLowerCase();
+      document.getElementById('meNameTop').textContent=me.name||me.email||'Reader';
+      document.getElementById('meFaceTop').textContent=initials(me.name||me.email);
+      var av=document.getElementById('bigAv');
+      if(me.profilePictureUrl){ av.innerHTML='<img src="'+esc(me.profilePictureUrl)+'" alt="" onerror="this.remove()" />'; }
+      else av.textContent=initials(me.name||me.email);
+      try{
+        var u=await api('/api/notifications/unread-count');
+        var n=Number(u.unreadCount||0);
+        document.getElementById('bellCount').hidden=n<=0;
+        document.getElementById('bellCount').textContent=n;
+      }catch(e){}
+      var prefs=null;
+      try{ prefs=await api('/api/users/me/notification-preferences'); }catch(e){ prefs={}; }
+      renderNotifs(prefs||{});
+      setSync('Synced just now');
+    }catch(e){ showErr(e.message); setSync('Offline'); }
+  }
+
+  function renderNotifs(prefs){
+    document.getElementById('notifRows').innerHTML=NOTIFS.map(function(n){
+      var on=prefs[n.key]!==false;
+      return '<div class="nrow"><span class="nicon">'+n.icon+'</span><div><b>'+n.t+'</b><small>'+n.s+'</small></div>'
+        +'<label class="tgl"><input type="checkbox" data-pref="'+n.key+'" '+(on?'checked':'')+' aria-label="'+esc(n.t)+'" /><i></i></label></div>';
+    }).join('');
+    document.querySelectorAll('[data-pref]').forEach(function(cb){
+      cb.addEventListener('change',async function(){
+        var patch={}; patch[cb.getAttribute('data-pref')]=cb.checked;
+        try{ await api('/api/users/me/notification-preferences',{method:'PUT',body:JSON.stringify(patch)}); }
+        catch(e){ showErr(e.message); cb.checked=!cb.checked; }
+      });
+    });
+  }
+
+  // Name auto-save on change
+  document.getElementById('fName').addEventListener('change',async function(e){
+    var v=e.target.value.trim();
+    if(!v)return;
+    try{
+      await api('/api/users/me',{method:'PATCH',body:JSON.stringify({name:v})});
+      document.getElementById('profileSaved').textContent='Saved ✓';
+      document.getElementById('meNameTop').textContent=v;
+      setTimeout(function(){document.getElementById('profileSaved').textContent='';},2000);
+    }catch(err){ showErr(err.message); }
+  });
+
+  // Photo upload
+  document.getElementById('photoFile').addEventListener('change',async function(e){
+    var f=e.target.files&&e.target.files[0];
+    if(!f)return;
+    try{
+      var fd=new FormData(); fd.append('file',f);
+      var r=await fetch(base()+'/api/users/me/photo',{method:'POST',headers:{Authorization:'Bearer '+tok()},body:fd});
+      if(!r.ok){ var d=null; try{d=await r.json();}catch(_){} throw new Error((d&&(d.message||d.error))||('Upload failed: '+r.status)); }
+      var u=await r.json();
+      var av=document.getElementById('bigAv');
+      if(u.profilePictureUrl){ av.innerHTML='<img src="'+esc(u.profilePictureUrl)+'" alt="" />'; }
+      document.getElementById('photoSaved').textContent='Photo updated ✓';
+      setTimeout(loadAll,800);
+    }catch(err){ showErr(err.message); }
+  });
+
+  // Change password modal
+  document.getElementById('pwBtn').onclick=function(){ document.getElementById('pwVeil').hidden=false; };
+  document.getElementById('pwCancel').onclick=function(){ document.getElementById('pwVeil').hidden=true; };
+  document.getElementById('pwGo').onclick=async function(){
+    var err=document.getElementById('pwErr'); err.hidden=true;
+    var cur=document.getElementById('pwCur').value, nw=document.getElementById('pwNew').value;
+    if(!cur||!nw){ err.hidden=false; err.textContent='Enter current and new password.'; return; }
+    try{
+      await api('/api/users/me/password',{method:'POST',body:JSON.stringify({currentPassword:cur,newPassword:nw})});
+      document.getElementById('pwVeil').hidden=true;
+      document.getElementById('pwCur').value=''; document.getElementById('pwNew').value='';
+      document.getElementById('profileSaved').textContent='Password updated ✓';
+    }catch(e){ err.hidden=false; err.textContent=e.message; }
+  };
+
+  // Sign out all
+  document.getElementById('signAllBtn').onclick=async function(){
+    if(!confirm('Sign out from all devices?'))return;
+    try{
+      await api('/api/users/me/sign-out-all',{method:'POST'});
+      localStorage.removeItem('rc_access'); localStorage.removeItem('rc_refresh');
+      location.href='auth.html';
+    }catch(e){ showErr(e.message); }
+  };
+
+  document.getElementById('meBtn').onclick=function(){
+    var d=document.getElementById('meDrop'); d.hidden=!d.hidden;
+    document.getElementById('bellDrop').hidden=true;
+  };
+  document.getElementById('dropSettings').onclick=function(){ location.href='reader-settings.html'; };
+  document.getElementById('dropLogout').onclick=function(){
+    localStorage.removeItem('rc_access'); localStorage.removeItem('rc_refresh'); location.href='auth.html';
+  };
+  document.getElementById('bell').onclick=async function(){
+    var dd=document.getElementById('bellDrop'); dd.hidden=!dd.hidden;
+    document.getElementById('meDrop').hidden=true;
+    if(dd.hidden) return;
+    dd.innerHTML='Loading…';
+    try{
+      var list=await api('/api/notifications');
+      dd.innerHTML=list.length?list.slice(0,6).map(function(n){
+        return '<div style="padding:9px 11px;border-bottom:1px solid #F0EAD9"><b style="font-size:13px">'+esc(n.title)+'</b><div style="font-size:12px;color:#6B6257">'+esc(n.body||'')+'</div></div>';
+      }).join(''):'<div style="padding:12px;font-size:13px;color:#6B6257">No notifications. New event and reply alerts land here.</div>';
+    }catch(e){ dd.innerHTML='Could not load notifications.'; }
+  };
+  document.getElementById('pwVeil').addEventListener('click',function(e){
+    if(e.target===this) this.hidden=true;
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape') document.getElementById('pwVeil').hidden=true;
+  });
+  document.getElementById('q').addEventListener('keydown',function(e){ if(e.key==='Enter') location.href='reader.html'; });
+  loadAll();
+})();
+</script>
+</body>
+</html>

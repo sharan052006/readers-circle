@@ -15,5 +15,9 @@ public record UpdateEventRequest(
     Integer capacity,
     Instant registrationDeadline,
     String coverImageUrl,
-    EventStatus status
+    EventStatus status,
+    String type,
+    String mode,
+    String guidelines,
+    String location
 ) {}

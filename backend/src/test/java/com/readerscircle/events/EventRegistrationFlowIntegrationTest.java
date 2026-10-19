@@ -127,7 +127,11 @@ class EventRegistrationFlowIntegrationTest {
             10,
             Instant.now().plusSeconds(86400 * 2),
             null,
-            false);
+            false,
+            null,
+            null,
+            null,
+            null);
     ResponseEntity<String> readerCreateResp =
         rest.exchange(
             "/api/circles/" + circleId + "/events",
@@ -144,6 +148,15 @@ class EventRegistrationFlowIntegrationTest {
             new HttpEntity<>(req1, bearer(otherOrganizerToken)),
             String.class);
     assertThat(otherOrgCreateResp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+
+    // 2b. Admin cannot create event for this circle unless appointed as organizer (403)
+    ResponseEntity<String> adminCreateResp =
+        rest.exchange(
+            "/api/circles/" + circleId + "/events",
+            HttpMethod.POST,
+            new HttpEntity<>(req1, bearer(adminToken)),
+            String.class);
+    assertThat(adminCreateResp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 
     // 3. Organizer creates DRAFT event
     ResponseEntity<EventDetailDto> orgCreateResp =
@@ -168,7 +181,8 @@ class EventRegistrationFlowIntegrationTest {
     // 5. Organizer updates event to PUBLISHED
     UpdateEventRequest publishReq =
         new UpdateEventRequest(
-            null, null, null, null, null, null, null, null, null, EventStatus.PUBLISHED);
+            null, null, null, null, null, null, null, null, null, EventStatus.PUBLISHED, null, null,
+            null, null);
     ResponseEntity<EventDetailDto> publishResp =
         rest.exchange(
             "/api/events/" + eventId,
@@ -186,6 +200,15 @@ class EventRegistrationFlowIntegrationTest {
             new HttpEntity<>(bearer(nonMemberToken)),
             String.class);
     assertThat(nonMemberRegResp.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+
+    // 6b. Admin cannot register for event (400 Bad Request)
+    ResponseEntity<String> adminRegResp =
+        rest.exchange(
+            "/api/events/" + eventId + "/register",
+            HttpMethod.POST,
+            new HttpEntity<>(bearer(adminToken)),
+            String.class);
+    assertThat(adminRegResp.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 
     // 7. Approved member registers successfully (201)
     ResponseEntity<RegistrationDto> memberRegResp =
@@ -260,7 +283,7 @@ class EventRegistrationFlowIntegrationTest {
     // 14. Cannot reduce capacity below active headcount
     UpdateEventRequest invalidCapReq =
         new UpdateEventRequest(
-            null, null, null, null, null, null, 0, null, null, null);
+            null, null, null, null, null, null, 0, null, null, null, null, null, null, null);
     ResponseEntity<String> invalidCapResp =
         rest.exchange(
             "/api/events/" + eventId,
@@ -272,7 +295,8 @@ class EventRegistrationFlowIntegrationTest {
     // 15. Organizer completes event
     UpdateEventRequest completeReq =
         new UpdateEventRequest(
-            null, null, null, null, null, null, null, null, null, EventStatus.COMPLETED);
+            null, null, null, null, null, null, null, null, null, EventStatus.COMPLETED, null, null,
+            null, null);
     ResponseEntity<EventDetailDto> completeResp =
         rest.exchange(
             "/api/events/" + eventId,
@@ -290,5 +314,25 @@ class EventRegistrationFlowIntegrationTest {
             new HttpEntity<>(publishReq, bearer(organizerToken)),
             String.class);
     assertThat(terminalResp.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+
+    // 17. Admin views all events platform-wide with circle name (200 OK)
+    ResponseEntity<List<EventSummaryDto>> adminEventsResp =
+        rest.exchange(
+            "/api/events",
+            HttpMethod.GET,
+            new HttpEntity<>(bearer(adminToken)),
+            new ParameterizedTypeReference<>() {});
+    assertThat(adminEventsResp.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(adminEventsResp.getBody()).isNotEmpty();
+    assertThat(adminEventsResp.getBody().get(0).circleName()).isEqualTo("Classic Books");
+
+    // 18. Non-admin can access platform-wide /api/events (200 OK)
+    ResponseEntity<String> nonAdminEventsResp =
+        rest.exchange(
+            "/api/events",
+            HttpMethod.GET,
+            new HttpEntity<>(bearer(memberToken)),
+            String.class);
+    assertThat(nonAdminEventsResp.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 }

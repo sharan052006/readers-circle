@@ -56,9 +56,15 @@ public class JwtService {
   }
 
   public String generateRefreshToken(UUID userId) {
+    return generateRefreshToken(userId, 0);
+  }
+
+  /** Refresh token carrying the session version — bumped on Sign out of all devices. */
+  public String generateRefreshToken(UUID userId, int tokenVersion) {
     Date now = new Date();
     return Jwts.builder()
         .subject(userId.toString())
+        .claim("sv", tokenVersion)
         .issuedAt(now)
         .expiration(new Date(now.getTime() + refreshTtl.toMillis()))
         .signWith(key)

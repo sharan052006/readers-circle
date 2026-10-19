@@ -1,0 +1,1814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reader's Circle — Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F9F8F4; --card:#FFFDF8; --card2:#EEECE5; --border:#D8D3C6;
+  --ink:#1C1611; --muted:#5C6672; --burgundy:#693524; --brown:#3D2916;
+  --clay:#956342; --beige:#C49D7C; --sage:#DDE7DF; --moss:#3E6B4F;
+  --blush:#F6E3D8; --sky:#DFE9EF; --butter:#F4E6C3; --lav:#E4E1F2;
+  --radius:16px;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.5}
+button,input,select{font:inherit}
+:focus-visible{outline:3px solid #6D63A8;outline-offset:2px;border-radius:8px}
+.app{display:grid;grid-template-columns:236px 1fr;min-height:100vh}
+/* Sidebar */
+.side{border-right:1px solid var(--border);background:#FBFAF6;padding:18px 14px;display:flex;flex-direction:column;gap:14px;position:sticky;top:0;height:100vh;overflow:auto}
+.brandrow{display:flex;align-items:center;gap:10px;padding:2px 6px}
+.mark{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--burgundy);color:#fff;font-family:'Fraunces',serif;font-weight:700;font-size:19px}
+.brandrow b{font-size:12.5px;letter-spacing:.02em;display:block;line-height:1.2}
+.brandrow span{font-size:11px;color:var(--muted)}
+.navbtn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:transparent;padding:9px 12px;border-radius:11px;cursor:pointer;color:var(--ink);font-weight:500}
+.navbtn:hover{background:#F1EEE5}
+.navbtn[aria-current="page"]{background:var(--burgundy);color:#fff;font-weight:700}
+.navgroup{font-size:11.5px;color:var(--muted);margin:10px 8px 2px;font-weight:600}
+.sidefoot{margin-top:auto;border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:var(--card)}
+.sidefoot b{display:block;font-size:13px}.sidefoot span{font-size:11.5px;color:var(--muted)}
+.linkbtn{border:0;background:none;color:var(--burgundy);font-weight:700;cursor:pointer;padding:6px 0 0}
+/* Main */
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;gap:12px;padding:12px 26px;border-bottom:1px solid var(--border);background:var(--paper);position:sticky;top:0;z-index:5}
+.sync{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;background:#EAF3EA;border:1px solid #CBE0CC;color:#2C5A36;border-radius:999px;padding:6px 12px}
+.dot{width:8px;height:8px;border-radius:50%;background:#3E8E4F;box-shadow:0 0 0 4px rgba(62,142,79,.18)}
+.topbar .sp{flex:1}
+.apibase{font-size:12px;color:var(--muted);border:1px solid var(--border);border-radius:9px;padding:7px 10px;background:#fff;width:220px}
+.userchip{display:flex;align-items:center;gap:8px;border:1px solid var(--border);background:#fff;border-radius:999px;padding:5px 12px 5px 6px;font-weight:600;font-size:13px}
+.avatar{width:26px;height:26px;border-radius:50%;background:var(--lav);display:grid;place-items:center;font-size:12px;font-weight:700}
+.content{padding:22px 26px 40px;max-width:1240px;width:100%}
+/* Banner — the one memorable element */
+.banner{background:linear-gradient(120deg,#F3E7D3 0%,#EFE0CE 45%,#E9D5C2 100%);border:1px solid var(--border);border-radius:20px;padding:26px 28px;display:grid;grid-template-columns:1fr 190px;gap:18px;align-items:center;animation:rise .5s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.banner{animation:none}.navbtn,.card{transition:none}}
+.banner h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(26px,3vw,40px);line-height:1.04;margin:4px 0 8px;letter-spacing:-.015em}
+.banner p{margin:0;color:#5A4A3A;max-width:62ch}
+.kicker{font-size:12.5px;font-weight:600;color:var(--burgundy)}
+.bookart{justify-self:end;text-align:center;color:var(--brown)}
+.bookart .stack{font-size:52px;line-height:1}
+.bookart b{display:block;font-family:'Fraunces',serif;font-size:13px;letter-spacing:.06em;line-height:1.5}
+/* Stat cards */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:16px 0}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 15px;display:flex;gap:12px;align-items:flex-start}
+.stat .ic{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:17px;flex:none}
+.stat b.num{font-family:'Fraunces',serif;font-size:26px;line-height:1;display:block}
+.stat span.lbl{font-size:12px;color:var(--muted)}
+.trend{margin-left:auto;font-size:11.5px;font-weight:700;background:#EAF3EA;color:#2C5A36;border-radius:999px;padding:3px 9px;white-space:nowrap}
+/* Two-col rows */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px}
+.panel h3{margin:0 0 2px;font-size:13px;letter-spacing:.02em}
+.panel .sub{font-size:12px;color:var(--muted);margin:0 0 12px}
+.circlerow{display:grid;grid-template-columns:64px 1fr auto;gap:12px;border:1px solid var(--border);border-radius:13px;padding:10px;margin-bottom:10px;background:#FFFEFA;align-items:center}
+.circlerow img{width:64px;height:64px;object-fit:cover;border-radius:10px;background:var(--card2)}
+.circlerow h4{margin:0;font-size:14px}.circlerow p{margin:2px 0;font-size:12.5px;color:var(--muted)}
+.pills{display:flex;gap:6px;align-items:center;margin-top:6px}
+.pillface{width:24px;height:24px;border-radius:50%;background:var(--sky);border:2px solid #fff;margin-left:-8px;display:grid;place-items:center;font-size:10px;font-weight:700}
+.pillface:first-child{margin-left:0}
+.orgbox{text-align:center;font-size:11.5px}.orgbox img{width:44px;height:44px;border-radius:50%;object-fit:cover;background:var(--lav)}
+.eventrow{display:grid;grid-template-columns:52px 1fr 44px;gap:12px;border:1px solid var(--border);border-radius:13px;padding:10px;margin-bottom:10px;background:#FFFEFA;align-items:center}
+.datebox{background:var(--burgundy);color:#fff;border-radius:10px;text-align:center;padding:6px 0}
+.datebox b{display:block;font-size:18px;line-height:1}.datebox span{font-size:10.5px}
+.eventrow h4{margin:0;font-size:13.5px}.eventrow p{margin:2px 0;font-size:12px;color:var(--muted)}
+.ovgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ov{background:#FFFEFA;border:1px solid var(--border);border-radius:13px;padding:12px}
+.ov b{font-family:'Fraunces',serif;font-size:21px}.ov .up{color:#2C7A3B;font-weight:700;font-size:12px}
+.rangebar{display:flex;gap:6px}
+.rangebar button{border:1px solid var(--border);background:#fff;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer}
+.rangebar button[aria-pressed="true"]{background:var(--ink);color:#fff}
+#chart{width:100%;height:220px;display:block}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:6px}
+.legend i{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px}
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:13px;background:#FFFEFA;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid #EEE9DC;vertical-align:top}
+th{background:#F4F0E6;font-size:12px;color:var(--muted)}
+.view{display:none}.view.on{display:block}
+.toolbar{display:flex;gap:10px;align-items:center;margin:0 0 12px;flex-wrap:wrap}
+.toolbar input,.toolbar select{border:1px solid var(--border);border-radius:10px;padding:9px 11px;background:#fff}
+.btn{background:var(--burgundy);color:#fff;border:0;border-radius:11px;padding:10px 16px;font-weight:700;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.notice{border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:#FFF8E8;font-size:13px;margin:0 0 12px}
+.err{border:1px solid #E3A9A9;background:#FDECEC;color:#7A1F1F;border-radius:12px;padding:12px 14px;margin:0 0 12px}
+/* General Chat — 3-column workspace (banner + channels + conversation + info) */
+.gchat-banner{background:linear-gradient(100deg,#FCF1EA 0%,#FFF6F2 55%,#FBEAF4 100%);border:1px solid #F1E2D8;border-radius:14px;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;overflow:hidden;margin-bottom:14px}
+.gchat-banner-left{display:flex;align-items:center;gap:14px}
+.gchat-banner-ic{width:48px;height:48px;border-radius:12px;background:#F8DED7;color:#7B211A;display:grid;place-items:center;font-size:22px;flex:none}
+.gchat-banner h2{font-family:'Fraunces',serif;color:#731E17;font-size:24px;margin:0;letter-spacing:.02em}
+.gchat-banner p{margin:2px 0 0;color:#7A6A62;font-size:13px}
+.gchat-art{font-size:44px;letter-spacing:2px;white-space:nowrap}
+.gchat-grid{display:grid;grid-template-columns:252px minmax(0,1fr) 288px;gap:14px;align-items:start}
+.gchat-left{display:flex;flex-direction:column;gap:10px;min-width:0}
+.gchat-search{position:relative}
+.gchat-search input{width:100%;border:1px solid var(--border);border-radius:10px;padding:9px 12px 9px 34px;background:#fff}
+.gchat-search span{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#A49790}
+.gchat-seclbl{font-size:11px;font-weight:700;letter-spacing:.08em;color:#9A8C84;margin:4px 4px 0}
+.gchat-chan{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid transparent;background:transparent;border-radius:11px;padding:9px 11px;cursor:pointer;color:var(--ink)}
+.gchat-chan:hover{background:#FBF5F2}
+.gchat-chan.on{background:#FAEDE8;border-color:#F3D5CB}
+.gchat-chan.lounge{border-left:3px solid #D49520}
+.gchat-chan.lounge.on{background:#FDF5E6;border-left-color:#B87A0F}
+.gchat-badge{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;flex:none;font-weight:700;background:#FBE2DC;color:#8B231C}
+.gchat-badge.gold{background:#FEF0D2;border:1.5px solid #E8C57A;color:#945D06}
+.gchat-chan b{display:block;font-size:12.5px;letter-spacing:.02em}
+.gchat-chan small{display:block;font-size:11.5px;color:#897E77}
+.gchat-tick{margin-left:auto;color:#7B1E18;font-weight:700}
+.gchat-mid{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-height:560px}
+.gchat-head{display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid #EEE7E1}
+.gchat-head h3{margin:0;font-size:14px;letter-spacing:.03em}
+.gchat-head small{color:#8B8079;font-size:11.5px}
+.gchat-dot{width:8px;height:8px;border-radius:50%;background:#25A25B;margin-left:auto}
+.gchat-msgs{flex:1;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:14px;min-height:320px}
+.gchat-row{display:flex;gap:10px;max-width:86%}
+.gchat-row.own{align-self:flex-end;flex-direction:row-reverse}
+.gchat-av{width:34px;height:34px;border-radius:50%;background:#F9E3DD;color:#82221B;display:grid;place-items:center;font-weight:700;font-size:13px;flex:none}
+.gchat-meta{font-size:12px;color:var(--muted);margin-bottom:3px}
+.gchat-meta b{color:var(--ink);font-size:12.5px;margin-right:6px}
+.gchat-bub{background:#FFFEFA;border:1px solid #EBE3DC;border-radius:12px;padding:10px 14px}
+.gchat-bub p{margin:0;font-size:13.5px}
+.gchat-like{margin-top:6px;border:1px solid #EDE5DE;background:#fff;border-radius:999px;font-size:12px;padding:2px 9px;cursor:pointer;color:#726760}
+.gchat-like.liked{background:#FDEDE8;border-color:#F5CFC4;color:#88221B}
+.gchat-comp{border-top:1px solid #F2EBE5;padding:12px 16px}
+.gchat-pill{display:flex;align-items:center;gap:8px;border:1px solid #E5DED8;border-radius:999px;padding:5px 6px 5px 14px;background:#fff}
+.gchat-pill input{flex:1;border:0;outline:0;background:transparent;font:inherit;min-width:0}
+.gchat-send{width:36px;height:36px;border-radius:50%;border:0;background:var(--burgundy);color:#fff;cursor:pointer;font-size:15px}
+.gchat-send:disabled{opacity:.45;cursor:not-allowed}
+.gchat-tool{border:0;background:none;color:#8C8179;cursor:pointer;font-size:16px;padding:4px}
+.gchat-right{display:flex;flex-direction:column;gap:14px;min-width:0}
+.gchat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
+.gchat-card h3{margin:0;font-size:13.5px}
+.gchat-big{width:68px;height:68px;border-radius:50%;background:#FCEDEA;color:#7B1E18;display:grid;place-items:center;font-family:'Fraunces',serif;font-size:30px;font-weight:700;margin:12px auto 8px}
+.gchat-big.gold{background:#FEF0D2;border:2px solid #E8C57A;color:#945D06;font-size:28px}
+.gchat-cname{text-align:center;font-weight:700;font-size:14px;letter-spacing:.02em;margin:0}
+.gchat-csub{text-align:center;color:#8B807A;font-size:11.5px;margin:0 0 8px}
+.gchat-stat{display:flex;justify-content:space-between;align-items:center;border-top:1px solid #F1EAE4;margin-top:8px;padding-top:10px;font-size:12.5px;color:#6D625C}
+.gchat-stat b{color:var(--ink)}
+.gchat-leaders{border:1px solid #F0E6E0;border-radius:10px;margin-top:12px;padding:10px 12px;background:#FDFCFB}
+.gchat-leaders h4{margin:0 0 8px;font-size:11px;letter-spacing:.05em;color:#72625A}
+.gchat-leader{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F6EFEB;font-size:12px}
+.gchat-leader:last-child{border-bottom:0}
+.gchat-lav{width:26px;height:26px;border-radius:50%;background:#7A1E18;color:#fff;display:grid;place-items:center;font-weight:700;font-size:11px;flex:none}
+.gchat-leader small{display:block;color:#92837B;font-size:11px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gchat-role{margin-left:auto;font-size:10px;font-weight:700;border-radius:999px;padding:2px 8px;white-space:nowrap}
+.gchat-role.admin{background:#FAE8E6;color:#872018}
+.gchat-role.organizer{background:#FBF0D9;color:#945D06}
+.gchat-quote{background:#FDF5F2;border:1px solid #F5E2DB;border-radius:10px;margin-top:12px;padding:12px 14px}
+.gchat-quote blockquote{margin:4px 0;font-family:'Fraunces',serif;font-style:italic;color:#74251E;font-size:13px}
+.gchat-quote cite{display:block;text-align:right;color:#875C54;font-size:11.5px;font-style:normal}
+.gchat-rules{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:10px;font-size:12.5px;color:#4B413C}
+.gchat-rules li{display:flex;gap:9px}
+.gchat-ok{color:#1EA759;font-weight:700;flex:none}
+.gchat-empty{color:var(--muted);font-size:13px;text-align:center;padding:40px 10px}
+@media (max-width:1100px){.gchat-grid{grid-template-columns:230px minmax(0,1fr)}.gchat-right{display:none}}
+@media (max-width:760px){.gchat-grid{grid-template-columns:minmax(0,1fr)}.gchat-left{display:none}.gchat-art{display:none}}
+/* Book Discussions — list / create / view workspace */
+.bd-banner{background:linear-gradient(100deg,#FCF1EA 0%,#FFF6F2 60%,#FBEAF4 100%);border:1px solid #F1E2D8;border-radius:14px;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:14px;overflow:hidden}
+.bd-banner-left{display:flex;align-items:center;gap:14px}
+.bd-banner-ic{width:48px;height:48px;border-radius:12px;background:#F8DED7;color:#7B211A;display:grid;place-items:center;font-size:22px;flex:none}
+.bd-banner h2{font-family:'Fraunces',serif;color:#731E17;font-size:24px;margin:0;letter-spacing:.02em}
+.bd-banner p{margin:2px 0 0;color:#7A6A62;font-size:12.5px;max-width:70ch}
+.bd-script{font-family:'Fraunces',serif;font-style:italic;color:#8A3B2E;font-size:14px;text-align:right;line-height:1.4}
+.bd-art{font-size:40px;white-space:nowrap}
+.bd-tabs{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.bd-tab{border:1px solid var(--border);background:#fff;border-radius:999px;padding:7px 15px;font-size:12.5px;font-weight:600;cursor:pointer}
+.bd-tab[aria-pressed="true"]{background:var(--burgundy);color:#fff;border-color:var(--burgundy)}
+.bd-search{margin-left:auto;border:1px solid var(--border);border-radius:999px;padding:8px 14px;background:#fff;min-width:220px}
+.bd-grid{display:grid;grid-template-columns:minmax(0,1fr) 288px;gap:14px;align-items:start}
+.bd-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+.bd-disc-head{display:flex;gap:14px}
+.bd-cover{width:64px;height:80px;object-fit:cover;border-radius:8px;background:var(--card2);flex:none}
+.bd-disc-head h3{margin:0;font-family:'Fraunces',serif;color:#731E17;font-size:15px;letter-spacing:.02em}
+.bd-byline{font-size:12px;color:var(--muted);margin:3px 0}
+.bd-tagpill{background:#FBE9E4;color:#8A3B2E;border-radius:999px;padding:2px 10px;font-size:11.5px;font-weight:600}
+.bd-excerpt{font-size:13px;color:#4B413C;margin:6px 0}
+.bd-meta{display:flex;gap:14px;font-size:12px;color:#8B8079}
+.bd-viewlink{margin-left:auto;color:var(--burgundy);font-weight:700;font-size:12.5px;background:none;border:0;cursor:pointer}
+.bd-side{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
+.bd-side h3{margin:0 0 10px;font-size:13.5px}
+.bd-bookrow{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #F3ECE5;font-size:12.5px}
+.bd-bookrow:last-child{border-bottom:0}
+.bd-bookrow img{width:38px;height:48px;object-fit:cover;border-radius:6px;background:var(--card2)}
+.bd-form label{display:block;font-size:12.5px;font-weight:600;margin:12px 0 6px}
+.bd-form input,.bd-form select,.bd-form textarea{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:#fff;font:inherit}
+.bd-form textarea{min-height:90px;resize:vertical}
+.bd-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bd-step{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--burgundy);color:#fff;font-size:12px;font-weight:700;margin-right:8px}
+.bd-quotebox{background:#FDF5F2;border:1px solid #F5E2DB;border-radius:10px;padding:12px 14px;margin-top:12px;font-size:12.5px;color:#74251E;font-family:'Fraunces',serif;font-style:italic}
+.bd-rules{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:9px;font-size:12.5px;color:#4B413C}
+.bd-rules li{display:flex;gap:8px}
+.bd-ok{color:#1EA759;font-weight:700}
+.bd-thread{border-top:1px solid #F1EAE4;padding-top:12px;margin-top:12px}
+.bd-thread:first-child{border-top:0;margin-top:0;padding-top:0}
+.bd-back{background:none;border:0;color:var(--burgundy);font-weight:700;cursor:pointer;margin-bottom:10px;font-size:13px}
+.bd-statline{display:flex;justify-content:space-between;font-size:12.5px;color:#6D625C;padding:5px 0}
+.bd-statline b{color:var(--ink)}
+.bd-empty{color:var(--muted);font-size:13px;text-align:center;padding:30px 10px}
+@media (max-width:1020px){.bd-grid{grid-template-columns:1fr}.bd-2col{grid-template-columns:1fr}}
+/* Book Recommendations — list + share modal */
+.rec-banner{background:linear-gradient(100deg,#FCF1EA 0%,#FFF6F2 60%,#FBEAF4 100%);border:1px solid #F1E2D8;border-radius:14px;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:14px;overflow:hidden}
+.rec-banner-left{display:flex;align-items:center;gap:14px}
+.rec-banner-ic{width:48px;height:48px;border-radius:12px;background:#F8DED7;color:#7B211A;display:grid;place-items:center;font-size:22px;flex:none}
+.rec-banner h2{font-family:'Fraunces',serif;color:#731E17;font-size:24px;margin:0;letter-spacing:.02em}
+.rec-banner p{margin:2px 0 0;color:#7A6A62;font-size:12.5px}
+.rec-filters{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.rec-filters select{border:1px solid var(--border);border-radius:10px;padding:8px 12px;background:#fff;font-size:12.5px}
+.rec-grid{display:grid;grid-template-columns:minmax(0,1fr) 288px;gap:14px;align-items:start}
+.rec-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+.rec-top{display:flex;gap:14px}
+.rec-cover{width:80px;height:104px;object-fit:cover;border-radius:8px;background:#F3ECE2;flex:none;display:grid;place-items:center;color:#8B8079;font-size:11px;text-align:center}
+.rec-card h3{margin:0;font-family:'Fraunces',serif;color:#731E17;font-size:15px;letter-spacing:.03em}
+.rec-author{font-size:12.5px;color:#4B413C;margin:2px 0}
+.rec-byline{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin:6px 0}
+.rec-mini-av{width:24px;height:24px;border-radius:50%;background:#F4E6C3;display:grid;place-items:center;font-size:11px;font-weight:700;color:#7A5A1E}
+.rec-stars{color:#C98A1B;font-size:14px;letter-spacing:2px}
+.rec-stars .off{color:#DCD5CC}
+.rec-review{font-size:13px;color:#4B413C;margin:8px 0}
+.rec-actions{display:flex;align-items:center;gap:16px;border-top:1px solid #F1EAE4;margin-top:10px;padding-top:10px;font-size:12.5px}
+.rec-act{background:none;border:0;cursor:pointer;color:#6D625C;font-size:12.5px;padding:2px 0}
+.rec-act.liked{color:var(--burgundy);font-weight:700}
+.rec-save{margin-left:auto;background:none;border:0;cursor:pointer;font-size:16px;color:#7A5A3A}
+.rec-cbox textarea{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px;min-height:56px;font:inherit;margin-top:10px;background:#FFFEFA}
+.rec-cbox .row{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+.rec-side{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
+.rec-side h3{margin:0 0 10px;font-size:13.5px;font-family:'Fraunces',serif;color:#731E17;letter-spacing:.04em}
+.rec-trow{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #F3ECE5;font-size:12.5px}
+.rec-trow:last-child{border-bottom:0}
+.rec-rank{font-weight:700;color:#7A5A3A;width:14px}
+.rec-modal-veil{position:fixed;inset:0;background:rgba(60,40,30,.45);display:grid;place-items:center;z-index:50;padding:18px}
+.rec-modal{background:#FFFDF8;border-radius:16px;max-width:640px;width:100%;max-height:92vh;overflow:auto;padding:26px 28px}
+.rec-modal h2{font-family:'Fraunces',serif;color:#731E17;text-align:center;margin:0 0 16px;font-size:22px;letter-spacing:.03em}
+.rec-modal label{display:block;font-size:12.5px;font-weight:600;margin:10px 0 6px}
+.rec-modal input[type=text],.rec-modal select,.rec-modal textarea{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font:inherit;background:#fff}
+.rec-modal textarea{min-height:96px;resize:vertical}
+.rec-coverrow{display:flex;gap:14px}
+.rec-coverprev{width:110px;height:130px;border-radius:10px;background:#F3ECE5;display:grid;place-items:center;color:#A89C90;font-size:34px;flex:none;overflow:hidden}
+.rec-coverprev img{width:100%;height:100%;object-fit:cover}
+.rec-rate button{background:none;border:0;font-size:22px;cursor:pointer;color:#DCD5CC;padding:0 2px}
+.rec-rate button.lit{color:#D9962B}
+.rec-tagchip{display:inline-block;background:#F4E6C3;border-radius:999px;padding:3px 10px;font-size:11.5px;margin:4px 6px 0 0}
+@media (max-width:1020px){.rec-grid{grid-template-columns:1fr}}
+/* User Management — All Users / Organisers / Members */
+.um-banner{background:linear-gradient(100deg,#FCF1EA 0%,#FFF6F2 60%,#FBEAF4 100%);border:1px solid #F1E2D8;border-radius:14px;padding:18px 22px;margin-bottom:14px}
+.um-banner-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.um-banner h2{font-family:'Fraunces',serif;color:#731E17;font-size:26px;margin:0;letter-spacing:.02em}
+.um-banner h3{margin:2px 0;font-size:15px}
+.um-banner p{margin:2px 0 0;color:#7A6A62;font-size:12.5px}
+.um-read{border:1px solid #E7D9C8;background:#FBF4E8;border-radius:10px;padding:8px 14px;font-size:11px;font-weight:700;letter-spacing:.06em;color:#6B4A2A;text-align:center;line-height:1.5;white-space:nowrap}
+.um-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.um-stats.two{grid-template-columns:repeat(2,minmax(180px,260px))}
+.um-stat{background:#fff;border:1px solid #EEE3D6;border-radius:12px;padding:12px 16px;display:flex;gap:12px;align-items:center}
+.um-stat .ic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:17px;flex:none}
+.um-stat small{display:block;font-size:11.5px;color:#8B8079}
+.um-stat b{font-family:'Fraunces',serif;font-size:24px;line-height:1}
+.um-panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 18px}
+.um-listhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.um-listhead h3{margin:0;font-size:14px;letter-spacing:.04em}
+.um-refresh{border:1px solid var(--border);background:#fff;border-radius:9px;padding:6px 12px;font-size:12px;cursor:pointer}
+.um-tools{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.um-tools input,.um-tools select{border:1px solid var(--border);border-radius:9px;padding:7px 11px;background:#fff;font-size:12.5px}
+.um-rolechip{border:1px solid #E3D5C2;background:#F7EEDF;border-radius:9px;padding:7px 12px;font-size:12.5px;font-weight:600;color:#6B4A2A}
+.um-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.um-table th{background:#F4F0E6;color:#6D625C;font-size:11.5px;text-align:left;padding:9px 10px;white-space:nowrap}
+.um-table th.sortable{cursor:pointer}
+.um-table td{padding:9px 10px;border-bottom:1px solid #F1EAE2;vertical-align:middle}
+.um-av{width:30px;height:30px;border-radius:50%;background:var(--lav);display:inline-grid;place-items:center;font-size:12px;font-weight:700;overflow:hidden;vertical-align:middle}
+.um-av img{width:100%;height:100%;object-fit:cover}
+.uh-tabs{display:flex;gap:18px;margin:14px 0 12px;font-size:13px}
+.uh-tab{border:0;background:none;cursor:pointer;padding:6px 2px;color:#6D625C;font-size:13px}
+.uh-tab[aria-selected="true"]{color:var(--burgundy);font-weight:700;border-bottom:2px solid var(--burgundy)}
+.role-pill{border-radius:6px;padding:3px 10px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.role-pill.member{background:#F7EEDF;color:#7A5A1E}
+.role-pill.organizer{background:#EDE9F7;color:#4A3F8C}
+.role-pill.admin{background:#E3F0FB;color:#1D5FB0}
+.st-pill{border-radius:6px;padding:3px 10px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.st-pill.on{background:#E5F4E8;color:#1E8E4F}
+.st-pill.off{background:#FBE3E3;color:#C22E2E}
+.btn-demote{border:1px solid #E8C98F;background:#FFF8E8;color:#8A5A1E;border-radius:9px;padding:6px 10px;font-size:11.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn-promote{border:1px solid #B9D4F0;background:#EEF5FD;color:#1D5FB0;border-radius:9px;padding:6px 10px;font-size:11.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+/* Settings — profile / notifications / security */
+.set-wrap{max-width:860px}
+.set-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 22px;margin-bottom:14px}
+.set-head{display:flex;gap:12px;align-items:center;margin-bottom:6px}
+.set-ic{width:42px;height:42px;border-radius:50%;background:#F6E3D8;color:#7B211A;display:grid;place-items:center;font-size:19px;flex:none}
+.set-head h3{margin:0;font-size:15px}
+.set-head p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+.set-profile{display:grid;grid-template-columns:220px 1fr;gap:18px;align-items:start;margin-top:12px}
+.set-photo{text-align:center}
+.set-bigav{width:84px;height:84px;border-radius:50%;background:#E8CBD6;color:#3A2B2B;display:grid;place-items:center;font-size:34px;font-weight:600;margin:0 auto 10px;overflow:hidden}
+.set-bigav img{width:100%;height:100%;object-fit:cover}
+.set-form label{display:block;font-size:12.5px;font-weight:600;margin:10px 0 6px}
+.set-form input{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:#fff;font:inherit}
+.set-form input:disabled{background:#F4F1EC;color:var(--muted)}
+.set-saved{font-size:11.5px;color:#2C7A3B;min-height:16px}
+.set-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid #F1EAE2}
+.set-row:first-of-type{border-top:0}
+.set-row b{display:block;font-size:13px}
+.set-row small{display:block;font-size:11.5px;color:var(--muted)}
+.set-row .grow{flex:1;min-width:0}
+.set-btn{border:1px solid #C9A227;border-radius:9px;background:#fff;padding:8px 14px;font-size:12.5px;font-weight:600;cursor:pointer;color:#6B4A2A;white-space:nowrap}
+.set-btn.solid{background:var(--burgundy);border-color:var(--burgundy);color:#fff}
+.tgl{position:relative;width:44px;height:25px;flex:none}
+.tgl input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.tgl i{position:absolute;inset:0;background:#D8D3C6;border-radius:999px;transition:background .15s}
+.tgl i::after{content:'';position:absolute;top:3px;left:3px;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:left .15s}
+.tgl input:checked + i{background:#8A3B2E}
+.tgl input:checked + i::after{left:22px}
+.tgl input:focus-visible + i{outline:3px solid #6D63A8;outline-offset:2px}
+.set-modal-btns{display:flex;gap:10px;margin-top:14px}
+.set-modal-btns .btn{flex:1}
+.set-code{font-family:monospace;background:#F4F1EC;border:1px dashed var(--border);border-radius:8px;padding:8px;word-break:break-all;font-size:12px}
+@media (max-width:760px){.set-profile{grid-template-columns:1fr}}
+.um-status{font-size:12px;font-weight:600;white-space:nowrap}
+.um-status.on{color:#1E8E4F}.um-status.off{color:#C22E2E}
+.um-block{border:1px solid #EFC9C4;background:#FDF0EE;color:#8A2323;border-radius:9px;padding:6px 10px;font-size:11.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.um-unblock{border:1px solid #BFE3C9;background:#EDF7EF;color:#20663A;border-radius:9px;padding:6px 10px;font-size:11.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.um-pager{display:flex;align-items:center;gap:6px;margin-top:12px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+.um-pg{min-width:28px;height:28px;border-radius:8px;border:1px solid transparent;background:none;cursor:pointer;font-size:12.5px;padding:0 8px}
+.um-idx{color:#9A8C84;font-size:11.5px}
+.um-status small{display:block;font-weight:400;color:#8B8079;font-size:11px;max-width:220px}
+.um-actcell{white-space:nowrap}
+.um-dots{border:1px solid var(--border);background:#fff;border-radius:9px;padding:6px 10px;cursor:pointer;font-size:13px;color:#6D625C}
+.um-menu{position:absolute;background:#fff;border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 28px rgba(60,30,20,.14);padding:6px;z-index:20;min-width:150px}
+.um-menu button{display:block;width:100%;text-align:left;border:0;background:none;padding:8px 10px;font-size:12.5px;cursor:pointer;border-radius:7px}
+.um-menu button:hover{background:#F6F1E9}
+.um-xrow td{background:#FBF7F2;font-size:12px;color:#4B413C}
+.um-pg[aria-current="page"]{background:var(--burgundy);color:#fff;font-weight:700}
+.um-showing{margin-left:auto;font-size:12px}
+/* Block User confirm modal */
+.um-veil{position:fixed;inset:0;background:rgba(60,40,30,.45);display:grid;place-items:center;z-index:60;padding:18px}
+.um-modal{background:#fff;border-radius:16px;max-width:400px;width:100%;padding:24px;box-shadow:0 18px 50px rgba(60,30,20,.25)}
+.um-modal-top{display:flex;align-items:center;gap:12px}
+.um-modal-ic{width:44px;height:44px;border-radius:50%;background:#FBE3E3;display:grid;place-items:center;font-size:22px;flex:none}
+.um-modal-top h2{font-family:'Fraunces',serif;color:#8A1F1F;font-size:22px;margin:0;flex:1}
+.um-modal-x{border:0;background:none;font-size:18px;cursor:pointer;color:#6D625C}
+.um-modal-user{display:flex;gap:12px;align-items:center;border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-top:14px}
+.um-modal-user b{display:block;font-size:13.5px}
+.um-modal-user span{font-size:12px;color:var(--muted)}
+.um-conseq{background:#FDECEC;border:1px solid #F3C9C4;border-radius:12px;padding:12px 14px;margin-top:12px;font-size:12.5px;color:#7A1F1F}
+.um-conseq b{display:block;margin-bottom:6px}
+.um-conseq ul{margin:0;padding-left:18px}
+.um-conseq li{margin:2px 0}
+.um-modal label{display:block;font-size:12.5px;font-weight:600;margin:12px 0 6px}
+.um-modal textarea{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px;min-height:56px;font:inherit;resize:vertical}
+.um-modal-btns{display:flex;gap:10px;margin-top:14px}
+@media (max-width:1020px){.um-stats{grid-template-columns:1fr 1fr}}
+/* Login gate */
+.gate{max-width:520px;margin:8vh auto;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px}
+.gate h2{font-family:'Fraunces',serif;margin:0 0 6px;font-size:28px}
+.gate label{display:block;font-size:12.5px;font-weight:600;margin:12px 0 6px}
+.gate input{width:100%;border:1.5px solid var(--border);border-radius:11px;padding:12px;background:#FFFEFB}
+@media (max-width:1020px){.app{grid-template-columns:1fr}.side{position:static;height:auto}.stats{grid-template-columns:1fr 1fr}.grid2{grid-template-columns:1fr}.banner{grid-template-columns:1fr}.bookart{justify-self:start}}
+</style>
+</head>
+<body>
+<div id="gate" class="content" hidden>
+  <div class="gate">
+    <div class="kicker">Admin Panel · inbuilt login</div>
+    <h2>Sign in as admin</h2>
+    <p style="color:var(--muted);margin:0">This dashboard is admin-only. Reader and organiser accounts are blocked here.</p>
+    <div id="gateErr" class="err" hidden></div>
+    <label for="gEmail">Admin email</label>
+    <input id="gEmail" value="admin@readerscircle.com" autocomplete="username" />
+    <label for="gPass">Password</label>
+    <input id="gPass" type="password" value="Password123!" autocomplete="current-password" />
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn" id="gBtn">Sign in</button>
+      <button class="btn ghost" id="gOpenAuth" type="button">Open reader login</button>
+    </div>
+    <p style="font-size:12px;color:var(--muted)">Tokens reuse the same storage as auth.html: <code>rc_access</code>. API base below is shared.</p>
+  </div>
+</div>
+
+<div id="app" class="app" hidden>
+  <div class="side" aria-label="Admin navigation">
+    <div class="brandrow"><span class="mark">R</span><div><b>READER'S CIRCLE</b><span>Admin Panel</span></div></div>
+    <nav id="nav">
+      <button class="navbtn" data-view="dashboard" aria-current="page">Dashboard</button>
+      <button class="navbtn" data-view="circles">Circles</button>
+      <button class="navbtn" data-view="events">Events</button>
+      <div class="navgroup">Community</div>
+      <button class="navbtn" data-view="chat">General Chat</button>
+      <button class="navbtn" data-view="discussions">Book Discussions</button>
+      <button class="navbtn" data-view="recommend">Book Recommendations</button>
+      <div class="navgroup">Users</div>
+      <button class="navbtn" data-view="usershome">Users</button>
+      <div class="navgroup">Platform</div>
+      <button class="navbtn" data-view="analytics">Analytics</button>
+      <button class="navbtn" data-view="settings">Settings</button>
+    </nav>
+    <div class="sidefoot"><b id="meName">Admin User</b><span id="meRole">Administrator</span><br><button class="linkbtn" id="signOut">Sign Out</button></div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="sync"><span class="dot"></span><span id="syncLbl">Real-Time Sync Active</span></span>
+      <span class="sp"></span>
+      <input class="apibase" id="apiBase" value="http://localhost:8080" aria-label="API base URL" />
+      <span class="userchip"><span class="avatar" id="meAv">A</span><span id="meTop">Admin User</span></span>
+    </div>
+
+    <div class="content">
+      <div id="pageErr" class="err" hidden></div>
+
+      <section class="view on" id="v-dashboard">
+        <div class="banner">
+          <div><div class="kicker">Admin Dashboard</div>
+            <h1>Build a stronger reading community</h1>
+            <p>Create circles, appoint organisers, manage the platform and help leaders connect through books.</p>
+          </div>
+          <div class="bookart"><div class="stack">📚</div><b>READ<br>REFLECT<br>REBUILD</b></div>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><span class="ic" style="background:var(--blush)">👥</span><div><b class="num" id="sCircles">–</b><span class="lbl">Total Circles</span></div><span class="trend" id="sCirclesT">+0</span></div>
+          <div class="stat"><span class="ic" style="background:var(--sky)">📅</span><div><b class="num" id="sEvents">–</b><span class="lbl">Total Events</span></div><span class="trend" id="sEventsT">+0</span></div>
+          <div class="stat"><span class="ic" style="background:var(--sage)">🌿</span><div><b class="num" id="sMembers">–</b><span class="lbl">Total Members</span></div><span class="trend" id="sMembersT">+0</span></div>
+          <div class="stat"><span class="ic" style="background:var(--butter)">💬</span><div><b class="num" id="sDisc">–</b><span class="lbl">Book Discussions</span></div><span class="trend" id="sDiscT">+0</span></div>
+        </div>
+
+        <div class="grid2">
+          <div class="panel"><h3>Recent circles</h3><p class="sub">Newest first, with organiser and member count.</p><div id="recent"></div></div>
+          <div class="panel"><h3>Upcoming events (all circles)</h3><p class="sub">Next published events with registrations.</p><div id="upcoming"></div></div>
+        </div>
+
+        <div class="grid2" style="margin-top:14px">
+          <div class="panel"><h3>Platform overview</h3><p class="sub">Last 7 days, delta vs previous week in brackets.</p>
+            <div class="ovgrid">
+              <div class="ov"><span class="lbl">Circles created (last 7 days)</span><br><b id="oCircles">–</b> <span class="up" id="oCirclesD"></span></div>
+              <div class="ov"><span class="lbl">New members (last 7 days)</span><br><b id="oMembers">–</b> <span class="up" id="oMembersD"></span></div>
+              <div class="ov"><span class="lbl">Event sign-ups (last 7 days)</span><br><b id="oSign">–</b> <span class="up" id="oSignD"></span></div>
+              <div class="ov"><span class="lbl">Active discussions (last 7 days)</span><br><b id="oDisc">–</b> <span class="up" id="oDiscD"></span></div>
+            </div>
+            <p class="sub" style="margin:10px 0 0">Book discussions are proxied by circle chat messages — there is no separate discussions table in this backend copy.</p>
+          </div>
+          <div class="panel"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><h3 style="margin:0">Platform growth</h3><span style="flex:1"></span>
+            <div class="rangebar" role="group" aria-label="Growth range">
+              <button data-range="30d" aria-pressed="true">30 Days</button>
+              <button data-range="3m" aria-pressed="false">3 Months</button>
+              <button data-range="1y" aria-pressed="false">1 Year</button>
+            </div></div>
+            <svg id="chart" role="img" aria-label="Growth chart"></svg>
+            <div class="legend"><span><i style="background:#693524"></i>Members</span><span><i style="background:#3E6B4F"></i>Events</span><span><i style="background:#956342"></i>Circles</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="v-circles"><h2>Circles</h2><p class="sub">Live from <code>GET /api/circles</code>. Full card UI with create modal and detail tabs lives at <a href="circles.html">circles.html</a>.</p><p><a class="btn" href="circles.html" style="text-decoration:none;display:inline-block">Open Circles UI</a></p><div id="circlesTbl"></div></section>
+      <section class="view" id="v-events"><h2>Events</h2><p class="sub">Live from <code>GET /api/events</code> with registered counts.</p><div id="eventsTbl"></div></section>
+      <section class="view" id="v-reports"><h2>Reports</h2><div class="notice">Reports moderation queue is not a backend table yet. Pending circle requests below stand in for it.</div><div id="reportsTbl"></div></section>
+      <section class="view" id="v-chat">
+        <div class="gchat-banner">
+          <div class="gchat-banner-left">
+            <span class="gchat-banner-ic">💬</span>
+            <div><h2>GENERAL CHAT</h2><p>Talk books and ideas with your circle.</p></div>
+          </div>
+          <div class="gchat-art" aria-hidden="true">🌿📚📚☕🌿</div>
+        </div>
+        <div class="gchat-grid">
+          <aside aria-label="Channels">
+            <div class="gchat-left">
+              <div class="gchat-search"><span>🔍</span><input id="gchatSearch" placeholder="Search circles..." aria-label="Search circles" /></div>
+              <div class="gchat-seclbl">ORGANISERS &amp; ADMIN</div>
+              <button class="gchat-chan lounge" id="gchatLounge" type="button">
+                <span class="gchat-badge gold">👑</span>
+                <span><b>ORGANISERS LOUNGE</b><small id="gchatLoungeSub">Leadership</small></span>
+                <span class="gchat-tick" id="gchatLoungeTick">✓</span>
+              </button>
+              <div class="gchat-seclbl">COMMUNITY CIRCLES</div>
+              <div id="gchatList" style="display:flex;flex-direction:column;gap:4px"></div>
+            </div>
+          </aside>
+          <div class="gchat-mid" aria-label="Conversation">
+            <div class="gchat-head">
+              <span class="gchat-badge" id="gchatHeadAv">T</span>
+              <div><h3 id="gchatHeadName">—</h3><small id="gchatHeadSub">—</small></div>
+              <span class="gchat-dot" title="Connected"></span>
+            </div>
+            <div class="gchat-msgs" id="gchatMsgs" aria-live="polite"></div>
+            <div id="gchatErr" class="err" hidden style="margin:8px 16px 0"></div>
+            <div class="gchat-comp">
+              <div class="gchat-pill">
+                <button class="gchat-tool" id="gchatEmoji" type="button" title="Add emoji">😊</button>
+                <input id="gchatInput" placeholder="Type a message..." maxlength="2000" aria-label="Type a message" autocomplete="off" />
+                <button class="gchat-tool" type="button" title="Attach file">📎</button>
+                <button class="gchat-tool" type="button" title="Send image">🖼️</button>
+                <button class="gchat-send" id="gchatSend" type="button" title="Send message">➤</button>
+              </div>
+            </div>
+          </div>
+          <aside class="gchat-right" aria-label="Circle information">
+            <div class="gchat-card">
+              <h3 id="gchatInfoTitle">Circle Information</h3>
+              <div class="gchat-big" id="gchatBigAv">T</div>
+              <p class="gchat-cname" id="gchatInfoName">—</p>
+              <p class="gchat-csub" id="gchatInfoSub">—</p>
+              <div class="gchat-stat"><span id="gchatStatLbl">Members</span><b id="gchatStatVal">–</b></div>
+              <div class="gchat-leaders" id="gchatLeaders" hidden>
+                <h4 id="gchatLeadersH">Active leaders</h4>
+                <div id="gchatLeadersList"></div>
+              </div>
+              <div class="gchat-quote" id="gchatQuote">
+                <span style="color:#D89185;font-family:Georgia,serif;font-size:22px;line-height:1">“</span>
+                <blockquote>“Books are a uniquely portable magic.”</blockquote>
+                <cite>— Stephen King</cite>
+              </div>
+            </div>
+            <div class="gchat-card">
+              <h3 id="gchatRulesTitle">Circle Guidelines</h3>
+              <ul class="gchat-rules" id="gchatRules"></ul>
+            </div>
+          </aside>
+        </div>
+      </section>
+      <section class="view" id="v-discussions">
+        <div id="bdList">
+          <div class="bd-banner"><div class="bd-banner-left"><span class="bd-banner-ic">📖</span>
+            <div><h2>BOOK DISCUSSIONS</h2><p>Share your thoughts, discuss your favourite books, and discover new perspectives with fellow readers.</p></div></div>
+            <div style="display:flex;align-items:center;gap:12px"><span class="bd-art">📚☕</span><span class="bd-script">Good Books<br>Better Conversations</span></div></div>
+          <div class="bd-tabs" role="group" aria-label="Discussion tabs">
+            <button class="bd-tab" data-tab="all" aria-pressed="true">💬 All Discussions</button>
+            <button class="bd-tab" data-tab="my" aria-pressed="false">👤 My Discussions</button>
+            <button class="bd-tab" data-tab="popular" aria-pressed="false">🕐 Popular</button>
+            <input class="bd-search" id="bdSearch" placeholder="🔍 Search discussions..." aria-label="Search discussions" />
+            <span style="flex:1"></span>
+            <button class="btn" id="bdOpenCreate">+ Create Book Discussion</button>
+          </div>
+          <div class="bd-grid">
+            <div id="bdCards"></div>
+            <div><div class="bd-side"><h3>📖 Popular Books</h3><div id="bdPopular"></div></div></div>
+          </div>
+        </div>
+        <div id="bdCreate" hidden>
+          <div class="bd-banner"><div class="bd-banner-left"><span class="bd-banner-ic">💬</span>
+            <div><h2>CREATE BOOK DISCUSSION</h2><p>Share your thoughts, start a conversation, and connect with fellow readers about any book.</p></div></div>
+            <div style="display:flex;align-items:center;gap:12px"><span class="bd-art">📚☕</span><span class="bd-script">Better Readers Together</span></div></div>
+          <div class="bd-grid">
+            <div class="bd-card bd-form">
+              <h3 style="margin:0 0 4px"><span class="bd-step">1</span>Enter Book Details</h3>
+              <div id="bdCreateErr" class="err" hidden></div>
+              <label for="bdTitle">Book Title</label><input id="bdTitle" placeholder="e.g., Dune, 1984" />
+              <label for="bdAuthor">Author(s)</label><input id="bdAuthor" placeholder="e.g., Frank Herbert" />
+              <label for="bdGenre">Genre(s)</label>
+              <select id="bdGenre"><option value="">Select or type genres...</option><option>Science Fiction</option><option>Self Help</option><option>Finance</option><option>Classic</option><option>Philosophy</option><option>Mystery</option><option>Fiction</option><option>Tamil Literature</option></select>
+              <div class="bd-2col">
+                <div><label for="bdPages">Page Count</label><input id="bdPages" type="number" placeholder="e.g., 412" /></div>
+                <div><label for="bdYear">Publication Year</label><input id="bdYear" type="number" placeholder="e.g., 1965" /></div>
+              </div>
+              <label>Add Cover Image (Optional)</label>
+              <div style="display:flex;gap:8px"><input id="bdCoverFile" type="file" accept="image/*" style="max-width:220px" /><input id="bdCoverUrl" placeholder="Or paste an image URL..." /></div>
+              <label for="bdQuote">Key Quote (Optional)</label><textarea id="bdQuote" placeholder="Add a notable quote..."></textarea>
+              <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px">
+                <button class="btn ghost" id="bdCancel" type="button">Cancel</button>
+                <button class="btn" id="bdPost" type="button">▶ Post Discussion</button>
+              </div>
+            </div>
+            <div>
+              <div class="bd-side"><h3>Book Preview</h3>
+                <div style="display:flex;gap:10px;align-items:center"><span style="font-size:30px">📖</span><div><b id="bdPvTitle">Title will appear here</b><br><span id="bdPvAuthor" style="font-size:12px;color:var(--muted)">Author will appear here</span></div></div>
+                <div class="bd-statline"><span>Genre</span><b id="bdPvGenre">–</b></div>
+                <div class="bd-statline"><span>Pages</span><b id="bdPvPages">–</b></div>
+                <div class="bd-statline"><span>Year</span><b id="bdPvYear">–</b></div>
+                <div class="bd-quotebox" id="bdPvQuote">Add a quote in the form to preview it here.</div>
+              </div>
+              <div class="bd-side"><h3>📄 Discussion Guidelines</h3>
+                <ul class="bd-rules">
+                  <li><span class="bd-ok">✓</span><span>Keep the conversation respectful and friendly.</span></li>
+                  <li><span class="bd-ok">✓</span><span>Avoid spoilers first (spoiler tags if needed).</span></li>
+                  <li><span class="bd-ok">✓</span><span>Stay on topic and relevant to the book.</span></li>
+                  <li><span class="bd-ok">✓</span><span>No hate speech or personal attacks.</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="bdView" hidden>
+          <button class="bd-back" id="bdBack">← Back to Book Discussions</button>
+          <div class="bd-banner"><div class="bd-banner-left"><span class="bd-banner-ic">📖</span>
+            <div><h2>VIEW DISCUSSIONS</h2><p>Join the conversation, share your thoughts, and read what others have to say about this book.</p></div></div>
+            <div style="display:flex;align-items:center;gap:12px"><span class="bd-art">📚☕</span><span class="bd-script">Better Readers Together</span></div></div>
+          <div class="bd-grid">
+            <div>
+              <div class="bd-card" id="bdViewHead"></div>
+              <div class="bd-card" id="bdContribBox">
+                <b id="bdContribTitle">Contribute</b>
+                <textarea id="bdContribText" placeholder="Write your thought, perspective, or question..." style="width:100%;border:1px solid var(--border);border-radius:10px;padding:10px;margin-top:8px;min-height:70px;font:inherit"></textarea>
+                <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:10px">
+                  <button class="btn ghost" id="bdContribCancel" type="button">Cancel</button>
+                  <button class="btn" id="bdContribPost" type="button">Post Comment</button>
+                </div>
+              </div>
+              <div class="bd-tabs"><button class="bd-tab" aria-pressed="true">All Discussions</button></div>
+              <div id="bdThreads"></div>
+            </div>
+            <div>
+              <div class="bd-side" id="bdBookPanel"></div>
+              <div class="bd-side"><h3>👥 Community Stats</h3><div id="bdStats"></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="view" id="v-recommend">
+        <div class="rec-banner"><div class="rec-banner-left"><span class="rec-banner-ic">📖</span>
+          <div><h2>BOOK RECOMMENDATIONS</h2><p>Discover your next great read from the community</p></div></div>
+          <div style="display:flex;align-items:center;gap:12px"><span style="font-size:40px">📚☕</span><button class="btn" id="recOpen">➤ Recommend a Book</button></div></div>
+        <div class="rec-filters">
+          <select id="recSort" aria-label="Sort recommendations"><option value="mostLiked">Sort by: Most Liked</option><option value="recent">Sort by: Most Recent</option><option value="rating">Sort by: Top Rated</option></select>
+          <select id="recGenre" aria-label="Filter by genre"><option value="">Filter by Genre</option><option>General</option><option>Literature</option><option>Science Fiction</option><option>Classic</option><option>Mystery</option><option>Fiction</option><option>Tamil Literature</option><option>Philosophy</option></select>
+        </div>
+        <div class="rec-grid">
+          <div id="recCards"></div>
+          <div>
+            <div class="rec-side"><h3>TRENDING BOOKS</h3><div id="recTrending"></div></div>
+            <div class="rec-side"><h3>TOP RECOMMENDERS</h3><div id="recTop"></div></div>
+          </div>
+        </div>
+        <div class="rec-modal-veil" id="recModal" hidden>
+          <div class="rec-modal" role="dialog" aria-label="Share a book recommendation">
+            <h2>SHARE A BOOK RECOMMENDATION</h2>
+            <div id="recFormErr" class="err" hidden></div>
+            <div class="rec-coverrow">
+              <div><div class="rec-coverprev" id="recCoverPrev">🖼️</div>
+                <label class="btn ghost" style="display:block;text-align:center;margin-top:8px;padding:8px 10px;cursor:pointer">Change Cover<input id="recCoverFile" type="file" accept="image/*" hidden /></label></div>
+              <div style="flex:1">
+                <label for="recTitle">Book Title</label><input type="text" id="recTitle" placeholder="Enter title..." />
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                  <div><label for="recAuthor">Author</label><input type="text" id="recAuthor" placeholder="Enter author..." /></div>
+                  <div><label for="recMGenre">Genre</label><select id="recMGenre"><option value="">Select Genre...</option><option>General</option><option>Literature</option><option>Science Fiction</option><option>Classic</option><option>Mystery</option><option>Fiction</option><option>Tamil Literature</option><option>Philosophy</option></select></div>
+                </div>
+                <label>Rating</label><div class="rec-rate" id="recStars" role="radiogroup" aria-label="Rating"></div>
+              </div>
+            </div>
+            <label for="recReview">Your Review</label>
+            <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden">
+              <div style="display:flex;gap:12px;padding:6px 12px;border-bottom:1px solid var(--border);font-size:12.5px;color:#6D625C"><b>B</b><i>I</i><u>U</u><span>•≡</span><span>1≡</span></div>
+              <textarea id="recReview" style="border:0" placeholder="I absolutely loved this book! The characters are well-developed and the plot is..."></textarea>
+            </div>
+            <label style="font-weight:400"><input type="checkbox" id="recSpoiler" /> This review contains spoilers</label>
+            <div style="display:flex;gap:8px;margin-top:8px"><input type="text" id="recTagInput" placeholder="Add tag (e.g. Sci-Fi, Hard Science) and press Enter" style="flex:1" /><button class="btn ghost" id="recAddTag" type="button">+ Add Tag</button></div>
+            <div id="recTags"></div>
+            <input type="hidden" id="recCoverUrl" />
+            <div style="display:flex;gap:10px;margin-top:16px">
+              <button class="btn" id="recPost" type="button" style="flex:1">Post Recommendation</button>
+              <button class="btn ghost" id="recCancel" type="button">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="view" id="v-usershome">
+        <div class="um-banner"><div class="um-banner-top">
+          <div><h2>USER MANAGEMENT</h2><p>View and manage all users, organisers and members on the platform.</p></div>
+          <div class="um-read">📚<br>READ<br>REFLECT<br>REBUILD</div></div>
+          <div class="um-stats">
+            <div class="um-stat"><span class="ic" style="background:#FBE9E4">👥</span><div><small>Total Users</small><b id="uhTotal">–</b></div></div>
+            <div class="um-stat"><span class="ic" style="background:#E5F4E8">👤</span><div><small>Members</small><b id="uhMembers">–</b></div></div>
+            <div class="um-stat"><span class="ic" style="background:#EDE9F7">👔</span><div><small>Organisers</small><b id="uhOrg">–</b></div></div>
+            <div class="um-stat"><span class="ic" style="background:#FBE3E3">🚫</span><div><small>Blocked Users</small><b id="uhBlocked">–</b></div></div>
+          </div>
+        </div>
+        <div class="um-panel">
+          <div class="uh-tabs" role="tablist" aria-label="User groups">
+            <button class="uh-tab" data-tab="all" aria-selected="true">All Users (<span id="uhCntAll">–</span>)</button>
+            <button class="uh-tab" data-tab="org" aria-selected="false">Organisers (<span id="uhCntOrg">–</span>)</button>
+            <button class="uh-tab" data-tab="mem" aria-selected="false">Members (<span id="uhCntMem">–</span>)</button>
+            <span class="um-bulk" id="uhBulk"><b id="uhSelN">0</b>&nbsp;selected
+              <button class="um-block" id="uhBulkBlock" type="button">Block</button>
+              <button class="um-unblock" id="uhBulkUnblock" type="button">Unblock</button>
+              <button class="um-refresh" id="uhBulkClear" type="button">Clear</button></span>
+          </div>
+          <div class="um-listhead" style="margin-top:0">
+            <div class="um-tools" style="margin-left:0;flex:1;display:flex;gap:8px;flex-wrap:wrap">
+              <input id="uhQ" placeholder="🔍 Search users by name or email..." aria-label="Search users" style="flex:1;min-width:200px" />
+              <select id="uhRole" aria-label="Filter by role"><option value="">All Roles</option><option value="ADMIN">Admin</option><option value="ORGANIZER">Organiser</option><option value="READER">Member</option></select>
+              <select id="uhStatus" aria-label="Filter by status"><option value="">All Status</option><option value="active">Active</option><option value="inactive">Blocked</option></select>
+              <select id="uhSort" aria-label="Sort users"><option value="createdAt,desc">Joined Date (Newest)</option><option value="createdAt,asc">Joined Date (Oldest)</option><option value="name,asc">Name (A–Z)</option></select>
+              <button class="um-refresh" id="uhCsv">⬇ Export CSV</button>
+            </div>
+          </div>
+          <div style="overflow:auto"><table class="um-table"><thead><tr>
+            <th><input type="checkbox" id="uhCheckAll" aria-label="Select page" /></th>
+            <th>User</th><th>Email</th><th>Role</th><th>Joined Date</th><th>Status</th><th>Actions</th><th></th>
+          </tr></thead><tbody id="uhBody"></tbody></table></div>
+          <div class="um-pager" id="uhPager"></div>
+        </div>
+      </section>
+      <section class="view" id="v-users">
+        <div class="um-banner"><div class="um-banner-top">
+          <div><h2>USER MANAGEMENT</h2><h3>All Users</h3><p>View all users and monitor key analytics summary.</p></div>
+          <div class="um-read">📚<br>READ<br>REFLECT<br>REBUILD</div></div>
+          <div class="um-stats">
+            <div class="um-stat"><span class="ic" style="background:#F1ECE4">👤</span><div><small>Total Users</small><b id="umAllTotal">–</b></div></div>
+            <div class="um-stat"><span class="ic" style="background:#E5F4E8">✅</span><div><small>Active Users</small><b id="umAllActive">–</b></div></div>
+            <div class="um-stat"><span class="ic" style="background:#FBE3E3">🚫</span><div><small>Blocked Users</small><b id="umAllBlocked">–</b></div></div>
+            <div class="um-stat"><span class="ic" style="background:#E3F0FB">📅</span><div><small>Joined this Month</small><b id="umAllMonth">–</b></div></div>
+          </div>
+        </div>
+        <div class="um-panel">
+          <div class="um-listhead"><h3>USER LIST</h3><button class="um-refresh" id="umAllRefresh">⟳ Refresh</button>
+            <div class="um-tools"><input id="umAllQ" placeholder="Search Users..." aria-label="Search users" />
+            <select id="umAllRole" aria-label="Filter by role"><option value="">Filter by Role</option><option value="ADMIN">Admin</option><option value="ORGANIZER">Organizer</option><option value="READER">Member</option></select>
+            <select id="umAllStatus" aria-label="Filter by status"><option value="">Filter by Status</option><option value="active">Active</option><option value="inactive">Blocked</option></select>
+            <button class="um-refresh" id="umAllCsv">Export CSV</button></div></div>
+          <div style="overflow:auto"><table class="um-table"><thead><tr>
+            <th>#</th><th>Avatar</th><th class="sortable" data-k="name">Full Name ⇅</th><th class="sortable" data-k="email">Email ⇅</th>
+            <th class="sortable" data-k="role">Role ⇅</th><th class="sortable" data-k="createdAt">Joined Date ⇅</th>
+            <th class="sortable" data-k="active">Status ⇅</th><th>Action</th>
+          </tr></thead><tbody id="umAllBody"></tbody></table></div>
+          <div class="um-pager" id="umAllPager"></div>
+        </div>
+      </section>
+      <section class="view" id="v-organisers">
+        <div class="um-banner"><div class="um-banner-top">
+          <div><h2>ORGANISER MANAGEMENT</h2><h3>Active Organisers</h3><p>View total and active organisers on the platform, with status and action management.</p></div>
+          <div class="um-read">📚<br>READ<br>REFLECT<br>REBUILD</div></div>
+          <div class="um-stats two">
+            <div class="um-stat"><span class="ic" style="background:#FBE9E4">👥</span><div><small>Total Organisers:</small><b id="umOrgTotal">–</b></div></div>
+            <div class="um-stat"><span class="ic" style="background:#E5F4E8">✅</span><div><small>Active Organisers:</small><b id="umOrgActive">–</b></div></div>
+          </div>
+        </div>
+        <div class="um-panel">
+          <div class="um-listhead"><h3>ORGANISER LIST</h3><button class="um-refresh" id="umOrgRefresh">⟳ Refresh</button>
+            <div class="um-tools"><input id="umOrgQ" placeholder="Search Users..." aria-label="Search organisers" />
+            <span class="um-rolechip">Organizer</span>
+            <select id="umOrgStatus" aria-label="Filter by status"><option value="">Filter by Status</option><option value="active">Active</option><option value="inactive">Blocked</option></select>
+            <button class="um-refresh" id="umOrgCsv">Export CSV</button></div></div>
+          <div style="overflow:auto"><table class="um-table"><thead><tr>
+            <th>#</th><th>Avatar</th><th class="sortable" data-k="name">Full Name ⇅</th><th class="sortable" data-k="email">Email ⇅</th>
+            <th class="sortable" data-k="role">Role ⇅</th><th class="sortable" data-k="createdAt">Joined Date ⇅</th>
+            <th class="sortable" data-k="active">Status ⇅</th><th>Actions</th>
+          </tr></thead><tbody id="umOrgBody"></tbody></table></div>
+          <div class="um-pager" id="umOrgPager"></div>
+        </div>
+      </section>
+      <section class="view" id="v-members">
+        <div class="um-banner"><div class="um-banner-top">
+          <div><h2>MEMBER MANAGEMENT</h2><h3>Active Members</h3><p>View total and active members on the platform, with status and action management.</p></div>
+          <div class="um-read">📚<br>READ<br>REFLECT<br>REBUILD</div></div>
+          <div class="um-stats two">
+            <div class="um-stat"><span class="ic" style="background:#FBE9E4">👥</span><div><small>Total Members:</small><b id="umMemTotal">–</b></div></div>
+            <div class="um-stat"><span class="ic" style="background:#FBE9E4">✔</span><div><small>Active Members:</small><b id="umMemActive">–</b></div></div>
+          </div>
+        </div>
+        <div class="um-panel">
+          <div class="um-listhead"><h3>Member List</h3>
+            <div class="um-tools"><input id="umMemQ" placeholder="Search Users..." aria-label="Search members" />
+            <span class="um-rolechip">Member</span>
+            <select id="umMemStatus" aria-label="Filter by status"><option value="">Filter by Status</option><option value="active">Active</option><option value="inactive">Blocked</option></select>
+            <button class="um-refresh" id="umMemCsv">Export CSV</button></div></div>
+          <div style="overflow:auto"><table class="um-table"><thead><tr>
+            <th>#</th><th>Avatar</th><th class="sortable" data-k="name">Full Name ⇅</th><th>Email ⇅</th>
+            <th>Role</th><th class="sortable" data-k="createdAt">Joined Date ⇅</th>
+            <th class="sortable" data-k="active">Status ⇅</th><th>Action</th>
+          </tr></thead><tbody id="umMemBody"></tbody></table></div>
+          <div class="um-pager" id="umMemPager"></div>
+        </div>
+      </section>
+      <section class="view" id="v-analytics"><h2>Analytics</h2><p class="sub">Live from <code>GET /api/admin/analytics</code>.</p><div id="anaBox"></div></section>
+      <section class="view" id="v-settings">
+        <div class="set-wrap">
+          <h2 style="font-family:'Fraunces',serif;margin:0">Settings</h2>
+          <p class="sub">Manage your account and notification preferences.</p>
+          <div class="set-card">
+            <div class="set-head"><span class="set-ic">👤</span><div><h3>Admin Profile</h3><p>Manage your admin account details.</p></div></div>
+            <div class="set-profile">
+              <div class="set-photo">
+                <div class="set-bigav" id="setAv">A</div>
+                <label class="btn ghost" style="display:inline-block;padding:8px 14px;cursor:pointer">📷 Change Photo<input id="setPhoto" type="file" accept="image/*" hidden /></label>
+                <div class="set-saved" id="setSaved"></div>
+              </div>
+              <div class="set-form">
+                <label for="setName">Name</label><input id="setName" autocomplete="name" />
+                <label for="setEmail">Email</label><input id="setEmail" autocomplete="email" />
+                <label for="setRole">Role</label><input id="setRole" disabled />
+              </div>
+            </div>
+          </div>
+          <div class="set-card">
+            <div class="set-head"><span class="set-ic">🔔</span><div><h3>Notification Settings</h3><p>Choose what notifications you want to receive.</p></div></div>
+            <div id="setToggles"></div>
+          </div>
+          <div class="set-card">
+            <div class="set-head"><span class="set-ic">🛡️</span><div><h3>Security Settings</h3><p>Manage your account security.</p></div></div>
+            <div class="set-row"><div class="grow"><b>Change password</b><small>Update your admin account password.</small></div>
+              <button class="set-btn" id="setPwBtn">🔒 Change Password</button></div>
+            <div class="set-row"><div class="grow"><b>Sign out of all devices</b><small>Sign out from all devices.</small></div>
+              <button class="set-btn solid" id="setSignAll">⎋ Sign Out All</button></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="um-veil" id="umBlockVeil" hidden>
+  <div class="um-modal" role="dialog" aria-label="Block user confirmation">
+    <div class="um-modal-top"><span class="um-modal-ic">🚫</span><h2>Block User?</h2>
+      <button class="um-modal-x" id="umBlockX" type="button" aria-label="Close">✕</button></div>
+    <p style="font-size:13.5px;margin:14px 0 0">Are you sure you want to block <b id="umBlockName">this user</b>?</p>
+    <div class="um-modal-user"><span class="um-av" id="umBlockAv" style="width:38px;height:38px;font-size:15px">?</span>
+      <div><b id="umBlockFull">—</b><span id="umBlockEmail">—</span></div></div>
+    <div class="um-conseq"><b>A blocked user will:</b>
+      <ul><li>Not be able to log in</li><li>Not be able to join circles</li>
+      <li>Not be able to participate in events</li><li>Their active sessions will be terminated</li></ul></div>
+    <label for="umBlockReason">Reason (optional)</label>
+    <textarea id="umBlockReason" placeholder="Enter reason for blocking..."></textarea>
+    <div class="um-modal-btns">
+      <button class="btn ghost" id="umBlockCancel" type="button" style="flex:1">Cancel</button>
+      <button class="btn" id="umBlockGo" type="button" style="flex:1">🚫 Block User</button>
+    </div>
+  </div>
+</div>
+
+<div class="um-veil" id="setVeil" hidden>
+  <div class="um-modal" role="dialog" aria-label="Settings dialog" id="setVeilBody"></div>
+</div>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const LS_API='rc_api_base', LS_A='rc_access', LS_R='rc_refresh';
+const apiInput=$('apiBase');
+apiInput.value=localStorage.getItem(LS_API)||'http://localhost:8080';
+apiInput.addEventListener('change',()=>localStorage.setItem(LS_API,apiInput.value.replace(/\/+$/,'')));
+const base=()=> (apiInput.value||'').replace(/\/+$/,'');
+const tok=()=> localStorage.getItem(LS_A)||'';
+function showErr(m){const e=$('pageErr');e.hidden=false;e.textContent=m;}
+function hideErr(){$('pageErr').hidden=true;}
+async function api(path,opts){
+  opts=opts||{};opts.headers=Object.assign({},opts.headers||{});
+  if(tok())opts.headers.Authorization='Bearer '+tok();
+  if(opts.body&&!opts.headers['Content-Type'])opts.headers['Content-Type']='application/json';
+  const r=await fetch(base()+path,opts);
+  const t=await r.text();let j={};try{j=t?JSON.parse(t):{};}catch(e){j={raw:t};}
+  if(!r.ok)throw new Error((j&&j.message)||('Request failed: '+r.status+' '+path));
+  return j;
+}
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---- gate ---- */
+function clearSavedLogin(){localStorage.removeItem(LS_A);localStorage.removeItem(LS_R);}
+async function checkGate(){
+  const t=tok();
+  if(!t){$('gate').hidden=false;$('app').hidden=true;return;}
+  try{
+    const me=await api('/api/users/me');
+    if(me.role!=='ADMIN')throw new Error('Signed in as '+me.role+'. This dashboard is admin-only — ask the platform admin for access.');
+    enter(me);
+  }catch(e){
+    // Expired/invalid token (401) is normal after a restart — drop it and show a clean sign-in form.
+    if(/401/.test(e.message)){clearSavedLogin();$('gate').hidden=false;$('app').hidden=true;const g=$('gateErr');g.hidden=false;g.textContent='Session expired — sign in again with the inbuilt admin.';return;}
+    $('gate').hidden=false;$('app').hidden=true;const g=$('gateErr');g.hidden=false;g.textContent=e.message;
+  }
+}
+$('gBtn').onclick=async()=>{
+  const em=$('gEmail').value.trim(),pw=$('gPass').value;
+  const g=$('gateErr');g.hidden=true;
+  try{
+    const r=await fetch(base()+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em,password:pw})});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(d.message||('Sign in failed: '+r.status));
+    if(d.accessToken)localStorage.setItem(LS_A,d.accessToken);
+    if(d.refreshToken)localStorage.setItem(LS_R,d.refreshToken);
+    const me=await api('/api/users/me');
+    if(me.role!=='ADMIN'){localStorage.removeItem(LS_A);throw new Error('That account is '+me.role+'. Admin login is inbuilt: use the admin email.');}
+    enter(me);
+  }catch(e){g.hidden=false;g.textContent=e.message;}
+};
+$('gOpenAuth').onclick=()=>{location.href='auth.html';};
+$('signOut').onclick=()=>{localStorage.removeItem(LS_A);localStorage.removeItem(LS_R);location.reload();};
+
+function enter(me){
+  $('gate').hidden=true;$('app').hidden=false;
+  try{ gchat.meId = me.id || null; }catch(e){}
+  $('meName').textContent=me.name||me.email;$('meTop').textContent=me.name||me.email;
+  $('meRole').textContent=me.role==='ADMIN'?'Administrator':me.role;$('meAv').textContent=(me.name||'A')[0].toUpperCase();
+  loadDashboard('30d');
+}
+
+/* ---- nav ---- */
+document.querySelectorAll('#nav .navbtn').forEach(b=>b.onclick=()=>{
+  // Full card UI (search, create modal, detail tabs) lives in circles.html —
+  // the Circles nav goes straight there instead of the basic table below.
+  if(b.dataset.view==='circles'){location.href='circles.html';return;}
+  // Designed Events UI lives in events.html — the Events nav goes straight
+  // there instead of the old basic API-table view below.
+  if(b.dataset.view==='events'){location.href='events.html';return;}
+  document.querySelectorAll('#nav .navbtn').forEach(x=>x.removeAttribute('aria-current'));
+  b.setAttribute('aria-current','page');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  $('v-'+b.dataset.view).classList.add('on');hideErr();
+  ({reports:loadReports,chat:loadChatCircles,discussions:loadDiscussions,recommend:loadRecs,usershome:()=>loadUh(),users:()=>loadUsers('all'),organisers:()=>loadUsers('org'),members:()=>loadUsers('mem'),analytics:loadAnalytics,settings:loadSettings}[b.dataset.view]||(()=>{}))();
+});
+document.querySelectorAll('.rangebar button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.rangebar button').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true');loadDashboard(b.dataset.range);
+});
+
+/* ---- dashboard ---- */
+let G=null;
+async function loadDashboard(range){
+  try{
+    hideErr();$('syncLbl').textContent='Syncing…';
+    const d=await api('/api/admin/dashboard?range='+(range||'30d'));G=d;
+    $('sCircles').textContent=d.stats.totalCircles;$('sCirclesT').textContent='+'+d.stats.circlesTrend;
+    $('sEvents').textContent=d.stats.totalEvents;$('sEventsT').textContent='+'+d.stats.eventsTrend;
+    $('sMembers').textContent=d.stats.totalMembers;$('sMembersT').textContent='+'+d.stats.membersTrend;
+    $('sDisc').textContent=d.stats.totalDiscussions;$('sDiscT').textContent='+'+d.stats.discussionsTrend;
+    const o=d.overview;
+    $('oCircles').textContent=o.circlesCreatedLast7Days.value;$('oCirclesD').textContent='(+'+o.circlesCreatedLast7Days.delta+')';
+    $('oMembers').textContent=o.newMembersLast7Days.value;$('oMembersD').textContent='(+'+o.newMembersLast7Days.delta+')';
+    $('oSign').textContent=o.eventSignupsLast7Days.value;$('oSignD').textContent='(+'+o.eventSignupsLast7Days.delta+')';
+    $('oDisc').textContent=o.activeDiscussionsLast7Days.value;$('oDiscD').textContent='(+'+o.activeDiscussionsLast7Days.delta+')';
+    $('recent').innerHTML=d.recentCircles.map(c=>
+      '<div class="circlerow"><img alt="" src="'+(c.coverImageUrl||'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=128&auto=format&fit=crop&q=60')+'"/>'+
+      '<div><h4>'+esc(c.name)+'</h4><p>'+esc((c.description||'').slice(0,90))+'</p>'+
+      '<div class="pills"><span class="pillface">M</span><span style="font-size:12px;color:var(--muted)">'+c.membersCount+' Members · Joined '+esc((c.createdAt||'').slice(0,10))+'</span></div></div>'+
+      '<div class="orgbox"><div style="font-weight:700">'+esc(c.organizerName||'')+'</div><div style="color:var(--muted)">'+esc(c.organizerRole||'Organiser')+'</div></div></div>'
+    ).join('')||'<p class="sub">No circles yet — create one to get started.</p>';
+    $('upcoming').innerHTML=d.upcomingEvents.map(e=>{
+      const dt=e.eventDate?e.eventDate.slice(5):'--';
+      return '<div class="eventrow"><div class="datebox"><b>'+esc(dt.slice(3))+'</b><span>'+esc(e.eventDate?e.eventDate.slice(0,7):'')+'</span></div>'+
+      '<div><h4>'+esc(e.title)+'</h4><p>'+esc(e.dateFormatted||'')+' · '+e.registeredCount+'/'+(e.capacity||0)+' registered · '+esc(e.venue||'')+'</p></div><span>📍</span></div>';
+    }).join('')||'<p class="sub">No upcoming events — publish one from a circle.</p>';
+    drawChart(d.growth);
+    $('syncLbl').textContent='Real-Time Sync Active';
+  }catch(e){showErr(e.message);$('syncLbl').textContent='Sync paused — '+e.message;}
+}
+function drawChart(g){
+  const svg=$('chart');const W=600,H=220,P=28;
+  const series=[g.members,g.events,g.circles];const max=Math.max(1,...series.flat());
+  const X=i=>P+i*(W-2*P)/Math.max(1,g.labels.length-1);
+  const Y=v=>H-P-(v/max)*(H-2*P);
+  const line=(arr,c)=>'<polyline fill="none" stroke="'+c+'" stroke-width="2.5" points="'+arr.map((v,i)=>X(i)+','+Y(v)).join(' ')+'"/>';
+  const area=(arr,c)=>'<polygon fill="'+c+'" opacity=".18" points="'+P+','+(H-P)+' '+arr.map((v,i)=>X(i)+','+Y(v)).join(' ')+' '+(W-P)+','+(H-P)+'"/>';
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);
+  svg.innerHTML=area(g.members,'#693524')+line(g.members,'#693524')+line(g.events,'#3E6B4F')+line(g.circles,'#956342')+
+    g.labels.map((l,i)=>i%2===0?'<text x="'+X(i)+'" y="'+(H-6)+'" font-size="10" fill="#5C6672" text-anchor="middle">'+esc(l)+'</text>':'').join('');
+}
+
+/* ---- other views ---- */
+async function loadCircles(){try{const c=await api('/api/circles');$('circlesTbl').innerHTML='<table><tr><th>Name</th><th>City</th><th>Members</th><th>Status</th></tr>'+c.map(x=>'<tr><td><b>'+esc(x.name)+'</b><br><span style="color:var(--muted)">'+esc(x.description||'')+'</span></td><td>'+esc(x.city||'')+'</td><td>'+x.memberCount+'</td><td>'+esc(x.status)+'</td></tr>').join('')+'</table>';}catch(e){showErr(e.message);}}
+async function loadEvents(){try{const c=await api('/api/events');$('eventsTbl').innerHTML='<table><tr><th>Title</th><th>Circle</th><th>Date</th><th>Seats</th></tr>'+c.map(x=>'<tr><td><b>'+esc(x.title)+'</b></td><td>'+esc(x.circleName||'')+'</td><td>'+esc(x.eventDate||'')+' '+esc(x.eventTime||'')+'</td><td>'+x.registeredCount+'/'+(x.capacity||0)+'</td></tr>').join('')+'</table>';}catch(e){showErr(e.message);}}
+async function loadReports(){try{const d=G||await api('/api/admin/dashboard');$('reportsTbl').innerHTML='<table><tr><th>Metric</th><th>Value</th></tr><tr><td>Pending join requests</td><td>'+d.users.pendingRequests+'</td></tr><tr><td>Inactive circles</td><td>'+(d.stats.totalCircles-d.users.activeCircles)+'</td></tr></table>';}catch(e){showErr(e.message);}}
+/* ---- general chat (3-column workspace, live backend) ---- */
+let gchat = { circles: [], lounge: null, selected: null, meId: null, timer: null, liked: {} };
+function gchatSetErr(m){const e=$('gchatErr');if(!m){e.hidden=true;return;}e.hidden=false;e.textContent=m;}
+async function loadChatCircles(){
+  try{
+    gchatSetErr('');
+    const [channels, circles] = await Promise.all([
+      api('/api/chat/channels').catch(()=>null),
+      api('/api/circles')
+    ]);
+    gchat.circles = Array.isArray(circles) ? circles.filter(c=>!c.hidden) : [];
+    gchat.lounge = (channels && channels.lounge) ? channels.lounge : null;
+    if(gchat.lounge){
+      $('gchatLoungeSub').textContent = gchat.lounge.memberCount + (gchat.lounge.memberCount===1?' member • Leadership':' members • Leadership');
+    }
+    if(!gchat.selected){
+      gchat.selected = gchat.lounge
+        ? { id: gchat.lounge.circleId, lounge: true }
+        : (gchat.circles[0] ? { id: gchat.circles[0].id, lounge: false } : null);
+    }
+    renderGchatList();
+    await loadGchatLeaders();
+    await selectGchat(gchat.selected, true);
+    if(gchat.timer)clearInterval(gchat.timer);
+    gchat.timer = setInterval(()=>{ if(gchat.selected) loadGchatMessages(true); }, 6000);
+  }catch(e){gchatSetErr(e.message);}
+}
+function renderGchatList(){
+  const q = ($('gchatSearch').value||'').toLowerCase();
+  const list = gchat.circles.filter(c=>!q || (c.name||'').toLowerCase().includes(q) || (c.city||'').toLowerCase().includes(q));
+  $('gchatList').innerHTML = list.map(c=>{
+    const on = gchat.selected && !gchat.selected.lounge && String(gchat.selected.id)===String(c.id);
+    const n = c.memberCount==null?1:c.memberCount;
+    return '<button type="button" class="gchat-chan'+(on?' on':'')+'" data-id="'+c.id+'">'
+      + '<span class="gchat-badge">'+esc((c.name||'C')[0].toUpperCase())+'</span>'
+      + '<span><b>'+esc((c.name||'').toUpperCase())+'</b><small>'+n+' '+(n===1?'member':'members')+'</small></span>'
+      + (on?'<span class="gchat-tick">✓</span>':'') + '</button>';
+  }).join('') || '<p class="sub">No circles found.</p>';
+  document.querySelectorAll('#gchatList .gchat-chan').forEach(b=>b.onclick=()=>selectGchat({id:b.dataset.id,lounge:false}));
+  const lon = gchat.lounge!=null;
+  $('gchatLoungeTick').style.visibility = (gchat.selected && gchat.selected.lounge) ? 'visible' : 'hidden';
+  $('gchatLounge').classList.toggle('on', !!(gchat.selected && gchat.selected.lounge));
+  $('gchatLounge').style.display = lon ? '' : 'none';
+}
+$('gchatSearch').addEventListener('input', renderGchatList);
+$('gchatLounge').onclick = ()=>{ if(gchat.lounge) selectGchat({id:gchat.lounge.circleId,lounge:true}); };
+async function loadGchatLeaders(){
+  try{
+    const p = await api('/api/users?size=100');
+    const all = p.content || p;
+    const leaders = (Array.isArray(all)?all:[]).filter(u=>u.role==='ADMIN'||u.role==='ORGANIZER');
+    gchat.leaders = leaders;
+    $('gchatLeadersList').innerHTML = leaders.map(u=>
+      '<div class="gchat-leader"><span class="gchat-lav">'+esc((u.name||u.email||'?')[0].toUpperCase())+'</span>'
+      + '<span><b>'+esc(u.name||u.email)+'</b><small>'+esc(u.email||'')+'</small></span>'
+      + '<span class="gchat-role '+(u.role==='ADMIN'?'admin':'organizer')+'">'+u.role+'</span></div>'
+    ).join('');
+    $('gchatLeadersH').textContent = 'Active leaders ('+leaders.length+')';
+  }catch(e){ /* leaders panel stays empty */ }
+}
+async function selectGchat(sel, silent){
+  if(!sel) return;
+  gchat.selected = sel;
+  renderGchatList();
+  const isLounge = !!sel.lounge;
+  let name='—', sub='—', count='–', init='C';
+  if(isLounge && gchat.lounge){
+    name = (gchat.lounge.name||'Organisers Lounge').toUpperCase();
+    sub = gchat.lounge.memberCount + ' members • Organisers & Admin Exclusive';
+    count = gchat.lounge.memberCount;
+    init = '👑';
+  }else{
+    const c = gchat.circles.find(x=>String(x.id)===String(sel.id));
+    if(c){ name=(c.name||'').toUpperCase(); const n=c.memberCount==null?1:c.memberCount; sub=n+(n===1?' member':' members'); count=n; init=(c.name||'C')[0].toUpperCase(); }
+  }
+  $('gchatHeadName').textContent = name;
+  $('gchatHeadSub').textContent = sub;
+  $('gchatHeadAv').textContent = init;
+  $('gchatHeadAv').classList.toggle('gold', isLounge);
+  $('gchatInfoName').textContent = name;
+  $('gchatInfoSub').textContent = isLounge ? 'Leadership & Admin Channel' : sub;
+  $('gchatBigAv').textContent = isLounge ? '👑' : init;
+  $('gchatBigAv').classList.toggle('gold', isLounge);
+  $('gchatStatVal').textContent = count;
+  const leaders = gchat.leaders||[];
+  $('gchatLeaders').hidden = !isLounge;
+  $('gchatQuote').style.display = isLounge ? 'none' : '';
+  $('gchatStatLbl').textContent = isLounge ? 'Organisers & Admin' : 'Members';
+  $('gchatInfoTitle').textContent = isLounge ? 'Organisers Group' : 'Circle Information';
+  $('gchatRulesTitle').textContent = isLounge ? 'Organisers Guidelines' : 'Circle Guidelines';
+  $('gchatRules').innerHTML = isLounge
+    ? ['Dedicated channel for organisers and platform admin to collaborate.',
+       'Coordinate circle events, reading themes, and moderation updates.',
+       'Keep communication friendly, respectful, and constructive.',
+       'Admin provides direct support for organiser concerns and circle management.']
+      .map(t=>'<li><span class="gchat-ok">✓</span><span>'+esc(t)+'</span></li>').join('')
+    : ['Keep the conversation respectful and friendly.',
+       'Avoid spoilers (use spoiler tags if needed).',
+       'Stay on topic and relevant to the circle.',
+       'No hate speech or personal attacks.']
+      .map(t=>'<li><span class="gchat-ok">✓</span><span>'+esc(t)+'</span></li>').join('');
+  $('gchatInput').placeholder = isLounge ? 'Message organisers & admin...' : 'Type a message...';
+  await loadGchatMessages(silent);
+}
+async function loadGchatMessages(silent){
+  const sel = gchat.selected;
+  if(!sel) return;
+  try{
+    if(!silent)gchatSetErr('');
+    const m = await api('/api/circles/'+sel.id+'/messages?size=50');
+    const rows = (Array.isArray(m)?m:[]).filter(x=>!x.deleted);
+    $('gchatMsgs').innerHTML = rows.length ? rows.map(x=>{
+      const own = gchat.meId && String(x.senderId)===String(gchat.meId);
+      const liked = !!gchat.liked[x.id];
+      const n = liked ? (Number(x.likeCount||0)+1) : Number(x.likeCount||0);
+      let t=''; try{ t=new Date(x.sentAt).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});}catch(e){}
+      return '<div class="gchat-row'+(own?' own':'')+'"><span class="gchat-av">'+esc((x.senderName||'?')[0].toUpperCase())+'</span>'
+        + '<div><div class="gchat-meta"><b>'+esc(x.senderName||'Member')+'</b><span>'+esc(t)+'</span></div>'
+        + '<div class="gchat-bub"><p>'+esc(x.content)+'</p>'
+        + '<button type="button" class="gchat-like'+(liked?' liked':'')+'" data-id="'+x.id+'">♡ '+n+'</button>'
+        + '</div></div></div>';
+    }).join('') : '<p class="gchat-empty">No messages yet — say hello to the circle.</p>';
+    document.querySelectorAll('.gchat-like').forEach(b=>b.onclick=()=>toggleGchatLike(b.dataset.id));
+    const box=$('gchatMsgs'); box.scrollTop=box.scrollHeight;
+  }catch(e){ if(!silent) gchatSetErr(e.message); }
+}
+async function toggleGchatLike(id){
+  try{
+    if(gchat.liked[id]){ delete gchat.liked[id]; await api('/api/messages/'+id+'/like',{method:'DELETE'}).catch(()=>{}); }
+    else{ gchat.liked[id]=true; await api('/api/messages/'+id+'/like',{method:'POST'}).catch(()=>{}); }
+    loadGchatMessages(true);
+  }catch(e){ gchatSetErr(e.message); }
+}
+async function sendGchat(){
+  const v = $('gchatInput').value.trim();
+  if(!v || !gchat.selected) return;
+  $('gchatInput').value='';
+  try{
+    await api('/api/circles/'+gchat.selected.id+'/messages',{method:'POST',body:JSON.stringify({content:v})});
+    await loadGchatMessages(true);
+  }catch(e){ gchatSetErr(e.message); $('gchatInput').value=v; }
+}
+$('gchatSend').onclick = sendGchat;
+$('gchatInput').addEventListener('keydown',e=>{ if(e.key==='Enter') sendGchat(); });
+$('gchatEmoji').onclick = ()=>{ $('gchatInput').value += ' 😊'; $('gchatInput').focus(); };
+/* ---- book discussions (list / create / view, live backend) ---- */
+let bd = { tab: 'all', list: [], selected: null, detail: null };
+function bdShow(which){
+  $('bdList').hidden = which!=='list';
+  $('bdCreate').hidden = which!=='create';
+  $('bdView').hidden = which!=='view';
+}
+document.querySelectorAll('#v-discussions .bd-tab[data-tab]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#v-discussions .bd-tab[data-tab]').forEach(x=>x.setAttribute('aria-pressed','false'));
+  b.setAttribute('aria-pressed','true'); bd.tab=b.dataset.tab; loadDiscussions();
+});
+$('bdSearch').addEventListener('input',()=>loadDiscussions());
+$('bdOpenCreate').onclick=()=>bdShow('create');
+$('bdCancel').onclick=()=>bdShow('list');
+$('bdBack').onclick=()=>{ bdShow('list'); loadDiscussions(); };
+['bdTitle','bdAuthor','bdGenre','bdPages','bdYear','bdQuote'].forEach(id=>{
+  $(id).addEventListener('input',()=>{
+    $('bdPvTitle').textContent=$('bdTitle').value||'Title will appear here';
+    $('bdPvAuthor').textContent=$('bdAuthor').value||'Author will appear here';
+    $('bdPvGenre').textContent=$('bdGenre').value||'–';
+    $('bdPvPages').textContent=$('bdPages').value||'–';
+    $('bdPvYear').textContent=$('bdYear').value||'–';
+    $('bdPvQuote').textContent=$('bdQuote').value||'Add a quote in the form to preview it here.';
+  });
+});
+$('bdCoverFile').addEventListener('change',()=>{
+  const f=$('bdCoverFile').files&&$('bdCoverFile').files[0];
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{ if(typeof r.result==='string') $('bdCoverUrl').value=r.result; };
+  r.readAsDataURL(f);
+});
+$('bdPost').onclick=async()=>{
+  const e=$('bdCreateErr'); e.hidden=true;
+  const payload={
+    bookTitle:$('bdTitle').value.trim(), author:$('bdAuthor').value.trim(),
+    genre:$('bdGenre').value.trim()||'General',
+    pageCount:$('bdPages').value?parseInt($('bdPages').value,10):null,
+    publicationYear:$('bdYear').value?parseInt($('bdYear').value,10):null,
+    coverImageUrl:$('bdCoverUrl').value.trim()||null,
+    keyQuote:$('bdQuote').value.trim()||null, quoteAuthor:$('bdAuthor').value.trim()||null,
+    discussionTitle:($('bdTitle').value.trim()?$('bdTitle').value.trim()+' – Discussion & Analysis':''),
+    discussionExcerpt:$('bdQuote').value.trim()||null,
+    tag:$('bdGenre').value.trim()||null
+  };
+  if(!payload.bookTitle||!payload.author){ e.hidden=false; e.textContent='Book title and author are required.'; return; }
+  try{
+    const created=await api('/api/discussions',{method:'POST',body:JSON.stringify(payload)});
+    ['bdTitle','bdAuthor','bdGenre','bdPages','bdYear','bdCoverUrl','bdQuote','bdCoverFile'].forEach(id=>{$(id).value='';});
+    bdShow('list'); await loadDiscussions(); openBd(created.id);
+  }catch(err){ e.hidden=false; e.textContent=err.message; }
+};
+async function loadDiscussions(){
+  try{
+    hideErr(); bdShow('list');
+    const q=$('bdSearch').value||'';
+    const data=await api('/api/discussions?query='+encodeURIComponent(q)+'&tab='+bd.tab);
+    bd.list=Array.isArray(data)?data:[];
+    $('bdCards').innerHTML=bd.list.length?bd.list.map(d=>
+      '<div class="bd-card"><div class="bd-disc-head">'
+      + (d.coverImageUrl?'<img class="bd-cover" alt="" src="'+esc(d.coverImageUrl)+'"/>':'<span class="bd-cover" style="display:grid;place-items:center;font-size:26px">📖</span>')
+      + '<div style="min-width:0;flex:1"><h3>'+esc((d.discussionTitle||d.bookTitle||'').toUpperCase())+'</h3>'
+      + '<div class="bd-byline">By '+esc(d.createdBy||'')+' &nbsp;<span class="bd-tagpill">'+esc(d.genre||d.tag||'')+'</span></div>'
+      + '<p class="bd-excerpt">'+esc(d.discussionExcerpt||'')+'</p>'
+      + '<div class="bd-meta"><span>💬 '+d.repliesCount+' replies</span><span>👁 '+d.viewsCount+' views</span><span>🕐 '+esc(d.timeAgo||'')+'</span>'
+      + '<button class="bd-viewlink" data-id="'+d.id+'">View Discussion →</button></div></div></div></div>'
+    ).join(''):'<div class="bd-card"><p class="bd-empty">No discussions yet — post the first one.</p></div>';
+    document.querySelectorAll('.bd-viewlink').forEach(b=>b.onclick=()=>openBd(b.dataset.id));
+    const pop={};
+    bd.list.forEach(d=>{
+      const k=(d.bookTitle||'').toLowerCase().trim()||'?';
+      pop[k]=pop[k]||{title:d.bookTitle,author:d.author,count:0,cover:d.coverImageUrl};
+      pop[k].count+=(d.threads?d.threads.length:0)+(d.repliesCount||0)+1;
+    });
+    const arr=Object.values(pop).sort((a,b)=>b.count-a.count).slice(0,6);
+    $('bdPopular').innerHTML=arr.length?arr.map(p=>
+      '<div class="bd-bookrow">'+(p.cover?'<img alt="" src="'+esc(p.cover)+'"/>':'<span style="font-size:24px">📖</span>')
+      +'<div><b>'+esc(p.title||'')+'</b><br><span style="color:var(--muted);font-size:11.5px">'+esc(p.author||'')+' · '+p.count+' discussions</span></div></div>'
+    ).join(''):'<p class="sub">No books yet.</p>';
+  }catch(e){showErr(e.message);}
+}
+async function openBd(id){
+  try{
+    hideErr();
+    const d=await api('/api/discussions/'+id);
+    bd.detail=d; bdShow('view');
+    $('bdViewHead').innerHTML='<div class="bd-disc-head">'
+      +(d.coverImageUrl?'<img class="bd-cover" alt="" src="'+esc(d.coverImageUrl)+'"/>':'<span class="bd-cover" style="display:grid;place-items:center;font-size:26px">📖</span>')
+      +'<div style="flex:1"><h3>'+esc((d.bookTitle||'').toUpperCase())+'</h3>'
+      +'<div class="bd-byline">'+esc(d.author||'')+'</div>'
+      +'<p class="bd-excerpt">'+esc(d.discussionExcerpt||'')+'</p>'
+      +'<div class="bd-meta"><span>💬 '+(d.threads?d.threads.length:0)+' Discussions</span><span>👥 '+d.membersCount+' Members</span></div></div>'
+      +'<button class="bd-tab" id="bdHeadComment" style="align-self:start">💬 Comment</button></div>';
+    $('bdHeadComment').onclick=()=>{ $('bdContribText').focus(); };
+    $('bdContribTitle').textContent='Contribute to '+(d.bookTitle||'discussion');
+    const cov=d.coverImageUrl?'<img alt="" src="'+esc(d.coverImageUrl)+'" style="width:96px;height:128px;object-fit:cover;border-radius:10px;display:block;margin:0 auto 10px"/>' :'';
+    $('bdBookPanel').innerHTML=cov+'<p class="bd-empty" style="padding:0;font-weight:700;color:var(--ink)">'+esc((d.bookTitle||'').toUpperCase())+'<br><span style="font-weight:400;color:var(--muted)">'+esc(d.author||'')+'</span></p>'
+      +'<div class="bd-statline"><span>Genre</span><b>'+esc(d.genre||'–')+'</b></div>'
+      +'<div class="bd-statline"><span>Pages</span><b>'+(d.pageCount==null?'–':d.pageCount)+'</b></div>'
+      +'<div class="bd-statline"><span>Published</span><b>'+(d.publicationYear==null?'–':d.publicationYear)+'</b></div>'
+      +(d.keyQuote?'<div class="bd-quotebox">“'+esc(d.keyQuote)+'”<br>— '+esc(d.quoteAuthor||d.author||'')+'</div>':'');
+    $('bdStats').innerHTML='<div class="bd-statline"><span>💬 Discussions</span><b>'+(d.threads?d.threads.length:0)+'</b></div>'
+      +'<div class="bd-statline"><span>👥 Members</span><b>'+d.membersCount+'</b></div>'
+      +'<p class="sub" style="margin:8px 0 0">People who joined this discussion</p>';
+    renderBdThreads();
+  }catch(e){showErr(e.message);}
+}
+function renderBdThreads(){
+  const d=bd.detail; if(!d) return;
+  const th=d.threads||[];
+  $('bdThreads').innerHTML=th.length?th.map(t=>
+    '<div class="bd-card"><div class="bd-disc-head"><span class="gchat-av" style="width:34px;height:34px;border-radius:50%;background:#F9E3DD;color:#82221B;display:grid;place-items:center;font-weight:700">'+esc((t.author||'?')[0].toUpperCase())+'</span>'
+    +'<div style="flex:1"><h3>'+esc((t.title||'').toUpperCase())+'</h3><div class="bd-byline">'+esc(t.author||'')+' • '+esc(t.timeAgo||'')+'</div></div></div>'
+    +'<p class="bd-excerpt">'+esc(t.content||'')+'</p>'
+    +'<div class="bd-meta"><span>💬 '+(t.repliesCount||0)+' replies</span>'
+    +'<button class="bd-viewlink bd-like" data-id="'+t.id+'">♡ '+(t.likesCount||0)+' likes</button>'
+    +'<button class="bd-viewlink bd-cmt" data-id="'+t.id+'">💬 Comment</button></div>'
+    +'<div class="bd-thread" data-th="'+t.id+'">'+(t.comments||[]).map(c=>
+      '<div style="background:#FBF7F3;border:1px solid #F0E8DE;border-radius:10px;padding:10px 12px;margin-top:8px"><b style="font-size:12.5px">'+esc(c.author||'')+'</b> '
+      +'<span style="font-size:11px;color:var(--muted)">'+esc(c.createdAt||'')+'</span><p class="bd-excerpt" style="margin:4px 0 0">'+esc(c.content||'')+'</p></div>'
+    ).join('')+'</div></div>'
+  ).join(''):'<div class="bd-card"><p class="bd-empty">No contributions yet — write the first one above.</p></div>';
+  document.querySelectorAll('.bd-like').forEach(b=>b.onclick=async()=>{
+    try{ await api('/api/discussions/threads/'+b.dataset.id+'/like',{method:'POST'}); const f=await api('/api/discussions/'+bd.detail.id); bd.detail=f; renderBdThreads(); }catch(e){showErr(e.message);}
+  });
+  document.querySelectorAll('.bd-cmt').forEach(b=>b.onclick=()=>{
+    const box=document.querySelector('.bd-thread[data-th="'+b.dataset.id+'"]');
+    if(!box||box.querySelector('textarea'))return;
+    const ta=document.createElement('textarea');
+    ta.placeholder='Write a reply...'; ta.style.cssText='width:100%;border:1px solid var(--border);border-radius:10px;padding:10px;margin-top:8px;min-height:60px;font:inherit';
+    const row=document.createElement('div'); row.style.cssText='display:flex;gap:8px;justify-content:flex-end;margin-top:8px';
+    const post=document.createElement('button'); post.className='btn'; post.textContent='Post'; post.style.padding='8px 16px';
+    post.onclick=async()=>{
+      if(!ta.value.trim())return;
+      try{ await api('/api/discussions/threads/'+b.dataset.id+'/comments',{method:'POST',body:JSON.stringify({content:ta.value.trim()})});
+        const f=await api('/api/discussions/'+bd.detail.id); bd.detail=f; renderBdThreads(); }catch(e){showErr(e.message);}
+    };
+    row.appendChild(post); box.appendChild(ta); box.appendChild(row); ta.focus();
+  });
+}
+$('bdContribCancel').onclick=()=>{ $('bdContribText').value=''; };
+$('bdContribPost').onclick=async()=>{
+  const v=$('bdContribText').value.trim();
+  if(!v||!bd.detail)return;
+  try{
+    await api('/api/discussions/'+bd.detail.id+'/threads',{method:'POST',body:JSON.stringify({title:'Community Contribution',content:v})});
+    $('bdContribText').value='';
+    const f=await api('/api/discussions/'+bd.detail.id); bd.detail=f; renderBdThreads();
+  }catch(e){showErr(e.message);}
+};
+/* ---- book recommendations (list + share modal, live backend) ---- */
+let rec = { list: [], rating: 5, tags: [], cover: '' };
+function recStars(n){
+  let s='';
+  for(let i=1;i<=5;i++) s+='<button type="button" data-n="'+i+'" class="'+(i<=n?'lit':'')+'" aria-label="'+i+' stars">★</button>';
+  return s;
+}
+function renderRecStars(){
+  $('recStars').innerHTML=recStars(rec.rating);
+  document.querySelectorAll('#recStars button').forEach(b=>b.onclick=()=>{ rec.rating=parseInt(b.dataset.n,10); renderRecStars(); });
+}
+renderRecStars();
+$('recSort').onchange=loadRecs; $('recGenre').onchange=loadRecs;
+$('recOpen').onclick=()=>{ $('recModal').hidden=false; };
+$('recCancel').onclick=()=>{ $('recModal').hidden=true; };
+$('recModal').addEventListener('click',e=>{ if(e.target===$('recModal')) $('recModal').hidden=true; });
+$('recCoverFile').addEventListener('change',()=>{
+  const f=$('recCoverFile').files&&$('recCoverFile').files[0]; if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{ if(typeof r.result==='string'){ rec.cover=r.result; $('recCoverPrev').innerHTML='<img alt="" src="'+rec.cover+'"/>'; } };
+  r.readAsDataURL(f);
+});
+function renderRecTags(){
+  $('recTags').innerHTML=rec.tags.map((t,i)=>'<span class="rec-tagchip">'+esc(t)+' <a href="#" data-i="'+i+'" style="color:inherit">×</a></span>').join('');
+  document.querySelectorAll('#recTags a').forEach(a=>a.onclick=e=>{ e.preventDefault(); rec.tags.splice(parseInt(a.dataset.i,10),1); renderRecTags(); });
+}
+$('recAddTag').onclick=()=>{
+  const v=$('recTagInput').value.trim(); if(!v)return;
+  rec.tags.push(v); $('recTagInput').value=''; renderRecTags();
+};
+$('recTagInput').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); $('recAddTag').click(); } });
+$('recPost').onclick=async()=>{
+  const e=$('recFormErr'); e.hidden=true;
+  const payload={ bookTitle:$('recTitle').value.trim(), author:$('recAuthor').value.trim(),
+    genre:$('recMGenre').value||'General', rating:rec.rating,
+    review:$('recReview').value.trim()||null, spoiler:$('recSpoiler').checked,
+    tags:rec.tags, coverImageUrl:rec.cover||null };
+  if(!payload.bookTitle||!payload.author){ e.hidden=false; e.textContent='Book title and author are required.'; return; }
+  try{
+    await api('/api/recommendations',{method:'POST',body:JSON.stringify(payload)});
+    ['recTitle','recAuthor','recReview'].forEach(id=>$(id).value='');
+    $('recMGenre').value=''; $('recSpoiler').checked=false; rec.tags=[]; rec.cover=''; rec.rating=5;
+    $('recCoverPrev').textContent='🖼️'; renderRecTags(); renderRecStars();
+    $('recModal').hidden=true; await loadRecs();
+  }catch(err){ e.hidden=false; e.textContent=err.message; }
+};
+function recCardStars(n){
+  let s='<span class="rec-stars">';
+  for(let i=1;i<=5;i++) s+='<span class="'+(i<=n?'':'off')+'">★</span>';
+  return s+'</span>';
+}
+async function loadRecs(){
+  try{
+    hideErr();
+    const sort=$('recSort').value||'mostLiked', genre=$('recGenre').value||'';
+    const data=await api('/api/recommendations?sort='+encodeURIComponent(sort)+(genre?'&genre='+encodeURIComponent(genre):''));
+    rec.list=Array.isArray(data)?data:[];
+    $('recCards').innerHTML=rec.list.length?rec.list.map(d=>
+      '<div class="rec-card" data-id="'+d.id+'"><div class="rec-top">'
+      +(d.coverImageUrl||d.coverUrl?'<img class="rec-cover" alt="" src="'+esc(d.coverImageUrl||d.coverUrl)+'"/>':'<span class="rec-cover">📖<br>'+esc((d.bookTitle||'')[0]||'')+'</span>')
+      +'<div style="min-width:0;flex:1"><h3>'+esc((d.bookTitle||'').toUpperCase())+'</h3>'
+      +'<div class="rec-author">'+esc(d.author||'')+'</div>'
+      +'<div class="rec-byline"><span class="rec-mini-av">'+esc((d.recommenderName||'?')[0].toUpperCase())+'</span><span>Recommended by<br><b>'+esc(d.recommenderName||'')+'</b></span></div>'
+      +recCardStars(d.rating||0)
+      +'<p class="rec-review">'+esc(d.review||d.reviewText||'')+'</p>'
+      +'<span class="bd-tagpill">'+esc(d.genre||'')+'</span></div></div>'
+      +'<div class="rec-actions"><button class="rec-act rec-cbtn">💬 Comment</button>'
+      +'<button class="rec-act rec-ubtn'+(d.userUpvoted?' liked':'')+'">👍 Like/Upvote (count '+(d.upvotesCount||0)+')</button>'
+      +'<button class="rec-save" title="Save">🔖</button></div>'
+      +'<div class="rec-cbox" hidden><textarea placeholder="Add a comment or reaction to this recommendation..."></textarea>'
+      +'<div class="row"><button class="btn ghost rec-ccancel" style="padding:7px 14px">Cancel</button><button class="btn rec-cpost" style="padding:7px 14px">Post Comment</button></div>'
+      +'<div class="rec-clist">'+((d.comments||[]).map(c=>'<div style="background:#FBF7F3;border:1px solid #F0E8DE;border-radius:10px;padding:8px 12px;margin-top:8px;font-size:12.5px"><b>'+esc(c.author||'')+'</b> '+esc(c.content||'')+'</div>').join(''))+'</div></div></div>'
+    ).join(''):'<div class="rec-card"><p class="bd-empty">No recommendations yet — share the first book.</p></div>';
+    document.querySelectorAll('#recCards .rec-card').forEach(card=>{
+      const id=card.dataset.id;
+      if(!id) return; // empty-state placeholder has no actions to wire
+      const box=card.querySelector('.rec-cbox'), ta=box.querySelector('textarea');
+      card.querySelector('.rec-cbtn').onclick=()=>{ box.hidden=!box.hidden; if(!box.hidden)ta.focus(); };
+      card.querySelector('.rec-ccancel').onclick=()=>{ box.hidden=true; ta.value=''; };
+      card.querySelector('.rec-cpost').onclick=async()=>{
+        if(!ta.value.trim())return;
+        try{ await api('/api/recommendations/'+id+'/comments',{method:'POST',body:JSON.stringify({content:ta.value.trim()})}); await loadRecs(); }
+        catch(e){showErr(e.message);}
+      };
+      card.querySelector('.rec-ubtn').onclick=async()=>{
+        try{ await api('/api/recommendations/'+id+'/upvote',{method:'POST'}); await loadRecs(); }
+        catch(e){showErr(e.message);}
+      };
+      const sv=card.querySelector('.rec-save');
+      sv.onclick=()=>{ sv.textContent = sv.textContent==='🔖' ? '📌' : '🔖'; };
+    });
+    const trend=[...rec.list].sort((a,b)=>(b.upvotesCount||0)-(a.upvotesCount||0)).slice(0,5);
+    $('recTrending').innerHTML=trend.length?trend.map((d,i)=>
+      '<div class="rec-trow"><span class="rec-rank">'+(i+1)+'</span><span class="rec-mini-av" style="width:30px;height:38px;border-radius:6px">'+esc((d.bookTitle||'?')[0].toUpperCase())+'</span>'
+      +'<div><b>'+esc(d.bookTitle||'')+'</b><br><span style="color:var(--muted);font-size:11.5px">'+esc(d.author||'')+'</span></div></div>'
+    ).join(''):'<p class="sub">No trending books yet.</p>';
+    try{
+      const top=await api('/api/recommendations/top-recommenders');
+      $('recTop').innerHTML=(Array.isArray(top)&&top.length)?top.map(t=>
+        '<div class="rec-trow"><span class="rec-mini-av">'+esc((t.name||'?')[0].toUpperCase())+'</span>'
+        +'<div><b>'+esc(t.name||'')+' ('+(t.recommendationsCount||t.count||0)+')</b></div>'
+        +'<span style="margin-left:auto;font-size:11.5px;color:var(--muted)">'+(t.recommendationsCount||t.count||0)+' Rec</span></div>'
+      ).join(''):'<p class="sub">No recommenders yet.</p>';
+    }catch(e){ $('recTop').innerHTML='<p class="sub">No recommenders yet.</p>'; }
+  }catch(e){showErr(e.message);}
+}
+/* ---- unified users home (tabs + pills + demote + bulk select) ---- */
+const uh = { tab: 'all', page: 0, sort: 'createdAt,desc', sel: new Set() };
+function uhTabRole(){ return uh.tab==='org' ? 'ORGANIZER' : (uh.tab==='mem' ? 'READER' : ''); }
+function uhPill(r){
+  if(r==='ADMIN')return '<span class="role-pill admin">Admin</span>';
+  if(r==='ORGANIZER')return '<span class="role-pill organizer">Organiser</span>';
+  return '<span class="role-pill member">Member</span>';
+}
+document.querySelectorAll('#v-usershome .uh-tab').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#v-usershome .uh-tab').forEach(x=>x.setAttribute('aria-selected','false'));
+  b.setAttribute('aria-selected','true');
+  uh.tab=b.dataset.tab; uh.page=0; uh.sel.clear();
+  $('uhRole').disabled = uh.tab!=='all';
+  if(uh.tab!=='all')$('uhRole').value='';
+  loadUh();
+});
+['uhQ','uhRole','uhStatus','uhSort'].forEach(id=>{
+  $(id).addEventListener(id==='uhQ'?'input':'change',()=>{
+    if(id==='uhQ'){ clearTimeout(window.__uhT); window.__uhT=setTimeout(()=>{ uh.page=0; loadUh(); },300); }
+    else { uh.page=0; loadUh(); }
+  });
+});
+$('uhCsv').onclick=uhExport;
+$('uhCheckAll').onchange=()=>{
+  document.querySelectorAll('#uhBody .uh-check').forEach(c=>{ c.checked=$('uhCheckAll').checked; });
+  uhSyncSel();
+};
+$('uhBulkClear').onclick=()=>{ uh.sel.clear(); uhSyncSel(); loadUh(); };
+$('uhBulkBlock').onclick=()=>uhBulk(false);
+$('uhBulkUnblock').onclick=()=>uhBulk(true);
+function uhSyncSel(){
+  uh.sel.clear();
+  document.querySelectorAll('#uhBody .uh-check:checked').forEach(c=>uh.sel.add(c.value));
+  $('uhSelN').textContent=uh.sel.size;
+  $('uhBulk').classList.toggle('show', uh.sel.size>0);
+}
+async function uhBulk(active){
+  if(!uh.sel.size)return;
+  try{
+    for(const id of [...uh.sel]){
+      if(!active && gchat.meId && String(gchat.meId)===String(id))continue;
+      await api('/api/users/'+id+'/status',{method:'PATCH',body:JSON.stringify({active:active})});
+    }
+    uh.sel.clear(); loadUh();
+  }catch(e){ showErr(e.message); }
+}
+async function loadUh(){
+  try{
+    hideErr();
+    const role = uh.tab==='all' ? ($('uhRole').value||'') : uhTabRole();
+    const status = $('uhStatus').value || '';
+    const q = $('uhQ').value || '';
+    const params = new URLSearchParams({ page: uh.page, size: 10, sort: uh.sort });
+    if(q.trim())params.set('query', q.trim());
+    if(role)params.set('role', role);
+    if(status)params.set('status', status);
+    const [s, p] = await Promise.all([
+      api('/api/admin/users/summary'),
+      api('/api/users?' + params.toString())
+    ]);
+    $('uhTotal').textContent=s.totalUsers; $('uhMembers').textContent=s.totalReaders;
+    $('uhOrg').textContent=s.totalOrganizers; $('uhBlocked').textContent=s.blockedUsers;
+    $('uhCntAll').textContent=s.totalUsers; $('uhCntOrg').textContent=s.totalOrganizers; $('uhCntMem').textContent=s.totalReaders;
+    const rows = p.content || [];
+    const base = (p.number||0)*(p.size||10);
+    uh.sel.clear(); $('uhCheckAll').checked=false;
+    $('uhBody').innerHTML = rows.length ? rows.map((u,i)=>{
+      const on=!!u.active, self=(gchat.meId && String(gchat.meId)===String(u.id));
+      const act = !on
+        ? '<button class="um-unblock" data-unblock="'+u.id+'">🔓 Unblock</button>'
+        : (u.role==='ORGANIZER'
+          ? '<button class="btn-demote" data-demote="'+u.id+'"'+(self?' disabled title="You cannot demote yourself"':'')+'>↓ Demote to Member</button>'
+          : (u.role==='READER'
+            ? '<button class="um-block" data-block="'+u.id+'"'+(self?' disabled title="You cannot block yourself"':'')+'>🚫 Block</button> '
+              + '<button class="btn-promote" data-promote="'+u.id+'">↑ Promote to Organiser</button>'
+            : '<button class="um-block" data-block="'+u.id+'"'+(self?' disabled title="You cannot block yourself"':'')+'>🚫 Block</button>'));
+      return '<tr><td><input type="checkbox" class="uh-check" value="'+u.id+'" aria-label="Select user" /></td>'
+        +'<td>'+umAv(u)+' <b>'+esc(u.name||'')+'</b></td><td>'+esc(u.email||'')+'</td>'
+        +'<td>'+uhPill(u.role)+'</td><td>'+umDate(u.createdAt)+'</td>'
+        +'<td><span class="st-pill '+(on?'on':'off')+'">● '+(on?'Active':'Blocked')+'</span></td>'
+        +'<td style="white-space:nowrap">'+act+'</td>'
+        +'<td style="position:relative"><button class="um-dots" data-umenu="'+u.id+'">⋯</button></td></tr>';
+    }).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted)">No users found.</td></tr>';
+    document.querySelectorAll('#uhBody [data-block]').forEach(b=>b.onclick=()=>umSetActive('uh', b.dataset.block, false));
+    document.querySelectorAll('#uhBody [data-unblock]').forEach(b=>b.onclick=()=>umSetActive('uh', b.dataset.unblock, true));
+    document.querySelectorAll('#uhBody [data-demote]').forEach(b=>b.onclick=()=>uhDemote(b.dataset.demote));
+    document.querySelectorAll('#uhBody [data-promote]').forEach(b=>b.onclick=()=>uhPromote(b.dataset.promote));
+    document.querySelectorAll('#uhBody [data-umenu]').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); uhMenu(b); });
+    document.querySelectorAll('#uhBody .uh-check').forEach(c=>c.onchange=uhSyncSel);
+    uhSyncSel();
+    const total=p.totalElements||0, size=p.size||10;
+    const pages=Math.max(1,Math.ceil(total/size)), cur=p.number||0;
+    uh.page=cur;
+    let nums='', start=Math.max(0,Math.min(cur-2,pages-5)), end=Math.min(pages,start+5);
+    for(let i=start;i<end;i++) nums+='<button class="um-pg" data-pg="'+i+'" aria-current="'+(i===cur?'page':'false')+'">'+(i+1)+'</button>';
+    $('uhPager').innerHTML='<span class="um-showing" style="margin:0">Showing '+((total===0)?0:cur*size+1)+' to '+Math.min(total,(cur+1)*size)+' of '+total+' users.</span>'
+      +'<span style="flex:1"></span><button class="um-pg" data-pg="'+(cur-1)+'"'+(cur===0?' disabled':'')+'>‹</button>'+nums
+      +'<button class="um-pg" data-pg="'+(cur+1)+'"'+(cur>=pages-1?' disabled':'')+'>›</button>';
+    document.querySelectorAll('#uhPager [data-pg]').forEach(b=>b.onclick=()=>{
+      const n=parseInt(b.dataset.pg,10);
+      if(n>=0&&n<pages){ uh.page=n; loadUh(); }
+    });
+  }catch(e){ showErr(e.message); }
+}
+async function uhDemote(id){
+  if(gchat.meId && String(gchat.meId)===String(id)){ showErr('You cannot demote yourself.'); return; }
+  try{ await api('/api/users/'+id,{method:'PATCH',body:JSON.stringify({role:'READER'})}); loadUh(); }
+  catch(e){ showErr(e.message); }
+}
+async function uhPromote(id){
+  if(gchat.meId && String(gchat.meId)===String(id)){ showErr('You cannot change your own role.'); return; }
+  try{ await api('/api/users/'+id,{method:'PATCH',body:JSON.stringify({role:'ORGANIZER'})}); loadUh(); }
+  catch(e){ showErr(e.message); }
+}
+function uhMenu(btn){
+  document.querySelectorAll('.um-menu').forEach(m=>m.remove());
+  const tr=btn.closest('tr'), tds=tr.children;
+  const menu=document.createElement('div');
+  menu.className='um-menu';
+  menu.innerHTML='<button data-a="copy">Copy email</button><button data-a="det">View details</button>';
+  btn.parentElement.appendChild(menu);
+  menu.querySelector('[data-a="copy"]').onclick=async()=>{
+    try{ await navigator.clipboard.writeText(tds[2].textContent); }catch(e){}
+    menu.remove();
+  };
+  menu.querySelector('[data-a="det"]').onclick=()=>{
+    menu.remove();
+    const next=tr.nextElementSibling;
+    if(next&&next.classList.contains('um-xrow')){ next.remove(); return; }
+    const x=document.createElement('tr');
+    x.className='um-xrow';
+    x.innerHTML='<td></td><td colspan="7">Name: <b>'+esc(tds[1].textContent)+'</b> · Email: '+esc(tds[2].textContent)
+      +' · Role: '+esc(tds[3].textContent)+' · Joined: '+esc(tds[4].textContent)+' · Status: '+esc(tds[5].textContent)+'</td>';
+    tr.after(x);
+  };
+}
+async function uhExport(){
+  try{
+    const role = uh.tab==='all' ? ($('uhRole').value||'') : uhTabRole();
+    const status = $('uhStatus').value || '', q = $('uhQ').value || '';
+    const params = new URLSearchParams({ page: 0, size: 1000, sort: uh.sort });
+    if(q.trim())params.set('query', q.trim());
+    if(role)params.set('role', role);
+    if(status)params.set('status', status);
+    const p = await api('/api/users?' + params.toString());
+    const rows = p.content || [];
+    const csv = 'Name,Email,Role,Joined,Active\n' + rows.map(u=>
+      [u.name||'',u.email||'',u.role||'',u.createdAt||'',u.active?'Yes':'No'].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')
+    ).join('\n');
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+    a.download='users.csv'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  }catch(e){ showErr(e.message); }
+}
+/* ---- user management (server-side search/filter/sort/page + block/export) ---- */
+const UM_PAGE_SIZE = 10;
+const umState = {
+  all: { page: 0, sort: 'name,asc', fixedRole: '' },
+  org: { page: 0, sort: 'name,asc', fixedRole: 'ORGANIZER' },
+  mem: { page: 0, sort: 'name,asc', fixedRole: 'READER' }
+};
+const UM_IDS = {
+  all: { q: 'umAllQ', role: 'umAllRole', status: 'umAllStatus', body: 'umAllBody', pager: 'umAllPager' },
+  org: { q: 'umOrgQ', role: null, status: 'umOrgStatus', body: 'umOrgBody', pager: 'umOrgPager' },
+  mem: { q: 'umMemQ', role: null, status: 'umMemStatus', body: 'umMemBody', pager: 'umMemPager' }
+};
+function umRoleLabel(r){
+  if(r==='ADMIN')return 'Admin';
+  if(r==='ORGANIZER')return 'Organizer';
+  return 'Member';
+}
+function umDate(iso){
+  if(!iso)return '–';
+  try{ return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+  catch(e){ return String(iso).slice(0,10); }
+}
+function umAv(u){
+  if(u.profilePictureUrl) return '<span class="um-av"><img alt="" src="'+esc(u.profilePictureUrl)+'"/></span>';
+  return '<span class="um-av">'+esc(((u.name||u.email||'?')[0]||'?').toUpperCase())+'</span>';
+}
+async function loadUsers(kind){
+  const ids = UM_IDS[kind], st = umState[kind];
+  try{
+    hideErr();
+    const q = $(ids.q).value || '';
+    const role = (ids.role ? $(ids.role).value : st.fixedRole) || st.fixedRole;
+    const status = $(ids.status).value || '';
+    const params = new URLSearchParams({ page: st.page, size: UM_PAGE_SIZE, sort: st.sort });
+    if(q.trim())params.set('query', q.trim());
+    if(role)params.set('role', role);
+    if(status)params.set('status', status);
+    const p = await api('/api/users?' + params.toString());
+    const rows = p.content || [];
+    const base = (p.number || 0) * (p.size || UM_PAGE_SIZE);
+    $(ids.body).innerHTML = rows.length ? rows.map((u,i)=>{
+      const on = !!u.active;
+      const self = (gchat.meId && String(gchat.meId)===String(u.id));
+      const rsn = (!on && u.blockedReason) ? '<small>Reason: '+esc(u.blockedReason)+'</small>' : '';
+      return '<tr data-uid="'+u.id+'"><td class="um-idx">'+(base+i+1)+'</td><td>'+umAv(u)+'</td><td><b>'+esc(u.name||'')+'</b></td><td>'+esc(u.email||'')+'</td>'
+        +'<td>'+umRoleLabel(u.role)+'</td><td>'+umDate(u.createdAt)+'</td>'
+        +'<td><span class="um-status '+(on?'on':'off')+'">● '+(on?'Active':'Blocked')+rsn+'</span></td>'
+        +'<td class="um-actcell" style="position:relative">'+(on
+          ? '<button class="'+(kind==='org'?'um-refresh':'um-block')+'" data-block="'+u.id+'"'+(self?' disabled title="You cannot block yourself"':'')+'>'+(kind==='org'?'👥':'🚫 Block User')+'</button>'
+          : '<button class="um-unblock" data-unblock="'+u.id+'">Unblock</button>')
+        +' <button class="um-dots" data-menu="'+u.id+'" title="More actions">⋯</button></td></tr>';
+    }).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--muted)">No users found.</td></tr>';
+    document.querySelectorAll('#'+ids.body+' [data-block]').forEach(b=>b.onclick=()=>umSetActive(kind, b.dataset.block, false));
+    document.querySelectorAll('#'+ids.body+' [data-unblock]').forEach(b=>b.onclick=()=>umSetActive(kind, b.dataset.unblock, true));
+    document.querySelectorAll('#'+ids.body+' [data-menu]').forEach(b=>b.onclick=(e)=>{ e.stopPropagation(); umRowMenu(kind, b); });
+    const total = p.totalElements || 0, size = p.size || UM_PAGE_SIZE;
+    const pages = Math.max(1, Math.ceil(total / size)), cur = p.number || 0;
+    st.page = cur;
+    const from = total===0?0:cur*size+1, to = Math.min(total,(cur+1)*size);
+    let nums='', start=Math.max(0,Math.min(cur-2,pages-5)), end=Math.min(pages,start+5);
+    for(let i=start;i<end;i++) nums+='<button class="um-pg" data-pg="'+i+'" aria-current="'+(i===cur?'page':'false')+'">'+(i+1)+'</button>';
+    const sname = kind==='all'?'users':(kind==='org'?'organisers':'members');
+    $(ids.pager).innerHTML='<button class="um-pg" data-pg="'+(cur-1)+'"'+(cur===0?' disabled':'')+'>Prev</button>'+nums
+      +'<button class="um-pg" data-pg="'+(cur+1)+'"'+(cur>=pages-1?' disabled':'')+'>Next</button>'
+      +'<span class="um-showing">Showing '+from+' to '+to+' of '+total+' '+sname+'.</span>';
+    document.querySelectorAll('#'+ids.pager+' [data-pg]').forEach(b=>b.onclick=()=>{
+      const n=parseInt(b.dataset.pg,10);
+      if(n>=0&&n<pages){ st.page=n; loadUsers(kind); }
+    });
+    await umStats(kind);
+  }catch(e){ showErr(e.message); }
+}
+async function umStats(kind){
+  try{
+    if(kind==='all'){
+      const s=await api('/api/admin/users/summary');
+      $('umAllTotal').textContent=s.totalUsers;
+      $('umAllActive').textContent=(s.activeUsers==null?s.activeMembers:s.activeUsers);
+      $('umAllBlocked').textContent=s.blockedUsers;
+      $('umAllMonth').textContent=s.joinedThisMonth;
+    }else if(kind==='org'){
+      const s=await api('/api/admin/users/summary');
+      $('umOrgTotal').textContent=s.totalOrganizers;
+      const a=await api('/api/users?role=ORGANIZER&status=active&size=1');
+      $('umOrgActive').textContent=a.totalElements;
+    }else{
+      const s=await api('/api/admin/users/summary');
+      $('umMemTotal').textContent=s.totalReaders;
+      const a=await api('/api/users?role=READER&status=active&size=1');
+      $('umMemActive').textContent=a.totalElements;
+    }
+  }catch(e){ /* stats stay as-is */ }
+}
+let umBlockTarget = null;
+function umRowMenu(kind, btn){
+  document.querySelectorAll('.um-menu').forEach(m=>m.remove());
+  const tr = btn.closest('tr');
+  const menu = document.createElement('div');
+  menu.className = 'um-menu';
+  menu.innerHTML = '<button data-a="details">View details</button><button data-a="copy">Copy email</button>';
+  btn.parentElement.appendChild(menu);
+  menu.querySelector('[data-a="copy"]').onclick = async()=>{
+    const email = tr.children[3].textContent;
+    try{ await navigator.clipboard.writeText(email); }catch(e){}
+    menu.remove();
+  };
+  menu.querySelector('[data-a="details"]').onclick = ()=>{
+    menu.remove();
+    const next = tr.nextElementSibling;
+    if(next && next.classList.contains('um-xrow')){ next.remove(); return; }
+    const cells = tr.children;
+    const x = document.createElement('tr');
+    x.className = 'um-xrow';
+    x.innerHTML = '<td></td><td colspan="7">Name: <b>'+esc(cells[2].textContent)+'</b> · Email: '
+      +esc(cells[3].textContent)+' · Role: '+esc(cells[4].textContent)+' · Joined: '
+      +esc(cells[5].textContent)+' · Status: '+esc(cells[6].textContent)+'</td>';
+    tr.after(x);
+  };
+}
+document.addEventListener('click',()=>{ document.querySelectorAll('.um-menu').forEach(m=>m.remove()); });
+async function umSetActive(kind, id, active){
+  if(active){
+    try{ await api('/api/users/'+id+'/status',{method:'PATCH',body:JSON.stringify({active:true})}); loadUsers(kind); }
+    catch(e){ showErr(e.message); }
+    return;
+  }
+  if(gchat.meId && String(gchat.meId)===String(id)){ showErr('You cannot block yourself.'); return; }
+  try{
+    const u = await api('/api/users/'+id);
+    umBlockTarget = { kind: kind, id: id };
+    $('umBlockName').textContent = (u.name||u.email||'this user') + '?';
+    $('umBlockFull').textContent = u.name || u.email;
+    $('umBlockEmail').textContent = u.email || '';
+    $('umBlockAv').textContent = ((u.name||u.email||'?')[0]||'?').toUpperCase();
+    $('umBlockReason').value = '';
+    $('umBlockVeil').hidden = false;
+  }catch(e){ showErr(e.message); }
+}
+function umCloseBlock(){ $('umBlockVeil').hidden = true; umBlockTarget = null; }
+$('umBlockX').onclick = umCloseBlock;
+$('umBlockCancel').onclick = umCloseBlock;
+$('umBlockVeil').addEventListener('click',e=>{ if(e.target===$('umBlockVeil')) umCloseBlock(); });
+$('umBlockGo').onclick = async()=>{
+  if(!umBlockTarget)return;
+  try{
+    await api('/api/users/'+umBlockTarget.id+'/status',{method:'PATCH',
+      body:JSON.stringify({active:false, reason:$('umBlockReason').value.trim()||null})});
+    const k = umBlockTarget.kind; umCloseBlock();
+    if(k==='uh')loadUh(); else loadUsers(k);
+  }catch(e){ showErr(e.message); }
+};
+async function umExport(kind){
+  const ids = UM_IDS[kind], st = umState[kind];
+  try{
+    const q = $(ids.q).value || '';
+    const role = (ids.role ? $(ids.role).value : st.fixedRole) || st.fixedRole;
+    const status = $(ids.status).value || '';
+    const params = new URLSearchParams({ page: 0, size: 1000, sort: 'name,asc' });
+    if(q.trim())params.set('query', q.trim());
+    if(role)params.set('role', role);
+    if(status)params.set('status', status);
+    const p = await api('/api/users?' + params.toString());
+    const rows = p.content || [];
+    const csv = 'Name,Email,Role,Joined,Active\n' + rows.map(u=>
+      [u.name||'',u.email||'',u.role||'',u.createdAt||'',u.active?'Yes':'No'].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')
+    ).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+    a.download = kind+'-users.csv'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  }catch(e){ showErr(e.message); }
+}
+['all','org','mem'].forEach(kind=>{
+  const ids = UM_IDS[kind];
+  let t=null;
+  $(ids.q).addEventListener('input',()=>{ clearTimeout(t); t=setTimeout(()=>{ umState[kind].page=0; loadUsers(kind); },300); });
+  $(ids.status).addEventListener('change',()=>{ umState[kind].page=0; loadUsers(kind); });
+  if(ids.role)$(ids.role).addEventListener('change',()=>{ umState[kind].page=0; loadUsers(kind); });
+});
+document.querySelectorAll('#v-users th.sortable').forEach(th=>th.onclick=()=>umSort('all',th.dataset.k));
+document.querySelectorAll('#v-organisers th.sortable').forEach(th=>th.onclick=()=>umSort('org',th.dataset.k));
+document.querySelectorAll('#v-members th.sortable').forEach(th=>th.onclick=()=>umSort('mem',th.dataset.k));
+function umSort(kind,k){
+  const st=umState[kind];
+  const [f,d]=st.sort.split(',');
+  st.sort = (f===k && d==='asc') ? k+',desc' : k+',asc';
+  loadUsers(kind);
+}
+$('umAllRefresh').onclick=()=>loadUsers('all');
+$('umOrgRefresh').onclick=()=>loadUsers('org');
+$('umAllCsv').onclick=()=>umExport('all');
+$('umOrgCsv').onclick=()=>umExport('org');
+$('umMemCsv').onclick=()=>umExport('mem');
+async function loadAnalytics(){
+  try{const a=await api('/api/admin/analytics?range=30d');$('anaBox').innerHTML='<table><tr><th>Circle</th><th>Members</th><th>Events</th><th>Activity</th></tr>'+(a.circlePerformance||[]).map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+x.membersCount+'</td><td>'+x.eventsCount+'</td><td>'+x.activityRate+'%</td></tr>').join('')+'</table>';}catch(e){showErr(e.message);}
+}
+/* ---- settings (profile / notifications / security, live backend) ---- */
+const SET_TOGGLES = [
+  ['joinRequest','New join request','Notify when a user requests to join a circle.'],
+  ['memberJoined','New member joined','Notify when a new member is approved and joins a circle.'],
+  ['eventCreated','New event created','Notify when an organizer creates a new event.'],
+  ['eventRegistration','Event registration','Notify when a user registers for an event.'],
+  ['bookRecommendation','New book recommendation','Notify when a member creates a new book recommendation.'],
+  ['discussion','New discussion','Notify when a member starts a new discussion.'],
+  ['report','New report','Notify when a user or content is reported.']
+];
+function setVeil(html){
+  $('setVeilBody').innerHTML = html;
+  $('setVeil').hidden = false;
+}
+function setVeilClose(){ $('setVeil').hidden = true; $('setVeilBody').innerHTML=''; }
+$('setVeil').addEventListener('click',e=>{ if(e.target===$('setVeil')) setVeilClose(); });
+async function loadSettings(){
+  try{
+    hideErr();
+    const [me, prefs] = await Promise.all([
+      api('/api/users/me'),
+      api('/api/users/me/notification-preferences').catch(()=>null)
+    ]);
+    try{ gchat.meId = me.id || gchat.meId; }catch(e){}
+    $('setName').value = me.name || '';
+    $('setEmail').value = me.email || '';
+    $('setRole').value = me.role==='ADMIN' ? 'Administrator' : (me.role||'');
+    $('setAv').innerHTML = me.profilePictureUrl
+      ? '<img alt="" src="'+esc(me.profilePictureUrl)+'" />'
+      : esc((me.name||'A')[0].toUpperCase());
+    const p = prefs || {};
+    $('setToggles').innerHTML = SET_TOGGLES.map(t=>
+      '<div class="set-row"><div class="grow"><b>'+t[1]+'</b><small>'+t[2]+'</small></div>'
+      +'<label class="tgl"><input type="checkbox" data-pref="'+t[0]+'"'+(p[t[0]]!==false?' checked':'')+' aria-label="'+t[1]+'" /><i></i></label></div>'
+    ).join('');
+    document.querySelectorAll('#setToggles input[data-pref]').forEach(cb=>cb.onchange=async()=>{
+      try{ await api('/api/users/me/notification-preferences',{method:'PUT',body:JSON.stringify({[cb.dataset.pref]:cb.checked})}); }
+      catch(e){ showErr(e.message); cb.checked=!cb.checked; }
+    });
+  }catch(e){ showErr(e.message); }
+}
+function setSavedTick(){
+  $('setSaved').textContent='Saved ✓';
+  setTimeout(()=>{ $('setSaved').textContent=''; }, 2000);
+}
+async function setSaveProfile(){
+  try{
+    const me = await api('/api/users/me',{method:'PATCH',body:JSON.stringify({
+      name:$('setName').value.trim()||null, email:$('setEmail').value.trim()||null})});
+    try{ gchat.meId = me.id || gchat.meId; }catch(e){}
+    $('meName').textContent=me.name||me.email; $('meTop').textContent=me.name||me.email;
+    setSavedTick();
+  }catch(e){ showErr(e.message); }
+}
+$('setName').addEventListener('change',setSaveProfile);
+$('setEmail').addEventListener('change',setSaveProfile);
+$('setPhoto').addEventListener('change',async()=>{
+  const f=$('setPhoto').files&&$('setPhoto').files[0];
+  if(!f)return;
+  try{
+    const fd=new FormData(); fd.append('file',f);
+    const r=await fetch(base()+'/api/users/me/photo',{method:'POST',headers:{Authorization:'Bearer '+tok()},body:fd});
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(d.message||('Photo upload failed: '+r.status));
+    $('setAv').innerHTML='<img alt="" src="'+esc(d.profilePictureUrl)+'"/>';
+    setSavedTick();
+  }catch(e){ showErr(e.message); }
+  $('setPhoto').value='';
+});
+$('setPwBtn').onclick=()=>{
+  setVeil('<div class="um-modal-top"><span class="um-modal-ic">🔒</span><h2>Change Password</h2></div>'
+    +'<div class="set-form" style="margin-top:12px"><div id="setPwErr" class="err" hidden></div>'
+    +'<label for="setPwCur">Current password</label><input id="setPwCur" type="password" autocomplete="current-password" />'
+    +'<label for="setPwNew">New password (min 8 characters)</label><input id="setPwNew" type="password" autocomplete="new-password" /></div>'
+    +'<div class="set-modal-btns"><button class="btn ghost" id="setPwCancel" type="button">Cancel</button>'
+    +'<button class="btn" id="setPwGo" type="button">Update Password</button></div>');
+  $('setPwCancel').onclick=setVeilClose;
+  $('setPwGo').onclick=async()=>{
+    const e=$('setPwErr'); e.hidden=true;
+    try{
+      await api('/api/users/me/password',{method:'POST',body:JSON.stringify({
+        currentPassword:$('setPwCur').value, newPassword:$('setPwNew').value})});
+      setVeilClose(); setSavedTick();
+    }catch(err){ e.hidden=false; e.textContent=err.message; }
+  };
+};
+$('setSignAll').onclick=()=>{
+  setVeil('<div class="um-modal-top"><span class="um-modal-ic">⎋</span><h2>Sign Out All?</h2></div>'
+    +'<p style="font-size:13px">This ends every login session on all devices, including this one. Continue?</p>'
+    +'<div class="set-modal-btns"><button class="btn ghost" id="setAllCancel" type="button">Cancel</button>'
+    +'<button class="btn" id="setAllGo" type="button">Sign Out All</button></div>');
+  $('setAllCancel').onclick=setVeilClose;
+  $('setAllGo').onclick=async()=>{
+    try{ await api('/api/users/me/sign-out-all',{method:'POST'}); }
+    catch(e){}
+    localStorage.removeItem(LS_A); localStorage.removeItem(LS_R); location.reload();
+  };
+};
+checkGate();
+})();
+</script>
+</body>
+</html>

@@ -8,12 +8,15 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.UUID;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "events")
@@ -44,13 +47,29 @@ public class Event {
   @Column(length = 255)
   private String venue;
 
+  /** Event Type panel: DISCUSSION, WORKSHOP, READING, OPEN_SESSION, MEETUP (Flyway V20). */
+  @Column(length = 40)
+  private String type;
+
+  /** Location panel: ONLINE or OFFLINE (Flyway V20). */
+  @Column(length = 20)
+  private String mode;
+
+  /** Event location: Tamil Nadu district chosen by the organiser (Flyway V27). */
+  @Column(length = 120)
+  private String location;
+
   private Integer capacity;
 
   @Column(name = "registration_deadline")
   private Instant registrationDeadline;
 
-  @Column(name = "cover_image_url", length = 1000)
+  @Column(name = "cover_image_url", columnDefinition = "TEXT")
   private String coverImageUrl;
+
+  /** Optional organiser notes for attendees ("Event Guidelines" in the UI, Flyway V26). */
+  @Column(length = 1000)
+  private String guidelines;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
@@ -58,6 +77,10 @@ public class Event {
 
   @Column(name = "created_at", nullable = false, updatable = false)
   private Instant createdAt = Instant.now();
+
+  @UpdateTimestamp
+  @Column(name = "updated_at")
+  private Instant updatedAt;
 
   protected Event() {}
 
@@ -190,6 +213,30 @@ public class Event {
     this.venue = venue;
   }
 
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+
+  public String getMode() {
+    return mode;
+  }
+
+  public void setMode(String mode) {
+    this.mode = mode;
+  }
+
+  public String getLocation() {
+    return location;
+  }
+
+  public void setLocation(String location) {
+    this.location = location;
+  }
+
   public Integer getCapacity() {
     return capacity;
   }
@@ -217,6 +264,14 @@ public class Event {
     this.coverImageUrl = coverImageUrl;
   }
 
+  public String getGuidelines() {
+    return guidelines;
+  }
+
+  public void setGuidelines(String guidelines) {
+    this.guidelines = guidelines;
+  }
+
   public EventStatus getStatus() {
     return status;
   }
@@ -227,5 +282,9 @@ public class Event {
 
   public Instant getCreatedAt() {
     return createdAt;
+  }
+
+  public Instant getUpdatedAt() {
+    return updatedAt;
   }
 }

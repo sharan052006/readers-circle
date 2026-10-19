@@ -43,6 +43,7 @@ class ConcurrentRegisterTest {
 
   @Test
   void concurrentRegisterYieldsOneRow() throws Exception {
+    long initialCount = users.count();
     int threads = 10;
     ExecutorService pool = Executors.newFixedThreadPool(threads);
     try {
@@ -77,7 +78,7 @@ class ConcurrentRegisterTest {
         }
       }
       assertThat(wins).isEqualTo(1);
-      assertThat(users.count()).isEqualTo(1);
+      assertThat(users.count()).isEqualTo(initialCount + 1);
       assertThat(users.findByEmailIgnoreCase("RACE@X.COM")).isPresent();
     } finally {
       pool.shutdownNow();

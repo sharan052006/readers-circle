@@ -15,5 +15,9 @@ public record CreateEventRequest(
     Integer capacity,
     Instant registrationDeadline,
     String coverImageUrl,
-    boolean publishNow
+    boolean publishNow,
+    String type,
+    String mode,
+    String guidelines,
+    String location
 ) {}

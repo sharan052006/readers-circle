@@ -76,18 +76,67 @@ class CircleServiceTest {
   }
 
   @Test
-  void createCircleRegistersOrganizerAsApprovedMember() {
+  void createCircleDoesNotRegisterOrganizerAsMember() {
     UUID organizerId = UUID.randomUUID();
     User organizer = new User("Jane Org", "jane@test.com", "hash", Role.ORGANIZER);
     when(userRepository.findById(organizerId)).thenReturn(Optional.of(organizer));
 
     when(circleRepository.save(any(Circle.class))).thenAnswer(inv -> inv.getArgument(0));
-    when(membershipRepository.findByCircleIdAndReaderId(any(), any())).thenReturn(Optional.empty());
 
     CreateCircleRequest req = new CreateCircleRequest("Mystery Club", "Sylhet", "Mystery books", organizerId);
     CircleDetailDto created = circleService.createCircle(req);
 
     assertThat(created.name()).isEqualTo("Mystery Club");
-    verify(membershipRepository).save(any(Membership.class));
+    verify(membershipRepository, org.mockito.Mockito.never()).save(any(Membership.class));
+  }
+
+  @Test
+  void getCirclesByOrganizerReturnsMatchingCircles() {
+    UUID organizerId = UUID.randomUUID();
+    Circle c = new Circle("Novel Lovers", "Sylhet", "Novel discussion", organizerId);
+    when(userRepository.findById(organizerId))
+        .thenReturn(Optional.of(new User("Org", "org@test.com", "hash", Role.ORGANIZER)));
+    when(circleRepository.findByOrganizerId(organizerId)).thenReturn(List.of(c));
+
+    List<CircleSummaryDto> circles = circleService.getCirclesByOrganizer(organizerId);
+
+    assertThat(circles).hasSize(1);
+    assertThat(circles.get(0).name()).isEqualTo("Novel Lovers");
+    assertThat(circles.get(0).organizerId()).isEqualTo(organizerId);
+  }
+
+  @Test
+  void getCirclesByOrganizerReturnsEmptyForDemotedReader() {
+    UUID organizerId = UUID.randomUUID();
+    Circle c = new Circle("Novel Lovers", "Sylhet", "Novel discussion", organizerId);
+    when(userRepository.findById(organizerId))
+        .thenReturn(Optional.of(new User("Ex-Org", "ex@test.com", "hash", Role.READER)));
+    when(circleRepository.findByOrganizerId(organizerId)).thenReturn(List.of(c));
+
+    List<CircleSummaryDto> circles = circleService.getCirclesByOrganizer(organizerId);
+
+    assertThat(circles).isEmpty();
+  }
+
+  @Test
+  void createCircleWithCoverImageUrlSetsCoverImage() {
+    UUID organizerId = UUID.randomUUID();
+    User organizer = new User("Jane Org", "jane@test.com", "hash", Role.ORGANIZER);
+    when(userRepository.findById(organizerId)).thenReturn(Optional.of(organizer));
+    when(circleRepository.save(any(Circle.class))).thenAnswer(inv -> inv.getArgument(0));
+
+    CreateCircleRequest req =
+        new CreateCircleRequest(
+            "SciFi Explorers",
+            "Dhaka",
+            "Space opera and cyberpunk",
+            organizerId,
+            "https://images.unsplash.com/photo-1532012164546-f432f2e3777f");
+
+    CircleDetailDto created = circleService.createCircle(req);
+
+    assertThat(created.name()).isEqualTo("SciFi Explorers");
+    assertThat(created.coverImageUrl())
+        .isEqualTo("https://images.unsplash.com/photo-1532012164546-f432f2e3777f");
   }
 }

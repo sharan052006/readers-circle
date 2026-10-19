@@ -7,5 +7,11 @@ public record AttendeeDto(
     UUID readerId,
     String fullName,
     String email,
-    Instant registeredAt
-) {}
+    Instant registeredAt,
+    String avatarUrl,
+    boolean attended
+) {
+  public AttendeeDto(UUID readerId, String fullName, String email, Instant registeredAt) {
+    this(readerId, fullName, email, registeredAt, null, false);
+  }
+}

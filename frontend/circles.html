@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reader's Circle — Circles (Admin)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="admin-shell.css">
+<style>
+h1.page{font-family:'Fraunces',serif;font-size:34px;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);margin:2px 0 14px}
+.toolbar{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.toolbar input,.toolbar select{border:1px solid var(--border);border-radius:10px;padding:9px 11px;background:#fff}
+.toolbar input[type=search]{flex:1;min-width:220px}
+.btn{background:var(--burg);color:#fff;border:0;border-radius:11px;padding:10px 16px;font-weight:700;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--border)}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card img.cover{width:100%;height:150px;object-fit:cover;display:block;background:#EEE}
+.card .body{padding:12px 14px}.card h4{margin:0;font-family:'Fraunces',serif;font-size:17px}
+.badge{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:3px 10px;background:#EAF3EA;color:#2C5A36;border:1px solid #CBE0CC}
+.badge.off{background:#F3E2E2;color:#7A2E2E;border-color:#E3BDBD}
+table{width:100%;border-collapse:collapse;font-size:13px;background:#FFFEFA;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid #EEE9DC}th{background:#F4F0E6;font-size:12px;color:var(--muted)}
+.banner{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--border);min-height:210px;background:#3D2916;color:#fff;display:flex;align-items:flex-end}
+.banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.banner .sh{position:absolute;inset:0;background:linear-gradient(90deg,rgba(20,12,8,.78),rgba(20,12,8,.25))}
+.banner .tx{position:relative;padding:26px;z-index:1}
+.tabs{display:flex;gap:4px;border:1px solid var(--border);border-radius:12px;background:#fff;padding:4px;margin:12px 0}
+.tabs button{border:0;background:none;padding:9px 16px;border-radius:9px;cursor:pointer;font-weight:600}
+.tabs button.on{background:#F6E9E4;color:var(--burg);font-weight:700}
+.minis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+.mini{background:#FFFEFA;border:1px solid var(--border);border-radius:13px;padding:12px}
+.mini b{font-family:'Fraunces',serif;font-size:22px}
+.modal{position:fixed;inset:0;background:rgba(30,20,15,.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:20}
+.modal.open{display:flex}
+.sheet{background:#fff;border-radius:18px;max-width:860px;width:100%;max-height:92vh;overflow:auto;padding:24px;display:grid;grid-template-columns:1.2fr .9fr;gap:20px}
+.sheet h2{font-family:'Fraunces',serif;margin:0;color:var(--burg)}
+.fld{margin:12px 0}.fld label{display:block;font-size:12.5px;font-weight:600;margin-bottom:5px}
+.fld input,.fld select,.fld textarea{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px;background:#fff}
+.drop{border:1.5px dashed var(--border);border-radius:12px;padding:18px;text-align:center;color:var(--muted)}
+.switch{display:flex;gap:10px;align-items:center}
+.err{border:1px solid #E3A9A9;background:#FDECEC;color:#7A1F1F;border-radius:12px;padding:10px 12px;margin-bottom:12px}
+.empty{text-align:center;padding:50px 10px;color:var(--muted)}
+.empty b{font-family:'Fraunces',serif;color:var(--burg);display:block;font-size:18px;margin:10px 0 4px}
+@media(max-width:1000px){.grid{grid-template-columns:1fr}.minis{grid-template-columns:1fr 1fr}.sheet{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="side" id="adminSide" aria-label="Admin navigation"></div>
+<div class="main"><div class="topbar" id="adminHeader"></div>
+<div class="content">
+<div id="err" class="err" hidden></div>
+<!-- LIST -->
+<div id="listView">
+<h1 class="page">Circles</h1><p class="sub">Manage all reading communities on the platform.</p>
+<div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button class="btn" id="openCreate">+ Create New Circle</button></div>
+<div class="toolbar"><input type="search" id="q" placeholder="Search circles..."/><select id="fStatus"><option value="all">All Status</option><option value="ACTIVE">Active</option><option value="INACTIVE">Inactive</option></select><select id="fSort"><option value="name_asc">Name A-Z</option><option value="name_desc">Name Z-A</option><option value="newest">Newest</option><option value="members_desc">Most members</option></select></div>
+<p class="sub" id="count"></p><div class="grid" id="grid"></div><p class="sub" id="showing" style="text-align:right"></p>
+</div>
+<!-- DETAIL -->
+<div id="detailView" hidden>
+<button class="btn ghost" id="back">← Back to Circles</button>
+<div class="banner" style="margin-top:12px"><img id="dCover" alt=""/><div class="sh"></div><div class="tx"><div id="dCat"></div><h1 class="page" id="dName" style="color:#fff"></h1><p id="dDesc"></p><div id="dMeta"></div></div><div style="position:absolute;top:14px;right:14px;z-index:2" id="dBadge"></div></div>
+<div class="tabs"><button data-t="overview" class="on">Overview</button><button data-t="members">Members</button><button data-t="events">Events</button><button data-t="requests">Join Requests</button></div>
+<div id="tab-overview"><div class="minis"><div class="mini"><b id="mMembers">–</b><div class="sub">Members</div></div><div class="mini"><b id="mTotal">–</b><div class="sub">Total Events</div></div><div class="mini"><b id="mUp">–</b><div class="sub">Upcoming Events</div></div><div class="mini"><b id="mPend">–</b><div class="sub">Pending Requests</div></div></div>
+<div style="display:grid;grid-template-columns:1.4fr .8fr;gap:12px"><div class="card"><div class="body"><b>Upcoming events</b><div id="dEvents"></div></div></div><div class="card"><div class="body"><b>Circle details</b><div id="dDetails"></div></div></div></div></div>
+<div id="tab-members" hidden><div class="toolbar"><input type="search" id="mQ" placeholder="Search members..."/><select id="mRole"><option value="all">All Roles</option><option value="ORGANIZER">Organiser</option><option value="READER">Reader</option><option value="ADMIN">Admin</option></select><select id="mSort"><option value="newest">Recently Joined</option><option value="oldest">Oldest</option><option value="name">Name</option></select></div><div id="memTbl"></div></div>
+<div id="tab-events" hidden><div class="toolbar"><input type="search" id="eQ" placeholder="Search events..."/><select id="eStatus"><option value="all">All Status</option><option>PUBLISHED</option><option>DRAFT</option><option>COMPLETED</option><option>CANCELLED</option></select><select id="eSort"><option value="date_asc">Sort by Date</option><option value="date_desc">Date Desc</option><option value="newest">Newest</option></select></div><div id="evList"></div></div>
+<div id="tab-requests" hidden><div class="toolbar"><input type="search" id="rQ" placeholder="Search by name or email..."/><select id="rSort"><option value="newest">Newest</option><option value="oldest">Oldest</option></select></div><div id="reqList"></div></div>
+</div>
+</div></div></div>
+
+<div class="modal" id="modal"><div class="sheet">
+<div><h2>CREATE NEW CIRCLE</h2><p class="sub">Set up a new reading circle and appoint an organiser to manage it.</p>
+<div id="cErr" class="err" hidden></div>
+<div class="fld"><label>Circle Name</label><input id="cName" maxlength="50" placeholder="Enter circle name"/><div class="sub"><span id="cNameN">0</span>/50</div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div class="fld"><label>Category</label><select id="cCat"><option value="">Select a category</option><option>Tamil Literature</option><option>Philosophy</option><option>Science Fiction</option><option>Poetry</option><option>History</option></select></div><div class="fld"><label>City</label><input id="cCity" placeholder="Enter city"/></div></div>
+<div class="fld"><label>Description</label><textarea id="cDesc" rows="3" maxlength="300" placeholder="Write a short description about this circle, its interests and goals..."></textarea><div class="sub"><span id="cDescN">0</span>/300</div></div>
+<div class="fld"><label>Cover Image</label><div class="drop"><input type="file" id="cFile" accept=".jpg,.jpeg,.png,.webp"/><div class="sub">Recommended size: 1200 × 400 (JPG, PNG)</div></div></div>
+<div class="fld"><label>Appoint Organiser</label><select id="cOrg"></select><div class="sub">The selected user will be the organiser of this circle.</div></div>
+<div class="fld"><label>Circle Settings</label><div class="switch"><input type="checkbox" id="cActive" checked/><b>Set circle as active</b></div><div class="sub">Active circles will be visible to users and open for join requests.</div></div>
+<div style="display:flex;gap:10px;justify-content:flex-end"><button class="btn ghost" id="cCancel">Cancel</button><button class="btn" id="cGo">Create Circle</button></div></div>
+<div><b>Preview</b><p class="sub">This is how the circle will appear.</p><div class="card"><img class="cover" id="pCover" alt=""/><div class="body"><h4 id="pName">Circle Name</h4><div class="sub" id="pCat">Category</div><p class="sub" id="pDesc">Short description...</p><div class="sub" id="pMeta">0 members · 0 events</div></div></div></div>
+</div></div>
+
+<script src="admin-shell.js?v=2"></script>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+AdminShell.mount('circles');
+const base=()=>($('apiBase').value||'').replace(/\/+$/,'');
+localStorage.getItem('rc_api_base')&&($('apiBase').value=localStorage.getItem('rc_api_base'));
+$('apiBase').addEventListener('change',()=>localStorage.setItem('rc_api_base',base()));
+const tok=()=>localStorage.getItem('rc_access')||'';
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function err(m){const e=$('err');e.hidden=false;e.textContent=m;}
+async function api(p,o){o=o||{};o.headers=Object.assign({},o.headers||{});if(tok())o.headers.Authorization='Bearer '+tok();if(o.body&&typeof o.body==='string'&&!o.headers['Content-Type'])o.headers['Content-Type']='application/json';const r=await fetch(base()+p,o);const t=await r.text();let j={};try{j=t?JSON.parse(t):{};}catch(e){}if(!r.ok)throw new Error((j&&j.message)||('Failed '+r.status+' '+p));return j;}
+let circles=[],cur=null;
+async function gate(){if(!tok()){location.href='admin.html';return false;}try{const me=await api('/api/users/me');if(me.role!=='ADMIN'){err('Signed in as '+me.role+' — admin only.');return false;}$('meName').textContent=me.name||me.email;$('meRole').textContent=me.role==='ADMIN'?'Administrator':me.role;$('meTop').textContent=me.name||me.email;$('meAv').textContent=(me.name||'A')[0].toUpperCase();return true;}catch(e){if(/401/.test(e.message)){localStorage.removeItem('rc_access');localStorage.removeItem('rc_refresh');}location.href='admin.html';return false;}}
+document.addEventListener('click',function(e){if(e.target&&e.target.id==='signOut'){AdminShell.clearLogin();location.href='admin.html';}});
+async function load(){
+  const p=new URLSearchParams({search:$('q').value,status:$('fStatus').value,sort:$('fSort').value});
+  circles=await api('/api/circles?'+p);
+  $('count').textContent=circles.length+' Circle'+(circles.length===1?'':'s');
+  $('grid').innerHTML=circles.map(c=>'<div class="card"><div style="position:relative"><img class="cover" src="'+(c.coverImageUrl||'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=600&auto=format&fit=crop&q=60')+'"/><span class="badge '+(c.status==='ACTIVE'?'':'off')+'" style="position:absolute;top:10px;right:10px">'+esc(c.status==='ACTIVE'?'Active':'Inactive')+'</span></div><div class="body"><h4>'+esc(c.name).toUpperCase()+'</h4><div class="sub">'+esc((c.category||'General')+' · '+c.city)+'</div><div class="sub">👥 '+c.memberCount+' members</div><button class="btn ghost" style="width:100%;margin-top:8px" data-id="'+c.id+'">View Circle</button></div></div>').join('')||'<div class="empty"><b>No circles found</b>Create one to get started.</div>';
+  $('showing').textContent='Showing '+circles.length+' of '+circles.length+' circles';
+  document.querySelectorAll('[data-id]').forEach(b=>b.onclick=()=>openDetail(b.dataset.id));
+}
+['q','fStatus','fSort'].forEach(id=>$(id).addEventListener('input',()=>load().catch(e=>err(e.message))));
+async function openDetail(id){
+  const d=await api('/api/circles/'+id);cur=d;
+  $('listView').hidden=true;$('detailView').hidden=false;
+  $('dCover').src=d.coverImageUrl||'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=1200&auto=format&fit=crop&q=60';
+  $('dCat').textContent=(d.category||'General')+' · '+d.city;$('dName').textContent=d.name;$('dDesc').textContent=d.description||'';
+  $('dMeta').textContent=d.memberCount+' members · '+d.organizerName+' · Organiser';
+  $('dBadge').innerHTML='<span class="badge '+(d.status==='ACTIVE'?'':'off')+'">'+esc(d.status)+'</span>';
+  const o=await api('/api/circles/'+id+'/overview');
+  $('mMembers').textContent=o.counts.members;$('mTotal').textContent=o.counts.totalEvents;$('mUp').textContent=o.counts.upcomingEvents;$('mPend').textContent=o.counts.pendingRequests;
+  $('dDetails').innerHTML='<table><tr><td>Category</td><td style="text-align:right"><b>'+esc(d.category||'—')+'</b></td></tr><tr><td>City</td><td style="text-align:right"><b>'+esc(d.city)+'</b></td></tr><tr><td>Organiser</td><td style="text-align:right"><b>'+esc(d.organizerName)+'</b></td></tr><tr><td>Created</td><td style="text-align:right"><b>'+esc((d.createdAt||'').slice(0,10))+'</b></td></tr></table>';
+  loadOvEvents();loadMembers();loadEvents();loadReqs();
+}
+$('back').onclick=()=>{$('detailView').hidden=true;$('listView').hidden=false;load();};
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  ['overview','members','events','requests'].forEach(t=>$('tab-'+t).hidden=(t!==b.dataset.t));
+});
+async function loadOvEvents(){
+  const ev=await api('/api/circles/'+cur.id+'/events?scope=upcoming');
+  $('dEvents').innerHTML=ev.slice(0,3).map(e=>'<div style="display:flex;gap:10px;border-top:1px solid var(--border);padding:8px 0"><b>'+esc((e.eventDate||'--').slice(5))+'</b><div><b>'+esc(e.title)+'</b><div class="sub">'+e.registeredCount+'/'+(e.capacity||0)+' registered</div></div></div>').join('')||'<p class="sub">No upcoming events.</p>';
+}
+async function loadMembers(){
+  const p=new URLSearchParams({search:$('mQ').value,role:$('mRole').value,sort:$('mSort').value});
+  const m=await api('/api/circles/'+cur.id+'/members?'+p);
+  const org=await api('/api/circles/'+cur.id);
+  let rows=m.map((x,i)=>'<tr><td>'+(i+1)+'</td><td><b>'+esc(x.readerName)+'</b></td><td>'+esc(x.readerEmail||'—')+'</td><td><span class="badge">'+esc(x.readerRole||'—')+'</span></td><td>'+esc((x.decidedAt||x.requestedAt||'').slice(0,10))+'</td><td>—</td><td>—</td></tr>').join('');
+  $('memTbl').innerHTML='<p class="sub">'+m.length+' members</p><table><tr><th>#</th><th>Member</th><th>Email</th><th>Role</th><th>Joined On</th><th>Activity</th><th>Actions</th></tr>'+rows+'</table><p class="sub">Showing 1–'+m.length+' of '+m.length+' members. Organiser: '+esc(org.organizerName)+'.</p>';
+}
+['mQ','mRole','mSort'].forEach(id=>$(id).addEventListener('input',()=>loadMembers().catch(e=>err(e.message))));
+async function loadEvents(){
+  const p=new URLSearchParams({scope:'all',search:$('eQ').value,status:$('eStatus').value,sort:$('eSort').value});
+  const ev=await api('/api/circles/'+cur.id+'/events?'+p);
+  $('evList').innerHTML='<p class="sub">'+ev.length+' events in '+esc(cur.city)+'</p>'+ev.map(e=>'<div class="card" style="margin-bottom:10px"><div class="body" style="display:flex;gap:12px;align-items:center"><b>'+esc((e.eventDate||'--').slice(5))+'</b><div style="flex:1"><b>'+esc(e.title)+'</b><div class="sub">'+esc(e.eventDate||'')+' · '+e.registeredCount+'/'+(e.capacity||0)+' registered</div></div><span class="badge">'+esc(e.status)+'</span></div></div>').join('')||'<div class="empty"><b>No events</b>Create one from this circle.</div>';
+}
+['eQ','eStatus','eSort'].forEach(id=>$(id).addEventListener('input',()=>loadEvents().catch(e=>err(e.message))));
+async function loadReqs(){
+  const p=new URLSearchParams({search:$('rQ').value,sort:$('rSort').value});
+  const r=await api('/api/circles/'+cur.id+'/join-requests?'+p);
+  $('reqList').innerHTML=r.length?'<table><tr><th>Name</th><th>Email</th><th>Requested</th><th></th></tr>'+r.map(x=>'<tr><td><b>'+esc(x.readerName)+'</b></td><td>'+esc(x.readerEmail||'—')+'</td><td>'+esc((x.requestedAt||'').slice(0,10))+'</td><td><button class="btn" data-ap="'+x.membershipId+'">Approve</button> <button class="btn ghost" data-rj="'+x.membershipId+'">Reject</button></td></tr>').join('')+'</table>':'<div class="empty"><div>✔</div><b>NO PENDING JOIN REQUESTS</b>New member applications will appear here.</div>';
+  document.querySelectorAll('[data-ap]').forEach(b=>b.onclick=async()=>{await api('/api/join-requests/'+b.dataset.ap,{method:'PATCH',body:JSON.stringify({action:'APPROVE'})});loadReqs();loadMembers();});
+  document.querySelectorAll('[data-rj]').forEach(b=>b.onclick=async()=>{await api('/api/join-requests/'+b.dataset.rj,{method:'PATCH',body:JSON.stringify({action:'REJECT'})});loadReqs();});
+}
+['rQ','rSort'].forEach(id=>$(id).addEventListener('input',()=>loadReqs().catch(e=>err(e.message))));
+// create modal
+$('openCreate').onclick=async()=>{$('modal').classList.add('open');const orgs=await api('/api/users/organizers');$('cOrg').innerHTML=orgs.map(o=>'<option value="'+o.id+'">'+esc(o.name)+' · '+o.role+'</option>').join('');};
+$('cCancel').onclick=()=>$('modal').classList.remove('open');
+['cName','cDesc'].forEach(id=>$(id).addEventListener('input',()=>{$('cNameN').textContent=$('cName').value.length;$('cDescN').textContent=$('cDesc').value.length;$('pName').textContent=$('cName').value||'Circle Name';$('pDesc').textContent=$('cDesc').value||'Short description...';}));
+$('cCat').addEventListener('change',()=>$('pCat').textContent=$('cCat').value||'Category');
+$('cFile').addEventListener('change',()=>{const f=$('cFile').files[0];if(f)$('pCover').src=URL.createObjectURL(f);});
+$('cGo').onclick=async()=>{
+  const e=$('cErr');e.hidden=true;
+  try{
+    if(!$('cName').value.trim()||!$('cCity').value.trim()||!$('cDesc').value.trim()||!$('cOrg').value)throw new Error('Fill name, city, description and organiser.');
+    const body={name:$('cName').value.trim(),city:$('cCity').value.trim(),description:$('cDesc').value.trim(),organizerId:$('cOrg').value,category:$('cCat').value||null,active:$('cActive').checked};
+    const c=await api('/api/circles',{method:'POST',body:JSON.stringify(body)});
+    const f=$('cFile').files[0];
+    if(f){const fd=new FormData();fd.append('file',f);const r=await fetch(base()+'/api/circles/'+c.id+'/cover',{method:'POST',headers:{Authorization:'Bearer '+tok()},body:fd});if(!r.ok)throw new Error('Circle created, but cover upload failed: '+r.status);}
+    $('modal').classList.remove('open');load();openDetail(c.id);
+  }catch(ex){e.hidden=false;e.textContent=ex.message;}
+};
+gate().then(ok=>{if(ok)load();});
+})();
+</script>
+</body>
+</html>

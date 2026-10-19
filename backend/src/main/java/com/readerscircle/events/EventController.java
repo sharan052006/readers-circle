@@ -31,13 +31,36 @@ public class EventController {
     this.eventService = eventService;
   }
 
+  @GetMapping("/api/events")
+  public List<EventSummaryDto> listAllEvents(
+      @RequestParam(required = false) String search,
+      @RequestParam(required = false, name = "circleId") String circleId,
+      @RequestParam(required = false) String status,
+      @RequestParam(required = false) String sort,
+      @RequestParam(required = false) String scope,
+      @RequestParam(required = false) String types,
+      @RequestParam(required = false) String mode,
+      @RequestParam(required = false) String month,
+      Authentication authentication) {
+    UUID actorId = getUserIdOrNull(authentication);
+    Role actorRole = getUserRole(authentication);
+    return eventService.listAllEvents(actorId, actorRole, search, circleId, status, sort, scope, types, mode, month);
+  }
+
   @GetMapping("/api/circles/{id}/events")
   public List<EventSummaryDto> listEvents(
       @PathVariable UUID id,
       @RequestParam(required = false, defaultValue = "upcoming") String scope,
+      @RequestParam(required = false) String search,
+      @RequestParam(required = false) String status,
+      @RequestParam(required = false) String sort,
+      @RequestParam(required = false) String venue,
+      @RequestParam(required = false) String month,
+      @RequestParam(required = false) String types,
+      @RequestParam(required = false) String mode,
       Authentication authentication) {
     UUID actorId = getUserIdOrNull(authentication);
-    return eventService.listEventsForCircle(id, scope, actorId);
+    return eventService.listEventsForCircle(id, scope, search, status, sort, venue, month, types, mode, actorId);
   }
 
   @GetMapping("/api/events/{id}")

@@ -2,6 +2,7 @@ package com.readerscircle.circles.dto;
 
 import com.readerscircle.circles.CircleStatus;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public record CircleSummaryDto(
@@ -12,4 +13,8 @@ public record CircleSummaryDto(
     UUID organizerId,
     CircleStatus status,
     OffsetDateTime createdAt,
-    long memberCount) {}
+    long memberCount,
+    String coverImageUrl,
+    String category,
+    List<String> tags,
+    boolean hidden) {}

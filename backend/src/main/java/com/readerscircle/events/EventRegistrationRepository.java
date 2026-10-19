@@ -19,4 +19,8 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
 
   @Query("SELECT r FROM EventRegistration r WHERE r.readerId = :readerId ORDER BY r.registeredAt DESC")
   List<EventRegistration> findAllByReaderId(@Param("readerId") UUID readerId);
+
+  long countByRegisteredAtAfter(java.time.Instant after);
+
+  long countByStatusAndRegisteredAtAfter(RegistrationStatus status, java.time.Instant after);
 }

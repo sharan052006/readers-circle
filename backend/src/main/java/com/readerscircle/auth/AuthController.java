@@ -28,12 +28,25 @@ public class AuthController {
   @PostMapping("/register")
   @ResponseStatus(HttpStatus.CREATED)
   public TokenResponse register(@Valid @RequestBody RegisterRequest req) {
-    return auth.register(req.name(), req.email(), req.password());
+    return auth.register(req.name(), req.email(), req.password(), req.bio(), req.profilePictureUrl(),
+        req.city(), req.interests());
   }
 
   @PostMapping("/login")
   public TokenResponse login(@Valid @RequestBody LoginRequest req) {
     return auth.login(req.email(), req.password());
+  }
+
+  /** Second step for 2FA accounts ({@code 401 two-factor code required} on login). */
+  public record TwoFactorVerifyRequest(String email, String code) {}
+
+  @PostMapping("/2fa/verify")
+  public TokenResponse verifyTwoFactor(@RequestBody TwoFactorVerifyRequest req) {
+    if (req == null || req.email() == null || req.code() == null) {
+      throw new org.springframework.web.server.ResponseStatusException(
+          org.springframework.http.HttpStatus.UNAUTHORIZED, "invalid two-factor code");
+    }
+    return auth.verifyTwoFactor(req.email(), req.code());
   }
 
   @PostMapping("/refresh")

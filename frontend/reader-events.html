@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reader's Circle — Events</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBFAF6; --card:#FFFDF9; --border:#E5DED2; --soft:#F5EFE2;
+  --ink:#241A12; --muted:#6B6257; --faint:#8A8175;
+  --burgundy:#6B2A1F; --burgundy-deep:#4E1E15;
+  --palm:#2F5D50; --pill:#F1EDE3;
+  --green-bg:#E9F3EA; --green-tx:#2C5A36; --amber-bg:#FBF0DC; --amber-tx:#8A5A12; --red-bg:#FBE7E4; --red-tx:#8F2B22;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:'Inter',system-ui,sans-serif;font-size:14px;line-height:1.55}
+:focus-visible{outline:3px solid var(--palm);outline-offset:2px;border-radius:8px}
+button,input,select{font:inherit}
+.app{display:grid;grid-template-columns:224px minmax(0,1fr);min-height:100vh}
+.rail{border-right:1px solid var(--border);background:#FDFCF8;padding:18px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 8px 14px}
+.brand .mark{width:32px;height:32px;border-radius:9px;background:var(--burgundy);color:#fff;display:grid;place-items:center;font-size:18px}
+.brand b{font-family:'Fraunces',serif;font-size:17px;letter-spacing:-.01em}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:12px;color:var(--ink);text-decoration:none;font-weight:500}
+.nav a:hover{background:#F3EEE1}
+.nav a[aria-current="page"]{background:#F5E9DD;font-weight:700}
+.syncnote{margin-top:auto;border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:var(--card);font-size:12px;color:var(--muted)}
+.syncnote b{color:var(--palm)}
+.main{min-width:0;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;gap:14px;padding:12px 26px;border-bottom:1px solid var(--border);background:var(--paper);position:sticky;top:0;z-index:5}
+.search{flex:1;max-width:560px;position:relative}
+.search input{width:100%;border:1px solid var(--border);border-radius:12px;padding:10px 14px 10px 38px;background:#fff}
+.search .lens{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--faint)}
+.topright{margin-left:auto;display:flex;align-items:center;gap:12px}
+.bell{position:relative;border:1px solid var(--border);background:#fff;border-radius:50%;width:38px;height:38px;display:grid;place-items:center;cursor:pointer}
+.bell .dot{position:absolute;top:7px;right:8px;width:9px;height:9px;border-radius:50%;background:#D33;border:2px solid #fff}
+.bell .count{position:absolute;top:-6px;right:-6px;background:var(--burgundy);color:#fff;font-size:10.5px;font-weight:700;border-radius:999px;padding:1px 6px}
+.userchip{display:flex;align-items:center;gap:9px;border:0;background:transparent;cursor:pointer;padding:4px 6px;border-radius:12px}
+.userchip .face{width:32px;height:32px;border-radius:50%;background:#EAD9C2;display:grid;place-items:center;font-weight:700}
+.content{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;padding:20px 26px 48px;max-width:1280px;width:100%;align-items:start}
+h1.page{font-family:'Fraunces',serif;font-size:38px;margin:0;letter-spacing:-.015em}
+.sub{color:var(--muted);margin:4px 0 14px}
+.tabs{display:flex;gap:26px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.tabs button{border:0;background:none;padding:10px 2px;cursor:pointer;font-weight:500;color:var(--ink);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.on{font-weight:700;border-bottom-color:var(--burgundy)}
+.tabs .cbadge{background:#F3E8D8;font-size:11px;font-weight:700;border-radius:7px;padding:1px 7px;margin-left:6px}
+.toolbar{display:flex;gap:10px;margin:12px 0;flex-wrap:wrap;align-items:center}
+.toolbar .search{flex:1;min-width:200px}
+.toolbar select{border:1px solid var(--border);border-radius:10px;padding:9px 11px;background:#fff}
+.evgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ecard{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.evtop{display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px;padding:12px}
+.evtop img{width:150px;height:150px;object-fit:cover;border-radius:10px;background:#EEE5D3}
+.evtop h4{margin:0;font-family:'Fraunces',serif;font-size:16.5px}
+.evtop .circ{font-size:12.5px;font-weight:600}
+.evtop .when{font-size:12.5px;color:var(--muted);margin-top:4px}
+.evfoot{padding:0 12px 12px;display:flex;flex-direction:column;gap:8px}
+.tagrow{display:flex;flex-wrap:wrap;gap:6px}
+.tagrow span{background:var(--pill);border-radius:999px;padding:3px 10px;font-size:11.5px;color:#4A4238}
+.attrow{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.avatars{display:flex;align-items:center}
+.avatars span{width:24px;height:24px;border-radius:50%;background:#E7DCC8;border:2px solid #fff;margin-left:-8px;display:grid;place-items:center;font-size:9.5px;font-weight:700;overflow:hidden}
+.avatars span:first-child{margin-left:0}
+.avatars img{width:100%;height:100%;object-fit:cover}
+.cardbtn{border:0;border-radius:10px;padding:11px;font-weight:700;cursor:pointer;background:var(--burgundy);color:#fff}
+.cardbtn:hover{background:var(--burgundy-deep)}
+.cardbtn:disabled{cursor:default}
+.cardbtn.done{background:var(--green-bg);color:var(--green-tx)}
+.cardbtn.lock{background:#F3E8D8;color:var(--ink)}
+.cardbtn.full{background:#F6DEDC;color:var(--red-tx)}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px}
+.panel h3{font-family:'Fraunces',serif;font-size:17px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.panel h3 a{margin-left:auto;font-size:12.5px;font-family:'Inter',sans-serif;font-weight:600;color:var(--ink);text-decoration:none}
+.req{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #F0EAD9}
+.req:last-child{border-bottom:0}
+.req img{width:48px;height:48px;border-radius:9px;object-fit:cover;flex:none;background:#EEE}
+.req b{font-size:13px;display:block;line-height:1.3}
+.req span{font-size:11.5px;color:var(--muted);display:block}
+.cal{width:100%;border-collapse:collapse;font-size:12.5px;text-align:center}
+.cal th{color:var(--faint);font-weight:600;padding:4px}
+.cal td{padding:5px;border-radius:50%}
+.cal td.ev{background:var(--burgundy);color:#fff;font-weight:700}
+.cal td.dim{color:#C9C0B1}
+.check{display:flex;align-items:center;gap:9px;padding:3px 0;font-size:13px;cursor:pointer}
+.check input{width:16px;height:16px;accent-color:var(--burgundy)}
+.frow{margin:10px 0;border-top:1px solid #F0EAD9;padding-top:10px}
+.frow:first-of-type{border-top:0}
+.frow b{font-size:13px;display:block;margin-bottom:6px}
+.frow select{width:100%;border:1px solid var(--border);border-radius:10px;padding:9px 11px;background:#fff}
+.minis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.mini{background:#FFFEFA;border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+.mini b{font-family:'Fraunces',serif;font-size:21px;display:block}
+.mini span{font-size:11px;color:var(--muted)}
+.bigrow{border:1px solid var(--border);border-radius:14px;padding:14px;display:grid;grid-template-columns:200px minmax(0,1fr) auto;gap:16px;margin-bottom:14px;background:var(--card)}
+.bigrow img{width:200px;height:170px;object-fit:cover;border-radius:10px;background:#EEE}
+.bigrow h3{margin:0;font-family:'Fraunces',serif;font-size:22px}
+.bigrow .circ{font-size:13px;font-weight:600}
+.bigrow .when{font-size:13px;color:var(--muted);margin:6px 0}
+.statuspill{font-size:12px;font-weight:700;border-radius:9px;padding:6px 14px;display:inline-block}
+.statuspill.accepted{background:var(--green-bg);color:var(--green-tx)}
+.statuspill.open{background:var(--amber-bg);color:var(--amber-tx)}
+.statuspill.full{background:var(--red-bg);color:var(--red-tx)}
+.statuspill.muted{background:#EEE9DC;color:#5C554A}
+.sidecol{display:flex;flex-direction:column;gap:12px;min-width:210px}
+.countline{font-size:13px;color:var(--muted);margin:6px 0}
+.countline b{color:var(--ink)}
+.slotbtn{display:flex;gap:8px;margin-top:8px}
+.slotbtn .cardbtn{flex:1}
+.chatbtn{flex:1;border:1px solid var(--burgundy);background:#fff;color:var(--ink);border-radius:10px;padding:10px;font-weight:600;cursor:pointer}
+.notice{border:1px solid var(--border);border-radius:14px;padding:16px;background:#FFF8E8;font-size:13px}
+.err{border:1px solid #E3A9A9;background:#FDECEC;color:#7A1F1F;border-radius:14px;padding:14px 16px}
+.empty{text-align:center;color:var(--muted);padding:30px 10px}
+.dhead{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;display:grid;grid-template-columns:190px minmax(0,1fr) auto;gap:18px;align-items:start;margin-bottom:16px}
+.dhead img{width:190px;height:150px;object-fit:cover;border-radius:12px;background:#EEE}
+.dhead h2{font-family:'Fraunces',serif;font-size:28px;margin:0}
+.dlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.dlist li{display:grid;grid-template-columns:130px 1fr;gap:8px;padding:11px 0;border-bottom:1px solid #F0EAD9;font-size:13.5px}
+.dlist li:last-child{border-bottom:0}
+.dlist b{color:var(--burgundy)}
+.chatbox{border:1px solid var(--border);border-radius:14px;background:var(--card);overflow:hidden;margin-bottom:16px}
+.chatbox h3{font-family:'Fraunces',serif;font-size:18px;margin:0;padding:14px 16px;display:flex;gap:8px;align-items:center}
+.msg{display:flex;gap:10px;padding:8px 16px}
+.msg .face{width:34px;height:34px;border-radius:50%;background:#EAD9C2;display:grid;place-items:center;font-weight:700;flex:none;font-size:13px;overflow:hidden}
+.msg .face img{width:100%;height:100%;object-fit:cover}
+.msg .bubble{background:#F6F1E6;border-radius:4px 14px 14px 14px;padding:9px 13px;font-size:13px;max-width:75%}
+.msg .who{font-size:12px;font-weight:700}
+.msg .when{font-size:11px;color:var(--faint);margin-left:8px;font-weight:400}
+.composer{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border)}
+.composer input{flex:1;border:1px solid var(--border);border-radius:12px;padding:10px 14px;background:#fff}
+.composer button{border:0;background:var(--burgundy);color:#fff;border-radius:10px;width:44px;cursor:pointer;font-size:16px}
+.drop{position:absolute;top:56px;right:20px;background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 18px 44px rgba(36,26,18,.14);padding:8px;min-width:230px;z-index:20}
+.drop button{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 11px;border-radius:9px;cursor:pointer}
+.drop button:hover{background:#F5F0E4}
+.backlink{display:inline-block;margin-bottom:10px;color:var(--ink);text-decoration:none;font-size:13.5px}
+.aboutlist{list-style:none;margin:12px 0 0;padding:12px 0 0;border-top:1px solid #F0EAD9;display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--muted)}
+.aboutlist li{display:flex;gap:10px}
+.fb{border-top:1px solid #F0EAD9;padding:10px 0;font-size:13px}
+.fb b{font-size:13px}
+@media(max-width:1080px){.content{grid-template-columns:1fr}.evgrid{grid-template-columns:1fr}.bigrow{grid-template-columns:1fr}.bigrow img{width:100%;height:200px}.dhead{grid-template-columns:1fr}.dhead img{width:100%;height:210px}}
+@media(max-width:760px){.app{grid-template-columns:1fr}.rail{position:static;height:auto}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail" aria-label="Reader navigation">
+    <div class="brand"><span class="mark">📖</span><b>Reader's Circle</b></div>
+    <nav class="nav">
+      <a href="reader.html"><span>⌂</span> Dashboard</a>
+      <a href="reader-circles.html"><span>👥</span> Circles</a>
+      <a href="reader-events.html" aria-current="page"><span>📅</span> Events</a>
+      <a href="reader-chat.html"><span>💬</span> Chat</a>
+      <a href="reader-settings.html"><span>⚙</span> Settings</a>
+    </nav>
+    <div class="syncnote">Same events admin manages.<br><b id="syncState">Connecting…</b></div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="search"><span class="lens" aria-hidden="true">🔍</span>
+        <input id="q" type="search" placeholder="Search books, discussions, circles…" aria-label="Global search" autocomplete="off" />
+      </div>
+      <div class="topright">
+        <button class="bell" id="bell" aria-label="Notifications"><span aria-hidden="true">🔔</span><span class="dot" id="bellDot" hidden></span><span class="count" id="bellCount" hidden>0</span></button>
+        <button class="userchip" id="meBtn"><span class="face" id="meFace">S</span><b id="meName">Reader</b><span aria-hidden="true">▾</span></button>
+      </div>
+    </div>
+    <div class="drop" id="meDrop" hidden><button id="logout">Sign out</button></div>
+    <div class="drop" id="bellDrop" hidden style="min-width:320px"></div>
+    <div class="content">
+      <main id="view" aria-live="polite" style="min-width:0"></main>
+      <aside id="side" aria-label="Details"></aside>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var API_KEY='rc_api_base';
+  function base(){ return (localStorage.getItem(API_KEY)||'http://localhost:8080').replace(/\/+$/,''); }
+  function tok(){ return localStorage.getItem('rc_access'); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  if(!tok()){ location.href='auth.html'; return; }
+  async function api(p,opt){
+    opt=opt||{};
+    var r=await fetch(base()+p,{method:opt.method||'GET',headers:Object.assign({Authorization:'Bearer '+tok()},{'Content-Type':'application/json'}),body:opt.body});
+    if(r.status===401){ location.href='auth.html'; throw new Error('Session expired. Sign in again.'); }
+    var d=null; try{ d=await r.json(); }catch(e){}
+    if(!r.ok){ var m=(d&&(d.message||d.error))||('Request failed: '+r.status); throw new Error(Array.isArray(m)?m.join(', '):m); }
+    return d;
+  }
+  var view=document.getElementById('view'), side=document.getElementById('side');
+  var FALLBACK='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="260"><rect width="100%" height="100%" fill="#EFE6D2"/><text x="50%" y="52%" font-family="Georgia" font-size="24" text-anchor="middle" fill="#6B2A1F">Reader\u2019s Circle</text></svg>');
+  window.rcImg=function(el){ el.onerror=null; el.src=FALLBACK; };
+  function setSync(t){ document.getElementById('syncState').textContent=t; }
+  function initials(n){ n=String(n||'R').trim(); return n?n[0].toUpperCase():'R'; }
+  function fmtDate(d){ if(!d) return ''; var x=new Date(d.length<=10?d+'T00:00:00':d); return isNaN(x)?String(d):x.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}); }
+  function fmtTime(t){ if(!t) return ''; var p=String(t).split(':'); var h=+p[0], m=p[1]||'00'; var ap=h>=12?'PM':'AM'; h=h%12||12; return h+':'+m+' '+ap; }
+  function whenLine(e){ return esc(fmtDate(e.eventDate))+' · '+esc(fmtTime(e.eventTime)); }
+  function venueLine(e){ return esc(e.venue||''); }
+  function timeLeft(iso){
+    if(!iso) return '';
+    var diff=new Date(iso.length<=10?iso+'T00:00:00':iso).getTime()-Date.now();
+    if(diff<=0) return 'Happening now';
+    var d=Math.floor(diff/86400000);
+    if(d===0) return 'Today'; if(d===1) return 'In a day'; return 'In '+d+' days';
+  }
+  function route(){ var h=(location.hash||'#/upcoming').replace(/^#\/?/,''); return h.split('/'); }
+  function go(h){ location.hash='#/'+h; }
+
+  var cache={circles:null,mine:null,me:null,stats:null};
+  async function getCircles(){ if(!cache.circles){ cache.circles=await api('/api/circles?sort=name_asc'); } return cache.circles; }
+  async function getMine(){ if(!cache.mine){ cache.mine=await api('/api/users/me/memberships'); } return cache.mine; }
+  function approvedIds(mine){ var s={}; (mine||[]).forEach(function(m){ if(m.status==='APPROVED') s[m.circleId]=1; }); return s; }
+  function myStatusMap(mine){ var m={}; (mine||[]).forEach(function(x){ m[x.circleId]=x.status; }); return m; }
+  async function getStats(){ if(!cache.stats){ try{ cache.stats=await api('/api/users/me/event-stats'); }catch(e){ cache.stats=null; } } return cache.stats; }
+
+  var TYPES=['DISCUSSION','WORKSHOP','READING','OPEN_SESSION','MEETUP'];
+  function typeLabel(t){ return String(t||'').replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();}); }
+  function evTags(e){
+    var t=[];
+    if(e.type) t.push(typeLabel(e.type));
+    (function(){
+      // topic words as extra pills (first two)
+      var topic=String(e.readingTopic||'').split(/[,·]/).map(function(s){return s.trim();}).filter(Boolean).slice(0,2);
+      topic.forEach(function(x){ if(t.indexOf(x)<0) t.push(x); });
+    })();
+    return t.slice(0,3).map(function(x){return '<span>'+esc(x)+'</span>';}).join('');
+  }
+
+  function actionBtn(e,okMember,myStatus,mid){
+    var full=e.capacity!=null&&e.registeredCount>=e.capacity;
+    if(e.isRegistered) return '<button class="cardbtn done" disabled>✔ Registered</button>';
+    if(full) return '<button class="cardbtn full" disabled>🚫 Event Full</button>';
+    if(!okMember){
+      if(myStatus==='PENDING') return '<button class="cardbtn lock" disabled>🔒 Join Circle to Attend</button><button class="cardbtn" disabled>🕐 Requested — pending</button><button class="chatbtn" data-canceljoin="'+esc(mid||'')+'">✕ Cancel Request</button>';
+      return '<button class="cardbtn lock" disabled>🔒 Join Circle to Attend</button><button class="cardbtn" data-joincircle="'+esc(e.circleId)+'">➕ Request to Join the Circle</button>';
+    }
+    return '<button class="cardbtn" data-register="'+esc(e.id)+'">Register for Event</button>';
+  }
+
+  function facesHTML(preview,total){
+    var faces=(preview||[]).slice(0,4).map(function(a){
+      return a.avatarUrl?'<span><img src="'+esc(a.avatarUrl)+'" alt="" onerror="rcImg(this)" /></span>':'<span>'+esc(initials(a.name))+'</span>';
+    }).join('');
+    var extra=Math.max(0,(total||0)-4);
+    return '<div class="avatars">'+faces+(extra?'<span>+'+extra+'</span>':'')+'</div>';
+  }
+  var previewCache={};
+  async function preview(id){
+    if(!previewCache[id]){ try{ previewCache[id]=await api('/api/events/'+id+'/attendee-preview'); }catch(e){ previewCache[id]=[]; } }
+    return previewCache[id];
+  }
+
+  function tabs(active,counts){
+    function t(k,label,n){ return '<button data-tab="'+k+'" class="'+(active===k?'on':'')+'">'+label+' <span class="cbadge">'+n+'</span></button>'; }
+    return '<div class="tabs" role="tablist">'+t('upcoming','Upcoming',counts.upcoming)+t('registered','Registered',counts.registered)+t('past','Past',counts.past)+'</div>';
+  }
+
+  async function counts(){
+    var st=await getStats();
+    if(st) return {upcoming:st.upcoming,registered:st.registered,past:st.completed};
+    var all=await api('/api/events?scope=all');
+    var mine=await api('/api/users/me/registrations');
+    var up=all.filter(function(e){return e.status==='PUBLISHED';}).length;
+    var past=all.filter(function(e){return e.status==='COMPLETED';}).length;
+    return {upcoming:up,registered:mine.length,past:past};
+  }
+
+  async function myCirclesRail(){
+    var mine=await getMine(), circles=await getCircles();
+    var sm=myStatusMap(mine);
+    var appr=circles.filter(function(c){ return sm[c.id]==='APPROVED'; }).slice(0,4);
+    return '<section class="panel"><h3>📚 My Circles <a href="reader-circles.html#/my">View all →</a></h3>'
+      +(appr.length?appr.map(function(c){return '<div class="req"><img src="'+esc(c.coverImageUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" /><div><b>'+esc(c.name)+'</b><span>📚 '+esc(c.memberCount)+' members</span></div><span style="margin-left:auto;color:var(--faint)">›</span></div>';}).join(''):'<div class="empty">Join a circle to see it here.</div>')+'</section>';
+  }
+  async function calRail(evts,monthKey){
+    var dates={}; evts.forEach(function(e){ if(e.eventDate) dates[String(e.eventDate).slice(0,10)]=1; });
+    var base=monthKey?new Date(monthKey+'-01T00:00:00'):new Date();
+    var y=base.getFullYear(), mo=base.getMonth();
+    var label=base.toLocaleDateString(undefined,{month:'short',year:'numeric'});
+    var first=new Date(y,mo,1), startDay=first.getDay(), days=new Date(y,mo+1,0).getDate();
+    var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><button class="ghostbtn" id="calP" style="border:1px solid var(--border);background:#fff;border-radius:8px;cursor:pointer">‹</button><b>'+label+'</b><button class="ghostbtn" id="calN" style="border:1px solid var(--border);background:#fff;border-radius:8px;cursor:pointer">›</button></div>';
+    html+='<table class="cal"><tr><th>Su</th><th>Mo</th><th>Tu</th><th>We</th><th>Th</th><th>Fr</th><th>Sa</th></tr><tr>';
+    var prev=new Date(y,mo,0).getDate();
+    for(var i=startDay-1;i>=0;i--) html+='<td class="dim">'+(prev-i)+'</td>';
+    for(var d=1;d<=days;d++){
+      var k=y+'-'+String(mo+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      html+=(dates[k]?'<td class="ev">'+d+'</td>':'<td>'+d+'</td>');
+      if((startDay+d)%7===0&&d!==days) html+='</tr><tr>';
+    }
+    html+='</tr></table>';
+    return {html:html,y:y,mo:mo};
+  }
+  function bindCal(y,mo,paint){
+    var p=document.getElementById('calP'), n=document.getElementById('calN');
+    if(p) p.onclick=function(){ var d=new Date(y,mo-1,1); paint(d.toISOString().slice(0,7)); };
+    if(n) n.onclick=function(){ var d=new Date(y,mo+1,1); paint(d.toISOString().slice(0,7)); };
+  }
+
+  var F={q:'',circle:'',types:[],loc:[]};
+  async function vList(tab){
+    var c=await counts();
+    view.innerHTML='<h1 class="page">Events</h1><p class="sub" id="tabSub"></p>'+tabs(tab,c)
+      +'<div class="toolbar"><div class="search"><span class="lens">🔍</span><input id="evQ" type="search" placeholder="Search events…" value="'+esc(F.q)+'" /></div>'
+      +'<select id="fCircle"><option value="">All Circles</option></select>'
+      +'<select id="fType"><option value="">All Types</option>'+TYPES.map(function(t){return '<option value="'+t+'">'+typeLabel(t)+'</option>';}).join('')+'</select>'
+      +'<select id="fLoc"><option value="">All Locations</option><option value="ONLINE">Online</option><option value="OFFLINE">Offline</option></select></div>'
+      +'<div class="evgrid" id="grid"></div>';
+    var circles=await getCircles();
+    var fc=document.getElementById('fCircle');
+    circles.forEach(function(x){ var o=document.createElement('option'); o.value=x.id; o.textContent=x.name; fc.appendChild(o); });
+    fc.value=F.circle||'';
+    var subs={upcoming:'Discover and join reading events from the circles you\u2019re part of.',registered:'Your registered events from the circles you\u2019re part of.',past:'Past events from the circles you\u2019re part of.'};
+    document.getElementById('tabSub').textContent=subs[tab];
+    var mine=await getMine(), okMap=approvedIds(mine);
+    var stMap={}; var idMap={}; (mine||[]).forEach(function(m){ if(m.circleId){ stMap[m.circleId]=m.status; if(m.id) idMap[m.circleId]=m.id; } });
+    try{ var org=await api('/api/users/me/organized-circles').catch(function(){return [];}); (org||[]).forEach(function(c){ if(c.id) okMap[c.id]=1; }); }catch(e){}
+    var regs=await api('/api/users/me/registrations').catch(function(){return [];});
+    var regMap={}; regs.forEach(function(r){ regMap[r.eventId]=r; });
+    var fbs={};
+    async function load(){
+      var p='?scope='+(tab==='past'?'past':'all');
+      if(F.q) p+='&search='+encodeURIComponent(F.q);
+      if(F.circle) p+='&circleId='+encodeURIComponent(F.circle);
+      if(F.type) p+='&types='+encodeURIComponent(F.type);
+      if(F.loc) p+='&mode='+encodeURIComponent(F.loc);
+      var list=await api('/api/events'+p);
+      if(F.chennai){ list=list.filter(function(e){ return String(e.venue||'').toLowerCase().indexOf('chennai')>=0; }); }
+      if(tab==='registered') list=list.filter(function(e){return regMap[e.id];});
+      if(tab==='past') list=list.filter(function(e){return e.status==='COMPLETED';});
+      if(tab==='upcoming') list=list.filter(function(e){return e.status==='PUBLISHED';});
+      var g=document.getElementById('grid');
+      if(!list.length){ g.innerHTML='<div class="empty">No '+tab+' events.</div>'; return; }
+      var cards=await Promise.all(list.map(async function(e){
+        var pv=await preview(e.id);
+        if(tab==='registered'){
+          var r=regMap[e.id]||{};
+          return regCard(e,pv,r);
+        }
+        if(tab==='past'){
+          var rr=regMap[e.id];
+          var att=rr?(rr.attended===true?'attended':(e.status==='COMPLETED'?'unknown':'registered')):'none';
+          return pastCard(e,pv,att,fbs[e.id]||[]);
+        }
+        return upCard(e,pv,!!okMap[e.circleId],stMap[e.circleId]||'',idMap[e.circleId]||'');
+      }));
+      g.innerHTML=cards.join('');
+    }
+    function upCard(e,pv,ok,st,mid){
+      return '<div class="ecard"><div class="evtop"><img src="'+esc(e.coverImageUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" />'
+        +'<div><h4>'+esc(e.title)+'</h4><div class="circ">👑 '+esc(e.circleName||'')+'</div>'
+        +'<div class="when">📅 '+whenLine(e)+'<br>📍 '+venueLine(e)+'</div></div></div>'
+        +'<div class="evfoot"><div class="tagrow">'+evTags(e)+'</div>'
+        +'<div class="attrow">'+facesHTML(pv,e.registeredCount)+'<span>'+esc(e.registeredCount||0)+' registered</span></div>'
+        +actionBtn(e,ok,st,mid)+'</div></div>';
+    }
+    function regCard(e,pv,r){
+      return '<div class="ecard" style="grid-column:1/-1"><div class="bigrow" style="border:0;margin:0"><img src="'+esc(e.coverImageUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" />'
+        +'<div><h3>'+esc(e.title)+'</h3><div class="circ">👑 '+esc(e.circleName||'')+'</div>'
+        +'<div class="when">📅 '+whenLine(e)+'<br>📍 '+venueLine(e)+(e.venue&&e.venue.toLowerCase().indexOf('online')<0?' · '+esc(e.venue):'')+'</div>'
+        +'<div class="tagrow">'+evTags(e)+'</div>'
+        +'<div class="attrow" style="margin-top:8px">'+facesHTML(pv,e.registeredCount)+'<span>'+esc(e.registeredCount||0)+' registered</span></div></div>'
+        +'<div class="sidecol"><span class="statuspill accepted">✔ Registered</span>'
+        +'<div class="countline">🕐 <b>'+esc(timeLeft(e.eventDate))+'</b><br><span>'+esc(fmtDate(e.eventDate))+'</span></div>'
+        +'<div class="countline">👥 <b>'+esc(e.registeredCount||0)+' people registered</b><br><span>'+esc(e.capacity||'—')+' slots</span></div>'
+        +'<div class="countline">📍 <b>'+(e.mode==='ONLINE'?'Online Event':"Offline Event")+'</b><br><span>'+venueLine(e)+'</span></div>'
+        +'<div class="slotbtn"><button class="chatbtn" data-chat="'+esc(e.id)+'">💬 Chat</button><button class="cardbtn" data-register="'+esc(e.id)+'" disabled style="opacity:.55">Registered ✔</button></div>'
+        +'</div></div></div>';
+    }
+    function pastCard(e,pv,att,fb){
+      var pill=att==='attended'?'<span class="statuspill accepted">✔ Attended</span>':att==='unknown'?'<span class="statuspill muted">● Completed</span>':'<span class="statuspill open">⊖ Did Not Attend</span>';
+      return '<div class="ecard" style="grid-column:1/-1"><div class="bigrow" style="border:0;margin:0"><img src="'+esc(e.coverImageUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" />'
+        +'<div><h3>'+esc(e.title)+'</h3><div class="circ">👑 '+esc(e.circleName||'')+'</div>'
+        +'<div class="when">📅 '+whenLine(e)+'<br>📍 '+venueLine(e)+'</div>'
+        +'<div class="tagrow">'+evTags(e)+'</div>'
+        +'<div class="attrow" style="margin-top:8px">'+facesHTML(pv,e.registeredCount)+'<span>'+esc(e.registeredCount||0)+' attended</span></div></div>'
+        +'<div class="sidecol">'+pill
+        +'<div class="countline">👥 <b>'+esc(e.registeredCount||0)+' / '+(e.capacity||'—')+'</b><br><span>attended</span></div></div></div></div>';
+    }
+    var deb=null;
+    document.getElementById('evQ').addEventListener('input',function(e){ clearTimeout(deb); deb=setTimeout(function(){ F.q=e.target.value; load(); },350); });
+    fc.addEventListener('change',function(e){ F.circle=e.target.value; load(); });
+    document.getElementById('fType').addEventListener('change',function(e){ F.type=e.target.value; load(); });
+    document.getElementById('fLoc').addEventListener('change',function(e){ F.loc=e.target.value; load(); });
+    await load();
+    // side rails
+    var allForCal=await api('/api/events?scope=all');
+    var cal=await calRail(allForCal);
+    var st=await getStats();
+    var statHtml='';
+    if(tab==='registered'&&st){
+      statHtml='<section class="panel"><h3>📅 Event Stats</h3><div class="minis"><div class="mini"><b>'+st.registered+'</b><span>Registered</span></div><div class="mini"><b>'+st.upcoming+'</b><span>Upcoming</span></div><div class="mini"><b>'+st.completed+'</b><span>Completed</span></div><div class="mini"><b>'+st.totalAttendees+'</b><span>Total Attendees</span></div></div></section>';
+    }else if(tab==='past'&&st){
+      statHtml='<section class="panel"><h3>📅 Event Stats</h3><div class="minis"><div class="mini"><b>'+(st.registered)+'</b><span>Total Events</span></div><div class="mini"><b>'+st.attended+'</b><span>Attended</span></div><div class="mini"><b>'+st.missed+'</b><span>Missed</span></div><div class="mini"><b>'+st.totalAttendees+'</b><span>Total Attendees</span></div></div></section>';
+    }else{
+      var on=0; allForCal.forEach(function(e){ if(String(e.mode||'').toUpperCase()==='ONLINE'||String(e.venue||'').toLowerCase().indexOf('online')>=0) on++; });
+      statHtml='<section class="panel"><h3>🔻 Filters</h3><div class="frow"><b>Event Type</b>'+TYPES.map(function(t){return '<label class="check"><input type="checkbox" data-t="'+t+'" /> '+typeLabel(t)+'</label>';}).join('')+'</div>'
+        +'<div class="frow"><b>Location</b><label class="check"><input type="checkbox" data-l="ONLINE" /> Online</label><label class="check"><input type="checkbox" data-l="CHENNAI" /> Chennai</label></div>'
+        +'<div class="frow"><b>Circle</b><select id="fCircle2"><option value="">All Circles</option>'+circles.map(function(x){return '<option value="'+x.id+'">'+esc(x.name)+'</option>';}).join('')+'</select></div></section>';
+    }
+    side.innerHTML=await myCirclesRail()
+      +'<section class="panel"><h3>📅 Event Calendar</h3><div id="cal"></div></section>'
+      +statHtml;
+    paintCalWrap(null);
+    async function paintCalWrap(key){
+      var c2=await calRail(allForCal,key);
+      var host=document.getElementById('cal');
+      if(!host) return;
+      host.innerHTML=c2.html; bindCal(c2.y,c2.mo,paintCalWrap);
+    }
+    var tboxes=side.querySelectorAll('[data-t]');
+    if(tboxes.length){
+      side.querySelector('#fCircle2').addEventListener('change',function(e){ F.circle=e.target.value; fc.value=F.circle; load(); });
+      tboxes.forEach(function(b){ b.addEventListener('change',function(){
+        var sel=Array.prototype.slice.call(side.querySelectorAll('[data-t]:checked')).map(function(x){return x.getAttribute('data-t');});
+        F.type=sel.join(','); load();
+      }); });
+      side.querySelectorAll('[data-l]').forEach(function(b){ b.addEventListener('change',function(){
+        var sel=Array.prototype.slice.call(side.querySelectorAll('[data-l]:checked')).map(function(x){return x.getAttribute('data-l');});
+        // Online -> mode filter; Chennai -> venue substring applied client-side below
+        F.loc=sel.indexOf('ONLINE')>=0?'ONLINE':''; F.chennai=sel.indexOf('CHENNAI')>=0;
+        load();
+      }); });
+      var origLoad=load;
+    }
+    setSync('Synced with admin just now');
+  }
+
+  async function vDetail(id){
+    var e=await api('/api/events/'+id);
+    var circle={}; try{ circle=await api('/api/circles/'+e.circleId); }catch(err){}
+    var pv=await preview(id);
+    var msgs=await api('/api/events/'+id+'/messages').catch(function(){return {messages:[],count:0};});
+    var mine=await getMine(), okMap=approvedIds(mine);
+    var reg=e.isRegistered;
+    view.innerHTML='<a class="backlink" href="#/upcoming">← Back to Events</a>'
+      +'<div class="dhead"><img src="'+esc(e.coverImageUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" />'
+      +'<div><h2>'+esc(e.title)+'</h2><div style="font-weight:600">👑 '+esc(e.circleName||'')+'</div>'
+      +'<div style="font-size:13px;color:var(--muted)">📅 '+esc(fmtDate(e.eventDate))+' &nbsp; 🕐 '+esc(fmtTime(e.eventTime))+' &nbsp; 📍 '+venueLine(e)+'</div>'
+      +'<div class="tagrow" style="margin-top:8px">'+evTags(e)+'</div></div>'
+      +'<div>'+(reg?'<span class="statuspill accepted">✔ Registered</span>':'')+'</div></div>'
+      +'<div class="chatbox"><h3>💬 Event Chat <span class="countpill" style="background:var(--soft);border-radius:999px;font-size:12px;padding:2px 10px">'+(msgs.count||0)+'</span></h3>'
+      +'<div id="msgList">'+(msgs.messages||[]).map(function(m){
+        return '<div class="msg"><span class="face">'+(m.avatarUrl?'<img src="'+esc(m.avatarUrl)+'" alt="" onerror="rcImg(this)" />':esc(initials(m.author)))+'</span>'
+          +'<div><span class="who">'+esc(m.author)+'</span><span class="when">'+esc(m.createdAt?new Date(m.createdAt).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'')+'</span>'
+          +'<div class="bubble">'+esc(m.content)+'</div></div></div>';
+      }).join('')+'</div>'
+      +'<div class="composer"><input id="msgIn" placeholder="Type a message…" aria-label="Type a message" /><button id="msgSend" aria-label="Send">➤</button></div></div>';
+    side.innerHTML='<section class="panel"><h3>📅 Event Details</h3><ul class="dlist">'
+      +'<li><b>Event Name</b><span>'+esc(e.title)+'</span></li>'
+      +'<li><b>Reading Topic</b><span>'+esc(e.readingTopic||'')+'</span></li>'
+      +'<li><b>Date</b><span>'+esc(fmtDate(e.eventDate))+'</span></li>'
+      +'<li><b>Start Time</b><span>'+esc(fmtTime(e.eventTime))+'</span></li>'
+      +'<li><b>Venue</b><span>'+venueLine(e)+'</span></li>'
+      +'<li><b>Capacity</b><span>'+esc(e.capacity||'—')+'</span></li></ul></section>'
+      +'<section class="panel"><h3>📄 About this event</h3><p style="font-size:13px;color:var(--muted);margin:0">'+esc(e.description||'')+'</p></section>'
+      +'<section class="panel"><h3>👥 Organized by</h3><div class="req"><img src="'+esc(circle.coverImageUrl||FALLBACK)+'" alt="" onerror="rcImg(this)" /><div><b>'+esc(e.circleName||'')+'</b><span>📚 '+esc(circle.memberCount||'')+' members</span></div></div><button class="ghostbtn" data-gocircle="'+esc(e.circleId)+'" style="width:100%;border:1px solid var(--burgundy);border-radius:10px;padding:9px;cursor:pointer;background:#fff">View Circle →</button></section>'
+      +'<section class="panel"><h3>👥 Attendees ('+(e.registeredCount||0)+')</h3><div class="avatars">'+(pv||[]).slice(0,7).map(function(a){return a.avatarUrl?'<span><img src="'+esc(a.avatarUrl)+'" alt="" onerror="rcImg(this)" /></span>':'<span>'+esc(initials(a.name))+'</span>';}).join('')+'<span>+'+Math.max(0,(e.registeredCount||0)-7)+'</span></div></section>';
+    document.getElementById('msgSend').addEventListener('click',sendMsg);
+    document.getElementById('msgIn').addEventListener('keydown',function(ev){ if(ev.key==='Enter') sendMsg(); });
+    async function sendMsg(){
+      var inp=document.getElementById('msgIn');
+      if(!inp.value.trim()) return;
+      try{ await api('/api/events/'+id+'/messages',{method:'POST',body:JSON.stringify({content:inp.value.trim()})}); router(); }
+      catch(err){ alert(err.message); }
+    }
+  }
+
+  /* ---------- actions ---------- */
+  document.addEventListener('click',async function(e){
+    var t=e.target.closest('[data-tab],[data-register],[data-gocircle],[data-joincircle],[data-canceljoin],[data-chat]');
+    if(!t) return;
+    if(t.hasAttribute('data-tab')){ go(t.getAttribute('data-tab')); return; }
+    if(t.hasAttribute('data-canceljoin')){
+      var cj=t.getAttribute('data-canceljoin');
+      if(!cj) return;
+      t.disabled=true;
+      try{ await api('/api/join-requests/'+cj,{method:'DELETE'}); cache.mine=null; router(); }
+      catch(err){ alert(err.message); router(); }
+      return;
+    }
+    if(t.hasAttribute('data-joincircle')){
+      var jc=t.getAttribute('data-joincircle');
+      t.disabled=true;
+      try{ await api('/api/circles/'+jc+'/join-requests',{method:'POST'}); cache.mine=null; router(); }
+      catch(err){ alert(err.message); router(); }
+      return;
+    }
+    if(t.hasAttribute('data-gocircle')){ location.href='reader-circles.html#/circle/'+t.getAttribute('data-gocircle'); return; }
+    if(t.hasAttribute('data-chat')){ go('event/'+t.getAttribute('data-chat')); return; }
+    if(t.hasAttribute('data-register')){
+      var id=t.getAttribute('data-register');
+      t.disabled=true;
+      try{ await api('/api/events/'+id+'/register',{method:'POST'}); cache.stats=null; previewCache={}; router(); }
+      catch(err){ alert(err.message); router(); }
+    }
+  });
+  document.getElementById('q').addEventListener('input',function(e){
+    var v=e.target.value;
+    clearTimeout(window.__qt); window.__qt=setTimeout(function(){ F.q=v; router(); },400);
+  });
+
+  async function loadMe(){
+    try{
+      var me=await api('/api/users/me'); cache.me=me;
+      document.getElementById('meName').textContent=me.name||me.email||'Reader';
+      document.getElementById('meFace').textContent=initials(me.name||me.email);
+    }catch(e){}
+    try{
+      var u=await api('/api/notifications/unread-count');
+      var n=Number(u.unreadCount||0);
+      document.getElementById('bellCount').hidden=n<=0;
+      document.getElementById('bellDot').hidden=n<=0;
+      document.getElementById('bellCount').textContent=n;
+    }catch(e){}
+  }
+  document.getElementById('meBtn').addEventListener('click',function(){
+    var d=document.getElementById('meDrop'); d.hidden=!d.hidden;
+  });
+  document.getElementById('logout').addEventListener('click',function(){
+    localStorage.removeItem('rc_access'); localStorage.removeItem('rc_refresh'); location.href='auth.html';
+  });
+  document.getElementById('bell').addEventListener('click',async function(){
+    var dd=document.getElementById('bellDrop'); dd.hidden=!dd.hidden;
+    if(dd.hidden) return;
+    dd.innerHTML='Loading…';
+    try{
+      var list=await api('/api/notifications');
+      dd.innerHTML=list.length?list.slice(0,6).map(function(n){return '<div style="padding:9px 11px;border-bottom:1px solid #F0EAD9"><b style="font-size:13px">'+esc(n.title)+'</b><div style="font-size:12px;color:#6B6257">'+esc(n.body||'')+'</div></div>';}).join(''):'<div style="padding:12px;font-size:13px">No notifications.</div>';
+    }catch(e){ dd.innerHTML='Could not load notifications.'; }
+  });
+
+  async function router(){
+    setSync('Syncing with admin data…');
+    var r=route(), name=r[0]||'upcoming';
+    try{
+      if(name==='upcoming'||name==='registered'||name==='past') await vList(name);
+      else if(name==='event'&&r[1]) await vDetail(r[1]);
+      else await vList('upcoming');
+    }catch(err){
+      view.innerHTML='<div class="err">'+esc(err.message)+'</div>'; side.innerHTML='';
+    }
+    window.scrollTo(0,0);
+  }
+  window.addEventListener('hashchange',router);
+  loadMe(); router();
+})();
+</script>
+</body>
+</html>

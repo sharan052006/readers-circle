@@ -10,6 +10,7 @@ public record EventDetailDto(
     UUID id,
     UUID circleId,
     String circleName,
+    UUID organizerId,
     String title,
     String description,
     String readingTopic,
@@ -23,5 +24,9 @@ public record EventDetailDto(
     EventStatus status,
     boolean isRegistered,
     boolean isOrganizerOrAdmin,
-    Instant createdAt
+    Instant createdAt,
+    String type,
+    String mode,
+    String guidelines,
+    String location
 ) {}

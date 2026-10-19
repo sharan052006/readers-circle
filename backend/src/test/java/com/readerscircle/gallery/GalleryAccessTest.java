@@ -63,6 +63,7 @@ class GalleryAccessTest {
   @Autowired UserRepository userRepository;
   @Autowired UserService userService;
   @Autowired com.readerscircle.auth.AuthService authService;
+  @Autowired com.readerscircle.events.EventRegistrationRepository registrationRepository;
 
   private String adminToken;
   private String organizerToken;
@@ -77,6 +78,7 @@ class GalleryAccessTest {
   @BeforeEach
   void seed() {
     galleryRepository.deleteAll();
+    registrationRepository.deleteAll();
     eventRepository.deleteAll();
     membershipRepository.deleteAll();
     circleRepository.deleteAll();
@@ -214,7 +216,7 @@ class GalleryAccessTest {
   }
 
   @Test
-  void memberCanReadGalleryAndNonMemberIsForbidden() {
+  void unregisteredCircleMemberIsForbiddenAndRegistrationGrantsAccess() {
     // Seed an item
     AddGalleryMediaRequest photo =
         new AddGalleryMediaRequest(MediaType.PHOTO, "https://example.com/photo.jpg", "Discussion");
@@ -224,19 +226,17 @@ class GalleryAccessTest {
         new HttpEntity<>(photo, bearer(organizerToken)),
         GalleryItemDto.class);
 
-    // Member read -> 200
-    ResponseEntity<List<GalleryItemDto>> memberRead =
+    // Approved circle member who did NOT register for this event -> 403 FORBIDDEN
+    ResponseEntity<String> unregMemberRead =
         rest.exchange(
             "/api/events/" + completedEventId + "/gallery",
             HttpMethod.GET,
             new HttpEntity<>(bearer(memberToken)),
-            new ParameterizedTypeReference<>() {});
+            String.class);
 
-    assertThat(memberRead.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(memberRead.getBody()).hasSize(1);
-    assertThat(memberRead.getBody().get(0).mediaUrl()).isEqualTo("https://example.com/photo.jpg");
+    assertThat(unregMemberRead.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 
-    // Non-member read -> 403
+    // Non-member read -> 403 FORBIDDEN
     ResponseEntity<String> nonMemberRead =
         rest.exchange(
             "/api/events/" + completedEventId + "/gallery",
@@ -245,6 +245,91 @@ class GalleryAccessTest {
             String.class);
 
     assertThat(nonMemberRead.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+
+    // Reader registered for a DIFFERENT event -> 403 FORBIDDEN
+    User diffEventReader = userService.create("Diff Reader", "diff@gallery.test", "pass12345", Role.READER);
+    String diffToken = authService.login("diff@gallery.test", "pass12345").accessToken();
+    registrationRepository.save(
+        new com.readerscircle.events.EventRegistration(otherEventId, diffEventReader.getId()));
+
+    ResponseEntity<String> diffEventRead =
+        rest.exchange(
+            "/api/events/" + completedEventId + "/gallery",
+            HttpMethod.GET,
+            new HttpEntity<>(bearer(diffToken)),
+            String.class);
+    assertThat(diffEventRead.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+
+    // Unauthenticated request -> 401 UNAUTHORIZED
+    ResponseEntity<String> unauthRead =
+        rest.exchange(
+            "/api/events/" + completedEventId + "/gallery",
+            HttpMethod.GET,
+            new HttpEntity<>(null, null),
+            String.class);
+    assertThat(unauthRead.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+
+    // Admin access -> 200 OK
+    ResponseEntity<List<GalleryItemDto>> adminRead =
+        rest.exchange(
+            "/api/events/" + completedEventId + "/gallery",
+            HttpMethod.GET,
+            new HttpEntity<>(bearer(adminToken)),
+            new ParameterizedTypeReference<>() {});
+    assertThat(adminRead.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+    // Organizer access -> 200 OK
+    ResponseEntity<List<GalleryItemDto>> orgRead =
+        rest.exchange(
+            "/api/events/" + completedEventId + "/gallery",
+            HttpMethod.GET,
+            new HttpEntity<>(bearer(organizerToken)),
+            new ParameterizedTypeReference<>() {});
+    assertThat(orgRead.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+    // Now member registers for this specific event -> 200 OK
+    User member = userRepository.findByEmailIgnoreCase("member@gallery.test").orElseThrow();
+    registrationRepository.save(
+        new com.readerscircle.events.EventRegistration(completedEventId, member.getId()));
+
+    ResponseEntity<List<GalleryItemDto>> memberRegisteredRead =
+        rest.exchange(
+            "/api/events/" + completedEventId + "/gallery",
+            HttpMethod.GET,
+            new HttpEntity<>(bearer(memberToken)),
+            new ParameterizedTypeReference<>() {});
+
+    assertThat(memberRegisteredRead.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(memberRegisteredRead.getBody()).hasSize(1);
+    assertThat(memberRegisteredRead.getBody().get(0).mediaUrl()).isEqualTo("https://example.com/photo.jpg");
+  }
+
+  @Test
+  void registeredReaderCanReadGalleryEvenIfNotCircleMember() {
+    // Non-member registers for the event
+    User nonMember = userRepository.findByEmailIgnoreCase("nonmember@gallery.test").orElseThrow();
+    registrationRepository.save(
+        new com.readerscircle.events.EventRegistration(completedEventId, nonMember.getId()));
+
+    // Seed photo if not present
+    AddGalleryMediaRequest photo =
+        new AddGalleryMediaRequest(MediaType.PHOTO, "https://example.com/registered-read.jpg", "Registered read test");
+    rest.exchange(
+        "/api/events/" + completedEventId + "/gallery",
+        HttpMethod.POST,
+        new HttpEntity<>(photo, bearer(organizerToken)),
+        GalleryItemDto.class);
+
+    // Registered attendee reads gallery -> 200 OK
+    ResponseEntity<List<GalleryItemDto>> registeredRead =
+        rest.exchange(
+            "/api/events/" + completedEventId + "/gallery",
+            HttpMethod.GET,
+            new HttpEntity<>(bearer(nonMemberToken)),
+            new ParameterizedTypeReference<>() {});
+
+    assertThat(registeredRead.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(registeredRead.getBody()).isNotEmpty();
   }
 
   @Test

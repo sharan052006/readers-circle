@@ -35,6 +35,13 @@ public class EventRegistration {
   @Column(name = "cancelled_at")
   private Instant cancelledAt;
 
+  /** Past-tab Attended / Did Not Attend (Flyway V20). Only meaningful when REGISTERED. */
+  @Column(nullable = false)
+  private boolean attended = false;
+
+  @Column(name = "attended_at")
+  private Instant attendedAt;
+
   protected EventRegistration() {}
 
   public EventRegistration(UUID eventId, UUID readerId) {
@@ -61,6 +68,14 @@ public class EventRegistration {
     this.cancelledAt = null;
   }
 
+  public void markAttended(boolean attended) {
+    if (this.status != RegistrationStatus.REGISTERED) {
+      throw new IllegalStateException("Only active registrations can be marked");
+    }
+    this.attended = attended;
+    this.attendedAt = attended ? Instant.now() : null;
+  }
+
   public UUID getId() {
     return id;
   }
@@ -83,5 +98,13 @@ public class EventRegistration {
 
   public Instant getCancelledAt() {
     return cancelledAt;
+  }
+
+  public boolean isAttended() {
+    return attended;
+  }
+
+  public Instant getAttendedAt() {
+    return attendedAt;
   }
 }

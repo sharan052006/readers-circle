@@ -9,6 +9,7 @@ import java.util.UUID;
 public record EventSummaryDto(
     UUID id,
     UUID circleId,
+    String circleName,
     String title,
     String readingTopic,
     LocalDate eventDate,
@@ -20,5 +21,8 @@ public record EventSummaryDto(
     String coverImageUrl,
     EventStatus status,
     boolean isRegistered,
-    Instant createdAt
+    Instant createdAt,
+    String type,
+    String mode,
+    String location
 ) {}

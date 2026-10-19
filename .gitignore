@@ -55,3 +55,12 @@ CAPABILITY-MAP.md
 uploads/
 **/uploads/
 
+# H2 database data directory
+backend/data/
+**/data/*.db
+**/data/*.mv.db
+**/data/*.trace.db
+
+# Scratch test files
+frontend-react/scratch_*.cjs
+

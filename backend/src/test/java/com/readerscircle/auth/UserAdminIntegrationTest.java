@@ -163,6 +163,25 @@ class UserAdminIntegrationTest {
     assertThat(patchGhost.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
   }
 
+  @Test
+  void listEligibleOrganizersReturnsOnlyActiveAdminsAndOrganizers() {
+    var res = get("/api/users/organizers", adminToken, new ParameterizedTypeReference<java.util.List<UserDto>>() {});
+    assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
+    java.util.List<UserDto> list = res.getBody();
+    assertThat(list).isNotNull();
+    assertThat(list).extracting(UserDto::email).containsExactlyInAnyOrder("admin@x.com", "org@x.com");
+    assertThat(list).extracting(UserDto::email).doesNotContain("reader@x.com");
+
+    // Non-admins cannot access
+    assertThat(get("/api/users/organizers", readerToken, String.class).getStatusCode())
+        .isEqualTo(HttpStatus.FORBIDDEN);
+    assertThat(get("/api/users/organizers", organizerToken, String.class).getStatusCode())
+        .isEqualTo(HttpStatus.FORBIDDEN);
+    assertThat(get("/api/users/organizers", null, String.class).getStatusCode())
+        .isEqualTo(HttpStatus.UNAUTHORIZED);
+  }
+
+
   private String login(String email) {
     var res =
         rest.postForEntity(
