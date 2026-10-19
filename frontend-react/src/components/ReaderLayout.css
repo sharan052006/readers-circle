@@ -326,7 +326,7 @@
     right: 0;
     width: min(340px, 86vw);
     height: 44px;
-    background: #F8F5EE;
+    background: #FDFCF8;
     border-left: 1px solid #E5DED2;
     border-bottom: 1px solid #E5DED2;
     z-index: 70;
@@ -362,16 +362,23 @@
   /* By default on mobile screens, hide right sidebars so primary content is clean */
   .railcards,
   .rdet-rail,
-  .rapp .content aside,
-  .rec-grid > div:last-child {
+  .content aside,
+  aside[aria-label="Details"],
+  .rec-grid > div:last-child,
+  .gchat-right {
+    display: none !important;
+  }
+  aside:empty {
     display: none !important;
   }
 
   /* When right panel is opened via swipe right or toggle button */
   .rapp.r-right-open .railcards,
   .rapp.r-right-open .rdet-rail,
-  .rapp.r-right-open .rapp .content aside,
-  .rapp.r-right-open .rec-grid > div:last-child {
+  .rapp.r-right-open .content aside:not(:empty),
+  .rapp.r-right-open aside[aria-label="Details"]:not(:empty),
+  .rapp.r-right-open .rec-grid > div:last-child,
+  .rapp.r-right-open .gchat-right {
     display: flex !important;
     flex-direction: column !important;
     position: fixed !important;
@@ -393,29 +400,42 @@
     gap: 14px !important;
     box-sizing: border-box !important;
     animation: rslidein-right 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   /* Single background harmony for items inside the mobile right drawer */
   .rapp.r-right-open .railcards .panel,
   .rapp.r-right-open .rdet-rail .panel,
-  .rapp.r-right-open .rapp .content aside .panel,
-  .rapp.r-right-open .rapp .content aside .roles-panel,
-  .rapp.r-right-open .rec-grid > div:last-child .rec-side {
+  .rapp.r-right-open .content aside .panel,
+  .rapp.r-right-open aside[aria-label="Details"] .panel,
+  .rapp.r-right-open .content aside .roles-panel,
+  .rapp.r-right-open .rec-grid > div:last-child .rec-side,
+  .rapp.r-right-open .gchat-right .gchat-card {
     background: transparent !important;
     border: 0 !important;
     border-bottom: 1px solid #EFE8DC !important;
     border-radius: 0 !important;
     padding: 0 0 14px 0 !important;
     margin-bottom: 0 !important;
+    margin-top: 0 !important;
     box-shadow: none !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .rapp.r-right-open .railcards .panel:last-child,
   .rapp.r-right-open .rdet-rail .panel:last-child,
-  .rapp.r-right-open .rapp .content aside .panel:last-child,
-  .rapp.r-right-open .rapp .content aside .roles-panel:last-child,
-  .rapp.r-right-open .rec-grid > div:last-child .rec-side:last-child {
+  .rapp.r-right-open .content aside .panel:last-child,
+  .rapp.r-right-open aside[aria-label="Details"] .panel:last-child,
+  .rapp.r-right-open .content aside .roles-panel:last-child,
+  .rapp.r-right-open .rec-grid > div:last-child .rec-side:last-child,
+  .rapp.r-right-open .gchat-right .gchat-card:last-child {
     border-bottom: 0 !important;
+  }
+
+  .rapp.r-right-open .content aside .cal,
+  .rapp.r-right-open aside[aria-label="Details"] .cal {
+    width: 100% !important;
   }
 
   .rapp.r-right-open .railcards .rail-cards-track {

@@ -71,6 +71,35 @@ export default function ReaderLayout({
     };
   }, [mobileMenuOpen, rightPanelOpen]);
 
+  const hasRightPanel =
+    active === 'dashboard' ||
+    active === 'circles' ||
+    active === 'events' ||
+    active === 'recommend' ||
+    active === 'chat';
+
+  const rightPanelTitle =
+    active === 'circles'
+      ? 'Circle Roles'
+      : active === 'events'
+      ? 'Calendar & Filters'
+      : active === 'recommend'
+      ? 'Reading Picks'
+      : active === 'chat'
+      ? 'Circle Information'
+      : 'Page Highlights';
+
+  const rightPanelIcon =
+    active === 'circles'
+      ? '👥'
+      : active === 'events'
+      ? '📅'
+      : active === 'recommend'
+      ? '⭐'
+      : active === 'chat'
+      ? '💬'
+      : '📑';
+
   // Edge-swipe navigation (Instagram-style) for mobile drawer
   useEffect(() => {
     const isMobile = () =>
@@ -147,8 +176,8 @@ export default function ReaderLayout({
             isTracking = false;
           }
         } else if (rightPanelOpenAtStart) {
-          // Right panel open: swiping left closes it
-          if (dx <= -30) {
+          // Right panel open: swiping either direction closes it
+          if (absX >= 30) {
             setRightPanelOpen(false);
             isCanceled = true;
             isTracking = false;
@@ -160,8 +189,13 @@ export default function ReaderLayout({
             setMobileMenuOpen(true);
             isCanceled = true;
             isTracking = false;
-          } else if (startX > 45 && dx >= 35) {
+          } else if (hasRightPanel && startX > 45 && dx >= 35) {
             // Swiping rightward across screen reveals right-hand panel
+            setRightPanelOpen(true);
+            isCanceled = true;
+            isTracking = false;
+          } else if (hasRightPanel && dx <= -35) {
+            // Swiping leftward also reveals right-hand panel
             setRightPanelOpen(true);
             isCanceled = true;
             isTracking = false;
@@ -191,11 +225,13 @@ export default function ReaderLayout({
         if (leftDrawerOpenAtStart) {
           if (dx <= -30) setMobileMenuOpen(false);
         } else if (rightPanelOpenAtStart) {
-          if (dx <= -30) setRightPanelOpen(false);
+          if (absX >= 30) setRightPanelOpen(false);
         } else {
           if (startX <= 45 && dx >= 35) {
             setMobileMenuOpen(true);
-          } else if (startX > 45 && dx >= 35) {
+          } else if (hasRightPanel && startX > 45 && dx >= 35) {
+            setRightPanelOpen(true);
+          } else if (hasRightPanel && dx <= -35) {
             setRightPanelOpen(true);
           }
         }
@@ -216,7 +252,7 @@ export default function ReaderLayout({
       window.removeEventListener('touchend', onTouchEnd);
       window.removeEventListener('touchcancel', onTouchEnd);
     };
-  }, [mobileMenuOpen]);
+  }, [mobileMenuOpen, rightPanelOpen, hasRightPanel]);
 
   async function handleSignOut() {
     if (isLoggingOut) return;
@@ -428,20 +464,20 @@ export default function ReaderLayout({
             aria-hidden="true"
           />
         )}
-        {rightPanelOpen && (
+        {rightPanelOpen && hasRightPanel && (
           <div
             className="rmobile-right-drawer-header"
             style={{ top: `${headerHeight}px` }}
           >
             <div className="rmobile-rdh-title">
-              <span aria-hidden="true">📑</span>
-              <b>Page Highlights</b>
+              <span aria-hidden="true">{rightPanelIcon}</span>
+              <b>{rightPanelTitle}</b>
             </div>
             <button
               type="button"
               className="rmobile-rdh-close"
               onClick={() => setRightPanelOpen(false)}
-              aria-label="Close page highlights"
+              aria-label={`Close ${rightPanelTitle}`}
             >
               ✕
             </button>
@@ -595,21 +631,23 @@ export default function ReaderLayout({
           </div>
           {search ? <div className="rsearch">{search}</div> : null}
           <div className="rtopright">
-            <button
-              type="button"
-              className={'rbell rmobile-right-toggle' + (rightPanelOpen ? ' active' : '')}
-              onClick={() => {
-                setRightPanelOpen(!rightPanelOpen);
-                setMobileMenuOpen(false);
-                setBellOpen(false);
-                setMeOpen(false);
-              }}
-              aria-label={rightPanelOpen ? 'Close page highlights' : 'Open page highlights'}
-              aria-expanded={rightPanelOpen}
-              title={rightPanelOpen ? 'Close page highlights' : 'Open page highlights'}
-            >
-              <span aria-hidden="true">📑</span>
-            </button>
+            {hasRightPanel && (
+              <button
+                type="button"
+                className={'rbell rmobile-right-toggle' + (rightPanelOpen ? ' active' : '')}
+                onClick={() => {
+                  setRightPanelOpen(!rightPanelOpen);
+                  setMobileMenuOpen(false);
+                  setBellOpen(false);
+                  setMeOpen(false);
+                }}
+                aria-label={rightPanelOpen ? `Close ${rightPanelTitle}` : `Open ${rightPanelTitle}`}
+                aria-expanded={rightPanelOpen}
+                title={rightPanelOpen ? `Close ${rightPanelTitle}` : `Open ${rightPanelTitle}`}
+              >
+                <span aria-hidden="true">{rightPanelIcon}</span>
+              </button>
+            )}
             <button
               className="rbell"
               onClick={openBell}
