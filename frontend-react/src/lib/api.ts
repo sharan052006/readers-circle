@@ -2,10 +2,12 @@ const LS_API = 'rc_api_base';
 const LS_A = 'rc_access';
 const LS_R = 'rc_refresh';
 
+const env = (typeof import.meta !== 'undefined' && import.meta.env) ? import.meta.env : undefined;
+
 const ENV_API = (
-  import.meta.env.VITE_API_BASE_URL ||
-  import.meta.env.VITE_API_URL ||
-  import.meta.env.VITE_BACKEND_URL ||
+  env?.VITE_API_BASE_URL ||
+  env?.VITE_API_URL ||
+  env?.VITE_BACKEND_URL ||
   ''
 ).trim().replace(/\/+$/, '');
 
@@ -13,7 +15,7 @@ const DEFAULT_PROD_API = 'https://readers-circle.onrender.com';
 const DEFAULT_DEV_API = 'http://localhost:8080';
 
 export function apiBase(): string {
-  const stored = localStorage.getItem(LS_API);
+  const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(LS_API) : null;
   if (stored) {
     const clean = stored.trim().replace(/\/+$/, '');
     const isRemote =
@@ -27,7 +29,7 @@ export function apiBase(): string {
   if (ENV_API) {
     return ENV_API;
   }
-  return import.meta.env.PROD ? DEFAULT_PROD_API : DEFAULT_DEV_API;
+  return env?.PROD ? DEFAULT_PROD_API : DEFAULT_DEV_API;
 }
 
 export function apiUrl(path: string): string {
@@ -121,7 +123,61 @@ export class ApiError extends Error {
   status: number;
   constructor(status: number, message: string) {
     super(message);
+    this.name = 'ApiError';
     this.status = status;
+  }
+}
+
+export class NetworkTimeoutError extends Error {
+  constructor(message = 'The server took too long to respond. Please try again.') {
+    super(message);
+    this.name = 'NetworkTimeoutError';
+  }
+}
+
+export class NetworkConnectionError extends Error {
+  constructor(message = 'Unable to reach the server. Please check your internet connection.') {
+    super(message);
+    this.name = 'NetworkConnectionError';
+  }
+}
+
+export const DEFAULT_TIMEOUT_MS = 25000;
+
+export async function fetchWithTimeout(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+  timeoutMs: number = DEFAULT_TIMEOUT_MS,
+): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+
+  if (init?.signal) {
+    init.signal.addEventListener('abort', () => controller.abort());
+  }
+
+  try {
+    const res = await fetch(input, {
+      ...init,
+      signal: controller.signal,
+    });
+    return res;
+  } catch (err: unknown) {
+    if (err instanceof Error) {
+      if (err.name === 'AbortError' || err.name === 'TimeoutError') {
+        throw new NetworkTimeoutError(
+          `Request timed out after ${Math.round(timeoutMs / 1000)}s. If the service was idle, the Render backend may still be waking up — please wait a moment and try again.`,
+        );
+      }
+      if (err.name === 'TypeError' || /failed to fetch|networkerror|load failed/i.test(err.message)) {
+        throw new NetworkConnectionError(
+          `Cannot reach backend server (${apiBase()}). Please verify the service is running and accessible.`,
+        );
+      }
+    }
+    throw err;
+  } finally {
+    clearTimeout(id);
   }
 }
 
@@ -130,6 +186,7 @@ type Opts = {
   body?: string;
   headers?: Record<string, string>;
   raw?: boolean;
+  timeoutMs?: number;
 };
 
 function getRefresh(): string | null {
@@ -144,11 +201,11 @@ async function tryRefresh(): Promise<boolean> {
       const rt = getRefresh();
       if (!rt) return false;
       try {
-        const r = await fetch(apiUrl('/api/auth/refresh'), {
+        const r = await fetchWithTimeout(apiUrl('/api/auth/refresh'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refreshToken: rt }),
-        });
+        }, 15000);
         if (!r.ok) return false;
         const d = (await r.json().catch(() => ({}))) as Record<string, unknown>;
         const access = (d.accessToken ?? d.access_token) as string | undefined;
@@ -171,7 +228,11 @@ async function doFetch<T>(path: string, opts: Opts): Promise<T> {
   const t = getAccess();
   if (t) headers.Authorization = 'Bearer ' + t;
   if (opts.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
-  const r = await fetch(apiUrl(path), { method: opts.method || 'GET', headers, body: opts.body });
+  const r = await fetchWithTimeout(
+    apiUrl(path),
+    { method: opts.method || 'GET', headers, body: opts.body },
+    opts.timeoutMs || DEFAULT_TIMEOUT_MS,
+  );
   if (r.status === 204) return null as T;
   let d: unknown = null;
   try {
@@ -214,15 +275,43 @@ export type Me = {
   interests?: string[];
 };
 
-export async function loginApi(email: string, password: string) {
-  const r = await fetch(apiUrl('/api/auth/login'), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
+/** Safely extracts user role from JWT token payload without network calls. */
+export function extractRoleFromToken(token?: string | null): string | null {
+  if (!token) return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join(''),
+    );
+    const parsed = JSON.parse(json) as { role?: string };
+    return typeof parsed.role === 'string' ? parsed.role : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function loginApi(email: string, password: string, timeoutMs = 30000) {
+  const r = await fetchWithTimeout(
+    apiUrl('/api/auth/login'),
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    },
+    timeoutMs,
+  );
   const d = (await r.json().catch(() => ({}))) as Record<string, unknown>;
   if (!r.ok) {
-    let msg = (d.message as string) || `Sign in failed: ${r.status}`;
+    let msg = (d.message as string) || (r.status === 401 ? 'Invalid email or password.' : `Sign in failed: ${r.status}`);
+    if (r.status === 401 && msg.toLowerCase() === 'invalid credentials') {
+      msg = 'Invalid email or password. Please verify your credentials.';
+    }
     if (d.errors && typeof d.errors === 'object') {
       const errMap = d.errors as Record<string, string>;
       const details = Object.entries(errMap)
@@ -235,15 +324,22 @@ export async function loginApi(email: string, password: string) {
   return d as { accessToken?: string; refreshToken?: string };
 }
 
-export async function registerApi(name: string, email: string, password: string) {
-  const r = await fetch(apiUrl('/api/auth/register'), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, email, password }),
-  });
+export async function registerApi(name: string, email: string, password: string, timeoutMs = 30000) {
+  const r = await fetchWithTimeout(
+    apiUrl('/api/auth/register'),
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    },
+    timeoutMs,
+  );
   const d = (await r.json().catch(() => ({}))) as Record<string, unknown>;
   if (!r.ok) {
-    let msg = (d.message as string) || `Register failed: ${r.status}`;
+    let msg = (d.message as string) || `Registration failed: ${r.status}`;
+    if (r.status === 409) {
+      msg = 'An account with this email address already exists.';
+    }
     if (d.errors && typeof d.errors === 'object') {
       const errMap = d.errors as Record<string, string>;
       const details = Object.entries(errMap)
@@ -289,7 +385,7 @@ export async function uploadMedia(file: File): Promise<string> {
   const headers: Record<string, string> = {};
   const t = getAccess();
   if (t) headers.Authorization = 'Bearer ' + t;
-  const r = await fetch(apiUrl('/api/media'), { method: 'POST', headers, body: fd });
+  const r = await fetchWithTimeout(apiUrl('/api/media'), { method: 'POST', headers, body: fd }, 30000);
   let d: unknown = null;
   try {
     d = await r.json();

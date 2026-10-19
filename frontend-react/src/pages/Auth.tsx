@@ -1,6 +1,17 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { api, apiBase, loginApi, registerApi, setTokens, type Me } from '../lib/api';
+import {
+  api,
+  apiBase,
+  ApiError,
+  extractRoleFromToken,
+  loginApi,
+  NetworkConnectionError,
+  NetworkTimeoutError,
+  registerApi,
+  setTokens,
+  type Me,
+} from '../lib/api';
 import './Auth.css';
 
 type Mode = 'login' | 'register';
@@ -18,41 +29,51 @@ export default function Auth() {
   const [error, setError] = useState('');
   const [ok, setOk] = useState('');
   const [busy, setBusy] = useState(false);
+  const [statusHint, setStatusHint] = useState('');
+  const hintTimerRef = useRef<number | null>(null);
 
   const isLogin = mode === 'login';
 
   function switchMode(m: Mode) {
+    if (busy) return;
     setMode(m);
     setError('');
     setOk('');
+    setStatusHint('');
   }
 
-  function routeUser(me: Me) {
+  function routeUser(role: string) {
+    const normalizedRole = (role || 'READER').toUpperCase();
     if (redirectParam) {
       if (
-        (redirectParam.startsWith('/admin') || redirectParam.startsWith('/circles') || redirectParam.startsWith('/events')) &&
-        me.role !== 'ADMIN'
+        (redirectParam.startsWith('/admin') ||
+          redirectParam.startsWith('/circles') ||
+          redirectParam.startsWith('/events')) &&
+        normalizedRole !== 'ADMIN'
       ) {
-        navigate(me.role === 'ORGANIZER' ? '/organizer' : '/reader');
+        navigate(normalizedRole === 'ORGANIZER' ? '/organizer' : '/reader', { replace: true });
         return;
       }
-      navigate(redirectParam);
+      navigate(redirectParam, { replace: true });
       return;
     }
 
-    if (me.role === 'ADMIN') {
-      navigate('/admin');
-    } else if (me.role === 'ORGANIZER') {
-      navigate('/organizer');
+    if (normalizedRole === 'ADMIN') {
+      navigate('/admin', { replace: true });
+    } else if (normalizedRole === 'ORGANIZER') {
+      navigate('/organizer', { replace: true });
     } else {
-      navigate('/reader');
+      navigate('/reader', { replace: true });
     }
   }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (busy) return; // Prevent duplicate submissions
+
     setError('');
     setOk('');
+    setStatusHint('');
     const em = email.trim();
     const nm = name.trim();
 
@@ -70,6 +91,13 @@ export default function Auth() {
     }
 
     setBusy(true);
+
+    // Inform the user if the backend takes longer than 4s (common on Render free-tier cold start)
+    if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+    hintTimerRef.current = window.setTimeout(() => {
+      setStatusHint('Connecting to server… (if the service was idle, backend wake-up may take ~30s)');
+    }, 4000);
+
     try {
       const data = mode === 'login' ? await loginApi(em, password) : await registerApi(nm, em, password);
       const raw = data as Record<string, unknown>;
@@ -82,21 +110,71 @@ export default function Auth() {
         (typeof raw.refreshToken === 'string' && raw.refreshToken) ||
         (typeof raw.refresh_token === 'string' && raw.refresh_token) ||
         '';
-      if (access) setTokens(access, refresh || null);
 
-      const me = await api<Me>('/api/users/me');
-      setOk('Welcome ' + (me.name || me.email) + '! Taking you to your dashboard...');
+      if (!access) {
+        throw new Error('Authentication succeeded but no access token was returned.');
+      }
+
+      // Store tokens securely using existing project storage
+      setTokens(access, refresh || null);
+
+      // Extract user role directly from signed JWT token claims for instantaneous, resilient routing
+      const tokenRole = extractRoleFromToken(access);
+
+      // Attempt to load /me for personalized greeting, but don't block routing if it lags
+      let me: Me | null = null;
+      try {
+        me = await api<Me>('/api/users/me', { timeoutMs: 5000 });
+      } catch {
+        // Fallback to token role and email
+        if (tokenRole) {
+          me = { role: tokenRole, email: em, name: nm || undefined };
+        }
+      }
+
+      const activeRole = me?.role || tokenRole || 'READER';
+      const welcomeName = me?.name || nm || me?.email || em;
+      setOk(`Welcome ${welcomeName}! Taking you to your dashboard...`);
+      setStatusHint('');
+
       setTimeout(() => {
-        routeUser(me);
-      }, 300);
-    } catch (ex) {
-      const msg = ex instanceof Error ? ex.message : String(ex);
-      setError(
-        msg === 'Failed to fetch'
-          ? `Cannot reach backend server (${apiBase()}). If the service was idle, the Render free tier backend may take ~45s to wake up — please wait a moment and try again.`
-          : msg,
-      );
+        routeUser(activeRole);
+      }, 250);
+    } catch (ex: unknown) {
+      if (ex instanceof NetworkTimeoutError) {
+        setError(ex.message);
+      } else if (ex instanceof NetworkConnectionError) {
+        setError(ex.message);
+      } else if (ex instanceof ApiError) {
+        if (ex.status === 401) {
+          const lowerMsg = ex.message.toLowerCase();
+          if (lowerMsg.includes('two-factor')) {
+            setError('Two-factor authentication code required.');
+          } else {
+            setError('Invalid email or password. Please verify your credentials and try again.');
+          }
+        } else if (ex.status === 409) {
+          setError('An account with this email address already exists.');
+        } else if (ex.status === 429) {
+          setError('Too many attempts. Please wait a moment and try again.');
+        } else {
+          setError(ex.message || `Authentication failed (${ex.status}). Please try again.`);
+        }
+      } else {
+        const msg = ex instanceof Error ? ex.message : String(ex);
+        if (/failed to fetch|networkerror|load failed/i.test(msg)) {
+          setError(
+            `Cannot reach backend server (${apiBase()}). If the service was idle, the Render free-tier backend may take ~45s to wake up — please wait a moment and try again.`,
+          );
+        } else {
+          setError(msg || 'An unexpected error occurred during sign in. Please try again.');
+        }
+      }
     } finally {
+      if (hintTimerRef.current) {
+        clearTimeout(hintTimerRef.current);
+        hintTimerRef.current = null;
+      }
       setBusy(false);
     }
   }
@@ -205,6 +283,23 @@ export default function Auth() {
               <button className="primary" type="submit" disabled={busy} style={{ marginTop: 16 }}>
                 {busy ? 'Please wait...' : isLogin ? 'Sign In →' : 'Create Account →'}
               </button>
+
+              {busy && statusHint && (
+                <div
+                  className="auth-status-hint"
+                  role="status"
+                  aria-live="polite"
+                  style={{
+                    fontSize: 13,
+                    color: '#6B6257',
+                    marginTop: 10,
+                    textAlign: 'center',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  {statusHint}
+                </div>
+              )}
             </form>
           </section>
         </main>
