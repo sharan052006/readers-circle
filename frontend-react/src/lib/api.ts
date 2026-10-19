@@ -30,6 +30,12 @@ export function apiBase(): string {
   return import.meta.env.PROD ? DEFAULT_PROD_API : DEFAULT_DEV_API;
 }
 
+export function apiUrl(path: string): string {
+  const base = apiBase().replace(/\/+$/, '');
+  const cleanPath = path.startsWith('/') ? path : '/' + path;
+  return base + cleanPath;
+}
+
 export function setApiBase(v: string) {
   localStorage.setItem(LS_API, v.replace(/\/+$/, ''));
 }
@@ -132,7 +138,7 @@ async function tryRefresh(): Promise<boolean> {
       const rt = getRefresh();
       if (!rt) return false;
       try {
-        const r = await fetch(apiBase() + '/api/auth/refresh', {
+        const r = await fetch(apiUrl('/api/auth/refresh'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refreshToken: rt }),
@@ -159,7 +165,7 @@ async function doFetch<T>(path: string, opts: Opts): Promise<T> {
   const t = getAccess();
   if (t) headers.Authorization = 'Bearer ' + t;
   if (opts.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
-  const r = await fetch(apiBase() + path, { method: opts.method || 'GET', headers, body: opts.body });
+  const r = await fetch(apiUrl(path), { method: opts.method || 'GET', headers, body: opts.body });
   if (r.status === 204) return null as T;
   let d: unknown = null;
   try {
@@ -203,24 +209,44 @@ export type Me = {
 };
 
 export async function loginApi(email: string, password: string) {
-  const r = await fetch(apiBase() + '/api/auth/login', {
+  const r = await fetch(apiUrl('/api/auth/login'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   });
-  const d = await r.json().catch(() => ({}));
-  if (!r.ok) throw new ApiError(r.status, (d as { message?: string }).message || `Sign in failed: ${r.status}`);
+  const d = (await r.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!r.ok) {
+    let msg = (d.message as string) || `Sign in failed: ${r.status}`;
+    if (d.errors && typeof d.errors === 'object') {
+      const errMap = d.errors as Record<string, string>;
+      const details = Object.entries(errMap)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(', ');
+      if (details) msg += ` (${details})`;
+    }
+    throw new ApiError(r.status, msg);
+  }
   return d as { accessToken?: string; refreshToken?: string };
 }
 
 export async function registerApi(name: string, email: string, password: string) {
-  const r = await fetch(apiBase() + '/api/auth/register', {
+  const r = await fetch(apiUrl('/api/auth/register'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, email, password }),
   });
-  const d = await r.json().catch(() => ({}));
-  if (!r.ok) throw new ApiError(r.status, (d as { message?: string }).message || `Register failed: ${r.status}`);
+  const d = (await r.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!r.ok) {
+    let msg = (d.message as string) || `Register failed: ${r.status}`;
+    if (d.errors && typeof d.errors === 'object') {
+      const errMap = d.errors as Record<string, string>;
+      const details = Object.entries(errMap)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(', ');
+      if (details) msg += ` (${details})`;
+    }
+    throw new ApiError(r.status, msg);
+  }
   return d as { accessToken?: string; refreshToken?: string };
 }
 
@@ -239,7 +265,7 @@ export function resolveMedia(url?: string | null): string {
   const u = String(url).trim();
   if (!u) return '';
   if (/^https?:\/\//i.test(u) || u.startsWith('data:') || u.startsWith('blob:')) return u;
-  if (u.startsWith('/')) return apiBase() + u;
+  if (u.startsWith('/')) return apiUrl(u);
   return u;
 }
 
@@ -257,7 +283,7 @@ export async function uploadMedia(file: File): Promise<string> {
   const headers: Record<string, string> = {};
   const t = getAccess();
   if (t) headers.Authorization = 'Bearer ' + t;
-  const r = await fetch(apiBase() + '/api/media', { method: 'POST', headers, body: fd });
+  const r = await fetch(apiUrl('/api/media'), { method: 'POST', headers, body: fd });
   let d: unknown = null;
   try {
     d = await r.json();

@@ -93,7 +93,7 @@ export default function Auth() {
       const msg = ex instanceof Error ? ex.message : String(ex);
       setError(
         msg === 'Failed to fetch'
-          ? `Cannot reach backend server (${apiBase()}). Please verify the backend is running and accessible.`
+          ? `Cannot reach backend server (${apiBase()}). If the service was idle, the Render free tier backend may take ~45s to wake up — please wait a moment and try again.`
           : msg,
       );
     } finally {
