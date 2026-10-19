@@ -162,7 +162,7 @@ function EventTabs({ tab, counts }: { tab: Tab; counts: { upcoming: number; regi
   );
 }
 
-export function MonthCal({ dates }: { dates: Record<string, number> }) {
+function MonthCal({ dates }: { dates: Record<string, number> }) {
   const [key, setKey] = useState(() => new Date().toISOString().slice(0, 7));
   const y = +key.slice(0, 4);
   const mo = +key.slice(5, 7) - 1;

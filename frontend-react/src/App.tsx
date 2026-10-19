@@ -11,7 +11,6 @@ import ReaderBooks from './pages/ReaderBooks';
 import ReaderRecommendations from './pages/ReaderRecommendations';
 import ReaderCart from './pages/ReaderCart';
 import ReaderCheckout from './pages/ReaderCheckout';
-import ReaderDiscover from './pages/ReaderDiscover';
 import Organizer from './pages/Organizer';
 import AdminApp from './pages/admin/AdminApp';
 import AdminCircles from './pages/admin/AdminCircles';
@@ -28,8 +27,6 @@ export default function App() {
         <Route path="/circles" element={<AdminCircles />} />
         <Route path="/events" element={<AdminEvents />} />
         <Route path="/reader" element={<ReaderDashboard />} />
-        <Route path="/reader-discover" element={<ReaderDiscover />} />
-        <Route path="/discover" element={<ReaderDiscover />} />
         <Route path="/reader-discussions/:id" element={<ReaderDiscussion />} />
         <Route path="/reader-circles/*" element={<ReaderCircles />} />
         <Route path="/reader-events/*" element={<ReaderEvents />} />
@@ -44,7 +41,6 @@ export default function App() {
         <Route path="/index.html" element={<Navigate to="/" replace />} />
         <Route path="/auth.html" element={<Navigate to="/auth" replace />} />
         <Route path="/reader.html" element={<Navigate to="/reader" replace />} />
-        <Route path="/discover.html" element={<Navigate to="/reader-discover" replace />} />
         <Route path="/reader-circles.html" element={<Navigate to="/reader-circles" replace />} />
         <Route path="/reader-events.html" element={<Navigate to="/reader-events" replace />} />
         <Route path="/reader-chat.html" element={<Navigate to="/reader-chat" replace />} />

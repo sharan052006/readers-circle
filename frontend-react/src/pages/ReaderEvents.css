@@ -707,9 +707,6 @@ h1.page{font-family:'Fraunces',serif;font-size:38px;margin:0;letter-spacing:-.01
   .sidecol{width:100%;border-left:0;border-top:1px solid #F0EAD9;padding-left:0;padding-top:14px}
   .rapp .content aside{display:flex;flex-direction:column}
 }
-@media(max-width:800px){
-  .rapp .content aside{display:none !important}
-}
 @media(max-width:760px){
   .rapp{grid-template-columns:1fr}
   .evgrid{grid-template-columns:1fr}

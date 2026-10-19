@@ -1005,12 +1005,6 @@
   }
 }
 
-@media (max-width: 800px) {
-  .rdet-rail {
-    display: none !important;
-  }
-}
-
 @media (max-width: 640px) {
   .hero {
     grid-template-columns: 1fr;
