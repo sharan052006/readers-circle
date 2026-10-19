@@ -136,19 +136,6 @@ export default function ReaderBooks() {
     <ReaderLayout
       active="books"
       syncNote={sync}
-      search={
-        <>
-          <span className="rd-lens" aria-hidden="true">🔍</span>
-          <input
-            type="search"
-            placeholder="Search books, authors, or titles..."
-            aria-label="Search books, authors, or titles"
-            autoComplete="off"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-          />
-        </>
-      }
     >
       <div className="sr-wrap">
         <section className="sr-hero">

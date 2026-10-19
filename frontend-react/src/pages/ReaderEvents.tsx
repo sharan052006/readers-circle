@@ -1816,7 +1816,6 @@ function OrganizerEventsView({ tab, externalQ, setSync }: { tab: OrgTab; externa
 }
 
 export default function ReaderEvents() {
-  const [globalQ, setGlobalQ] = useState('');
   const [sync, setSync] = useState('Connecting…');
   const [isOrg, setIsOrg] = useState<boolean | null>(null);
 
@@ -1838,35 +1837,20 @@ export default function ReaderEvents() {
     <ReaderLayout
       active="events"
       syncNote={sync}
-      search={
-        <div className="search">
-          <span className="lens" aria-hidden="true">
-            🔍
-          </span>
-          <input
-            type="search"
-            placeholder="Search books, discussions, circles…"
-            aria-label="Global search"
-            autoComplete="off"
-            value={globalQ}
-            onChange={(e) => setGlobalQ(e.target.value)}
-          />
-        </div>
-      }
     >
       {isOrg ? (
         <Routes>
-          <Route index element={<OrganizerEventsView tab="all" externalQ={globalQ} setSync={setSync} />} />
-          <Route path="organised" element={<OrganizerEventsView tab="organised" externalQ={globalQ} setSync={setSync} />} />
-          <Route path="member" element={<OrganizerEventsView tab="member" externalQ={globalQ} setSync={setSync} />} />
-          <Route path="past" element={<OrganizerEventsView tab="past" externalQ={globalQ} setSync={setSync} />} />
+          <Route index element={<OrganizerEventsView tab="all" externalQ="" setSync={setSync} />} />
+          <Route path="organised" element={<OrganizerEventsView tab="organised" externalQ="" setSync={setSync} />} />
+          <Route path="member" element={<OrganizerEventsView tab="member" externalQ="" setSync={setSync} />} />
+          <Route path="past" element={<OrganizerEventsView tab="past" externalQ="" setSync={setSync} />} />
           <Route path="event/:id" element={<EventDetail setSync={setSync} />} />
         </Routes>
       ) : (
         <Routes>
-          <Route index element={<EventList tab="upcoming" externalQ={globalQ} setSync={setSync} />} />
-          <Route path="registered" element={<EventList tab="registered" externalQ={globalQ} setSync={setSync} />} />
-          <Route path="past" element={<EventList tab="past" externalQ={globalQ} setSync={setSync} />} />
+          <Route index element={<EventList tab="upcoming" externalQ="" setSync={setSync} />} />
+          <Route path="registered" element={<EventList tab="registered" externalQ="" setSync={setSync} />} />
+          <Route path="past" element={<EventList tab="past" externalQ="" setSync={setSync} />} />
           <Route path="event/:id" element={<EventDetail setSync={setSync} />} />
         </Routes>
       )}

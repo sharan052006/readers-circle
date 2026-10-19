@@ -1587,33 +1587,17 @@ function CircleMembersPanel({ circleId, setSync }: { circleId: string; setSync: 
 }
 
 export default function ReaderCircles() {
-  const [globalQ, setGlobalQ] = useState('');
   const [sync, setSync] = useState('Connecting…');
 
   return (
     <ReaderLayout
       active="circles"
       syncNote={sync}
-      search={
-        <div className="search">
-          <span className="lens" aria-hidden="true">
-            🔍
-          </span>
-          <input
-            type="search"
-            placeholder="Search books, discussions, circles…"
-            aria-label="Search books, discussions, circles"
-            autoComplete="off"
-            value={globalQ}
-            onChange={(e) => setGlobalQ(e.target.value)}
-          />
-        </div>
-      }
     >
       <Routes>
         <Route index element={<MyView setSync={setSync} />} />
         <Route path="my" element={<MyView setSync={setSync} />} />
-        <Route path="explore" element={<ExploreView externalQ={globalQ} setSync={setSync} />} />
+        <Route path="explore" element={<ExploreView externalQ="" setSync={setSync} />} />
         <Route path="requests" element={<RequestsView setSync={setSync} />} />
         <Route path="circle/:id" element={<DetailView setSync={setSync} />} />
         <Route path="manage/:id" element={<ManageArea />} />

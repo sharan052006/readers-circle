@@ -46,7 +46,6 @@ export default function ReaderSettings() {
   const [pwCur, setPwCur] = useState('');
   const [pwNew, setPwNew] = useState('');
   const [pwErr, setPwErr] = useState('');
-  const [topQ, setTopQ] = useState('');
 
   useEffect(() => {
     let on = true;
@@ -203,21 +202,6 @@ export default function ReaderSettings() {
     <ReaderLayout
       active="settings"
       syncNote={sync}
-      search={
-        <div className="rset-search">
-          <span className="lens">🔍</span>
-          <input
-            value={topQ}
-            onChange={(e) => setTopQ(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') nav('/reader');
-            }}
-            type="search"
-            placeholder="Search books, discussions, circles..."
-            aria-label="Search"
-          />
-        </div>
-      }
     >
       <div className="rset-wrap">
         <h1 className="page">Settings</h1>
