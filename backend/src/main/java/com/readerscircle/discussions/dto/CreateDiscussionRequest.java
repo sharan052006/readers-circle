@@ -10,7 +10,7 @@ public record CreateDiscussionRequest(
     @Size(max = 120) String genre,
     Integer pageCount,
     Integer publicationYear,
-    @Size(max = 1000) String coverImageUrl,
+    @Size(max = 5_000_000) String coverImageUrl,
     String keyQuote,
     @Size(max = 255) String quoteAuthor,
     @Size(max = 255) String discussionTitle,

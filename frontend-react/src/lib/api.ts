@@ -242,7 +242,15 @@ async function doFetch<T>(path: string, opts: Opts): Promise<T> {
   }
   if (!r.ok) {
     const rec = d as Record<string, unknown> | null;
-    const m = rec && (rec.message || rec.error);
+    let m = rec && (rec.message || rec.error);
+    if (rec && rec.errors && typeof rec.errors === 'object') {
+      const fieldErrors = Object.entries(rec.errors as Record<string, string>)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(', ');
+      if (fieldErrors) {
+        m = `Validation failed (${fieldErrors})`;
+      }
+    }
     const msg = Array.isArray(m) ? m.join(', ') : String(m || `Request failed: ${r.status}`);
     throw new ApiError(r.status, msg);
   }

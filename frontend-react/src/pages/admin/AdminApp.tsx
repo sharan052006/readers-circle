@@ -11,6 +11,7 @@ import {
   resolveMedia,
   setApiBase,
   timeAgo,
+  uploadMedia,
   type Me,
 } from '../../lib/api';
 import { COVER_PLACEHOLDER, DISCUSSION_COVER_PLACEHOLDER } from '../../lib/placeholders';
@@ -583,24 +584,30 @@ export default function AdminApp() {
     }
   }, [me, view, bdMode, loadDiscussions]);
 
-  function onBdCoverFile(e: ChangeEvent<HTMLInputElement>) {
+  async function onBdCoverFile(e: ChangeEvent<HTMLInputElement>) {
     const f = e.target.files && e.target.files[0];
     if (!f) return;
     if (f.size > 5 * 1024 * 1024) {
       setBdCreateErr('Cover image must be under 5MB.');
       return;
     }
-    const r = new FileReader();
-    r.onload = () => {
-      if (typeof r.result === 'string') setBdCoverUrl(r.result);
-    };
-    r.readAsDataURL(f);
+    setBdCreateErr('');
+    try {
+      const url = await uploadMedia(f);
+      setBdCoverUrl(url);
+    } catch {
+      const r = new FileReader();
+      r.onload = () => {
+        if (typeof r.result === 'string') setBdCoverUrl(r.result);
+      };
+      r.readAsDataURL(f);
+    }
   }
 
   async function postDiscussion() {
     setBdCreateErr('');
-    const bookTitle = bdTitle.trim();
-    const author = bdAuthor.trim();
+    const bookTitle = bdTitle.trim().slice(0, 255);
+    const author = bdAuthor.trim().slice(0, 255);
     if (!bookTitle || !author) {
       setBdCreateErr('Book title and author are required.');
       return;
@@ -609,9 +616,9 @@ export default function AdminApp() {
     const payload = {
       bookTitle,
       author,
-      discussionTitle: bdDiscTitle.trim() || `${bookTitle} – Discussion & Analysis`,
-      genre: bdGenre.trim() || 'General',
-      tag: bdGenre.trim() || 'General',
+      discussionTitle: (bdDiscTitle.trim() || `${bookTitle} – Discussion & Analysis`).slice(0, 255),
+      genre: (bdGenre.trim() || 'General').slice(0, 120),
+      tag: (bdGenre.trim() || 'General').slice(0, 120),
       discussionExcerpt: bdExcerpt.trim() || `Discussion about ${bookTitle} by ${author}.`,
       coverImageUrl: bdCoverUrl.trim() || null,
       circleId: bdCircleId || null,

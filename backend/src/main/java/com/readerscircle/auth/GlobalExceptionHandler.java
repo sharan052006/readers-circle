@@ -41,7 +41,12 @@ public class GlobalExceptionHandler {
                     FieldError::getField,
                     f -> f.getDefaultMessage() == null ? "invalid" : f.getDefaultMessage(),
                     (a, b) -> a));
-    return ResponseEntity.badRequest().body(new ErrorBody(400, "validation failed", errors));
+    String detail = errors.isEmpty()
+        ? "validation failed"
+        : "validation failed: " + errors.entrySet().stream()
+            .map(e -> e.getKey() + " " + e.getValue())
+            .collect(Collectors.joining(", "));
+    return ResponseEntity.badRequest().body(new ErrorBody(400, detail, errors));
   }
 
   @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)

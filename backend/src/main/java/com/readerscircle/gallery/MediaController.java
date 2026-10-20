@@ -46,12 +46,11 @@ public class MediaController {
   }
 
   /**
-   * Generic image upload for create/edit forms (event covers, circle covers).
+   * Generic image upload for create/edit forms (event covers, circle covers, discussion covers).
    * Returns the public URL to send back as coverImageUrl. PHOTO only.
-   * Restricted to Organizers and Admins who manage circles and events.
    */
   @PostMapping(value = "/api/media", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
-  @PreAuthorize("hasAnyRole('ORGANIZER', 'ADMIN')")
+  @PreAuthorize("isAuthenticated()")
   public Map<String, String> uploadMedia(@RequestParam("file") MultipartFile file) {
     String url = fileStorageService.storeFile(file, MediaType.PHOTO);
     return Map.of("url", url);

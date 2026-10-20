@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReaderLayout from '../components/ReaderLayout';
-import { ApiError, api, apiBase, getAccess, initialsOf, type Me } from '../lib/api';
+import { ApiError, api, apiBase, getAccess, initialsOf, uploadMedia, type Me } from '../lib/api';
 import './ReaderDashboard.css';
 
 type FeedItem = {
@@ -125,6 +125,7 @@ export default function ReaderDashboard({ isOrganizer = false }: { isOrganizer?:
   const [formExcerpt, setFormExcerpt] = useState('');
   const [formCoverUrl, setFormCoverUrl] = useState('');
   const [formCircleId, setFormCircleId] = useState('');
+  const [uploadingCover, setUploadingCover] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -280,20 +281,29 @@ export default function ReaderDashboard({ isOrganizer = false }: { isOrganizer?:
   }
 
 
-  function onCoverFile(e: React.ChangeEvent<HTMLInputElement>) {
+  async function onCoverFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files && e.target.files[0];
     if (!f) return;
     if (f.size > 5 * 1024 * 1024) {
       setCreateErr('Cover image must be under 5MB.');
       return;
     }
-    const r = new FileReader();
-    r.onload = () => {
-      if (typeof r.result === 'string') {
-        setFormCoverUrl(r.result);
-      }
-    };
-    r.readAsDataURL(f);
+    setCreateErr('');
+    setUploadingCover(true);
+    try {
+      const url = await uploadMedia(f);
+      setFormCoverUrl(url);
+    } catch {
+      const r = new FileReader();
+      r.onload = () => {
+        if (typeof r.result === 'string') {
+          setFormCoverUrl(r.result);
+        }
+      };
+      r.readAsDataURL(f);
+    } finally {
+      setUploadingCover(false);
+    }
   }
 
   async function handleCreateDiscussion(e: React.FormEvent) {
@@ -305,13 +315,15 @@ export default function ReaderDashboard({ isOrganizer = false }: { isOrganizer?:
     setCreating(true);
     setCreateErr('');
     try {
+      const bTitle = formBookTitle.trim().slice(0, 255);
+      const bAuthor = formAuthor.trim().slice(0, 255);
       const payload = {
-        bookTitle: formBookTitle.trim(),
-        author: formAuthor.trim(),
-        discussionTitle: formDiscTitle.trim() || `${formBookTitle.trim()} – Discussion & Analysis`,
-        genre: formGenre.trim() || 'General',
-        tag: formGenre.trim() || 'General',
-        discussionExcerpt: formExcerpt.trim() || `Discussion about ${formBookTitle.trim()} by ${formAuthor.trim()}.`,
+        bookTitle: bTitle,
+        author: bAuthor,
+        discussionTitle: (formDiscTitle.trim() || `${bTitle} – Discussion & Analysis`).slice(0, 255),
+        genre: (formGenre.trim() || 'General').slice(0, 120),
+        tag: (formGenre.trim() || 'General').slice(0, 120),
+        discussionExcerpt: formExcerpt.trim() || `Discussion about ${bTitle} by ${bAuthor}.`,
         coverImageUrl: formCoverUrl.trim() || null,
         circleId: formCircleId || null,
       };
@@ -695,9 +707,9 @@ export default function ReaderDashboard({ isOrganizer = false }: { isOrganizer?:
                     </div>
                   ) : (
                     <div>
-                      <input type="file" accept=".jpg,.jpeg,.png,.webp" onChange={onCoverFile} />
-                      <span style={{ fontSize: 12, color: '#8A8175', marginTop: 4, display: 'block' }}>
-                        Upload a book or discussion cover image (JPG, PNG, WebP · Max 5MB)
+                      <input type="file" accept=".jpg,.jpeg,.png,.webp" onChange={onCoverFile} disabled={uploadingCover} />
+                      <span style={{ fontSize: 12, color: uploadingCover ? '#0a66c2' : '#8A8175', marginTop: 4, display: 'block' }}>
+                        {uploadingCover ? '⏳ Uploading cover image, please wait…' : 'Upload a book or discussion cover image (JPG, PNG, WebP · Max 5MB)'}
                       </span>
                     </div>
                   )}
