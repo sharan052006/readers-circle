@@ -42,6 +42,8 @@ export default function App() {
         <Route path="/reader-checkout" element={<ReaderCheckout />} />
         <Route path="/reader-discover" element={<ReaderDiscover />} />
         <Route path="/organizer" element={<Organizer />} />
+        <Route path="/organizer-orders" element={<Navigate to="/reader-orders" replace />} />
+        <Route path="/organizer/orders" element={<Navigate to="/reader-orders" replace />} />
         {/* HTML compatibility redirects */}
         <Route path="/index.html" element={<Navigate to="/" replace />} />
         <Route path="/auth.html" element={<Navigate to="/auth" replace />} />
