@@ -44,6 +44,11 @@ public class GlobalExceptionHandler {
     return ResponseEntity.badRequest().body(new ErrorBody(400, "validation failed", errors));
   }
 
+  @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+  ResponseEntity<ErrorBody> unreadable(org.springframework.http.converter.HttpMessageNotReadableException ex) {
+    return ResponseEntity.badRequest().body(new ErrorBody(400, "malformed request body", null));
+  }
+
   @ExceptionHandler(ResponseStatusException.class)
   ResponseEntity<ErrorBody> status(ResponseStatusException ex) {
     HttpStatus status =
