@@ -579,9 +579,6 @@ export default function ReaderDiscussion() {
                             <span>{detail.likesCount ?? 0}</span>
                           </button>
                           <span className="post-count">💬 {detail.repliesCount ?? totalComments} comments</span>
-                          {detail.viewsCount != null && (
-                            <span className="post-count">👁 {detail.viewsCount} views</span>
-                          )}
                         </div>
                       </div>
                     )}

@@ -1166,7 +1166,7 @@ async function loadDiscussions(){
       + '<div style="min-width:0;flex:1"><h3>'+esc((d.discussionTitle||d.bookTitle||'').toUpperCase())+'</h3>'
       + '<div class="bd-byline">By '+esc(d.createdBy||'')+' &nbsp;<span class="bd-tagpill">'+esc(d.genre||d.tag||'')+'</span></div>'
       + '<p class="bd-excerpt">'+esc(d.discussionExcerpt||'')+'</p>'
-      + '<div class="bd-meta"><span>💬 '+d.repliesCount+' replies</span><span>👁 '+d.viewsCount+' views</span><span>🕐 '+esc(d.timeAgo||'')+'</span>'
+      + '<div class="bd-meta"><span>💬 '+d.repliesCount+' replies</span><span>🕐 '+esc(d.timeAgo||'')+'</span>'
       + '<button class="bd-viewlink" data-id="'+d.id+'">View Discussion →</button></div></div></div></div>'
     ).join(''):'<div class="bd-card"><p class="bd-empty">No discussions yet — post the first one.</p></div>';
     document.querySelectorAll('.bd-viewlink').forEach(b=>b.onclick=()=>openBd(b.dataset.id));
