@@ -1491,16 +1491,90 @@ export default function AdminApp() {
                 <span />
               </div>
             </div>
+            {/* Mobile Slide-Over Drawer with Backdrop */}
+            {chatMobileOpen && (
+              <div className="gchat-drawer-backdrop" onClick={() => setChatMobileOpen(false)}>
+                <div className="gchat-drawer-sheet" onClick={(e) => e.stopPropagation()}>
+                  <div className="gchat-drawer-top">
+                    <h3>💬 Circles</h3>
+                    <button
+                      type="button"
+                      className="gchat-drawer-close"
+                      onClick={() => setChatMobileOpen(false)}
+                      aria-label="Close"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="gchat-left mobile-drawer">
+                    <div className="gchat-search">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                        <circle cx="11" cy="11" r="7" />
+                        <path d="m20 20-3.2-3.2" />
+                      </svg>
+                      <input value={chatQ} onChange={(e) => setChatQ(e.target.value)} placeholder="Search circles..." aria-label="Search circles" />
+                    </div>
+                    <div className="gchat-seclbl">ORGANISERS &amp; ADMIN</div>
+                    {lounge && (
+                      <button
+                        className={'gchat-chan lounge' + (isLounge ? ' on' : '')}
+                        type="button"
+                        onClick={() => {
+                          void selectChat({ id: lounge.circleId, lounge: true });
+                          setChatMobileOpen(false);
+                        }}
+                      >
+                        <span className="gchat-badge gold">👑</span>
+                        <span>
+                          <b>ORGANISERS LOUNGE</b>
+                          <small>
+                            {lounge.memberCount} {lounge.memberCount === 1 ? 'member • Leadership' : 'members • Leadership'}
+                          </small>
+                        </span>
+                        <span className="gchat-tick" style={{ visibility: isLounge ? 'visible' : 'hidden' }}>
+                          ✓
+                        </span>
+                      </button>
+                    )}
+                    <div className="gchat-seclbl">COMMUNITY CIRCLES</div>
+                    <div className="gchat-chans-scroll">
+                      {chatFiltered.length ? (
+                        chatFiltered.map((c) => {
+                          const on = sel !== null && !sel.lounge && String(sel.id) === String(c.id);
+                          const n = c.memberCount == null ? 1 : c.memberCount;
+                          return (
+                            <button
+                              key={c.id}
+                              type="button"
+                              className={'gchat-chan' + (on ? ' on' : '')}
+                              onClick={() => {
+                                void selectChat({ id: c.id, lounge: false });
+                                setChatMobileOpen(false);
+                              }}
+                            >
+                              <span className="gchat-badge">{((c.name || 'C')[0] || 'C').toUpperCase()}</span>
+                              <span>
+                                <b>{(c.name || '').toUpperCase()}</b>
+                                <small>
+                                  {n} {n === 1 ? 'member' : 'members'}
+                                </small>
+                              </span>
+                              {on && <span className="gchat-tick">✓</span>}
+                            </button>
+                          );
+                        })
+                      ) : (
+                        <p className="sub">No circles found.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="gchat-grid">
-              <aside aria-label="Channels">
-                <div className={'gchat-left' + (chatMobileOpen ? ' mobile-open' : '')}>
-                  <button
-                    type="button"
-                    className="gchat-mobile-close"
-                    onClick={() => setChatMobileOpen(false)}
-                  >
-                    ✕ Close Circles
-                  </button>
+              <aside className="gchat-desktop-aside" aria-label="Channels">
+                <div className="gchat-left">
                   <div className="gchat-search">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                       <circle cx="11" cy="11" r="7" />
