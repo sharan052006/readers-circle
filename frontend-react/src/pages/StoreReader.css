@@ -564,43 +564,62 @@ p.sr-sub {
   color: #4a2c1c;
 }
 .sr-pay {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  border: 1px solid #e5ded2;
-  border-radius: 12px;
-  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 10px 14px;
+  align-items: flex-start;
+  border: 1.5px solid #e5ded2;
+  background: #fffdf9;
+  border-radius: 14px;
+  padding: 16px 18px;
   margin-top: 12px;
   cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.sr-pay:hover {
+  border-color: #b07a4f;
+  background: #fffaf3;
 }
 .sr-pay input[type='radio'] {
   width: 18px;
   height: 18px;
   accent-color: #6b2a1f;
-  flex: none;
+  margin-top: 2px;
+  cursor: pointer;
 }
 .sr-pay > span:nth-child(2) {
-  flex: 1;
-  font-size: 13px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: 3px;
 }
 .sr-pay b {
-  font-size: 14px;
+  font-size: 15px;
+  color: #241a12;
+}
+.sr-pay > span:nth-child(2) > span {
+  font-size: 13px;
+  color: #6b6257;
+  line-height: 1.45;
 }
 .sr-brands {
+  grid-column: 2 / -1;
   display: flex;
   gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 2px;
 }
 .sr-brands i {
   font-style: normal;
-  font-size: 10.5px;
-  font-weight: 800;
-  border: 1px solid #e5ded2;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid #e0d6c8;
   border-radius: 6px;
-  padding: 3px 7px;
+  padding: 3px 8px;
   background: #fff;
   color: #4a2c1c;
+  box-shadow: 0 1px 2px rgba(45,30,20,0.04);
 }
 .sr-reviewhead {
   width: 100%;
@@ -816,6 +835,66 @@ p.sr-sub {
   .sr-stepper button {
     width: 32px;
     height: 32px;
+  }
+  .sr-stephead {
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sr-step h2 {
+    font-size: 17px;
+  }
+  .sr-outline {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .sr-step {
+    padding: 14px 14px;
+    border-radius: 14px;
+  }
+  .sr-addr {
+    padding: 12px 12px;
+    gap: 10px;
+  }
+  .sr-addrbody b {
+    font-size: 13.5px;
+  }
+  .sr-addrbody span {
+    font-size: 12.5px;
+  }
+  .sr-addractions {
+    gap: 10px;
+  }
+  .sr-pay {
+    padding: 14px 14px;
+    gap: 8px 12px;
+  }
+  .sr-brands {
+    gap: 5px;
+  }
+  .sr-brands i {
+    font-size: 10px;
+    padding: 2.5px 6px;
+  }
+  .sr-reviewhead {
+    font-size: 17px;
+  }
+  .sr-reviewbody {
+    font-size: 13px;
+  }
+  .sr-panel h3 {
+    font-size: 17px;
+  }
+  .sr-panel {
+    padding: 16px 14px;
+    border-radius: 14px;
+  }
+  .sr-sumline {
+    font-size: 12.5px;
+  }
+  .sr-total {
+    font-size: 15px;
   }
   .sr-checkout {
     min-height: 46px;
