@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ApiError, api, getAccess, isDemotionAcked, isPromotionAcked, type Me } from '../lib/api';
+import { ApiError, api, getAccess, type Me } from '../lib/api';
 import ReaderDashboard from './ReaderDashboard';
 
 export default function Organizer() {
@@ -23,8 +23,9 @@ export default function Organizer() {
           navigate('/admin');
           return;
         }
-        if (me.role === 'READER' && (isDemotionAcked(me.id) || !isPromotionAcked(me.id))) {
-          navigate('/reader');
+        if (me.role === 'READER') {
+          navigate('/reader', { replace: true });
+          return;
         }
       } catch (e) {
         if (!on) return;

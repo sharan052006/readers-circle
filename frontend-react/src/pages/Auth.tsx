@@ -1,6 +1,8 @@
 import { useRef, useState, type FormEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
+  ackDemotion,
+  ackPromotion,
   api,
   apiBase,
   ApiError,
@@ -134,6 +136,11 @@ export default function Auth() {
 
       const activeRole = me?.role || tokenRole || 'READER';
       const welcomeName = me?.name || nm || me?.email || em;
+      if (activeRole === 'ORGANIZER' && me?.id) {
+        ackPromotion(me.id);
+      } else if (activeRole === 'READER' && me?.id) {
+        ackDemotion(me.id);
+      }
       setOk(`Welcome ${welcomeName}! Taking you to your dashboard...`);
       setStatusHint('');
 

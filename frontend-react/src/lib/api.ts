@@ -55,8 +55,6 @@ export function clearTokens() {
   try {
     localStorage.removeItem(LS_A);
     localStorage.removeItem(LS_R);
-    localStorage.removeItem(LS_PROMO_ACK);
-    localStorage.removeItem(LS_DEMO_ACK);
   } catch {
     /* ignore storage errors */
   }
@@ -75,14 +73,26 @@ export function isDemotionAcked(userId?: string | null): boolean {
   return !!userId && safeGet(LS_DEMO_ACK) === userId;
 }
 
-/** Fresh promotion = ORGANIZER who never saw the congratulations. */
+/** Fresh promotion = user's active session token is still a READER token, but backend has role ORGANIZER. */
 export function isFreshPromotion(role?: string | null, userId?: string | null): boolean {
-  return role === 'ORGANIZER' && !isPromotionAcked(userId);
+  if (role !== 'ORGANIZER') return false;
+  const tokenRole = extractRoleFromToken(getAccess());
+  // If current access token is already an ORGANIZER token, the user is already authenticated as organizer!
+  if (tokenRole && tokenRole.toUpperCase() === 'ORGANIZER') {
+    return false;
+  }
+  return !isPromotionAcked(userId);
 }
 
-/** Fresh demotion = READER who was an organiser (saw promotion) but never saw the demotion notice. */
+/** Fresh demotion = user's active session token is still an ORGANIZER token, but backend has role READER. */
 export function isFreshDemotion(role?: string | null, userId?: string | null): boolean {
-  return role === 'READER' && !isDemotionAcked(userId) && safeGet(LS_PROMO_ACK) === userId;
+  if (role !== 'READER') return false;
+  const tokenRole = extractRoleFromToken(getAccess());
+  // If current access token is already a READER token, the user is already authenticated as reader!
+  if (tokenRole && tokenRole.toUpperCase() === 'READER') {
+    return false;
+  }
+  return !isDemotionAcked(userId);
 }
 
 export function ackPromotion(userId: string) {

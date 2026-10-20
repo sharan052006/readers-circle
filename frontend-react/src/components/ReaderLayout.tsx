@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { api, apiUrl, ackDemotion, ackPromotion, clearTokens, getAccess, initialsOf, isFreshDemotion, isFreshPromotion, resolveMedia, type Me } from '../lib/api';
+import { api, apiUrl, ackDemotion, ackPromotion, clearTokens, extractRoleFromToken, getAccess, initialsOf, isFreshDemotion, isFreshPromotion, resolveMedia, type Me } from '../lib/api';
 import './ReaderLayout.css';
 
 export const HighlightsContext = createContext<{
@@ -336,6 +336,15 @@ export default function ReaderLayout({
       try {
         const m = await api<Me>('/api/users/me');
         if (!on) return;
+        const tokenRole = extractRoleFromToken(getAccess());
+        if (tokenRole === 'ORGANIZER' && m.id) {
+          ackPromotion(m.id);
+          return;
+        }
+        if (tokenRole === 'READER' && m.role === 'READER' && m.id) {
+          ackDemotion(m.id);
+          return;
+        }
         if (isFreshPromotion(m.role, m.id)) setNotice({ kind: 'promoted', userId: m.id || '' });
         else if (isFreshDemotion(m.role, m.id)) setNotice({ kind: 'demoted', userId: m.id || '' });
       } catch {
