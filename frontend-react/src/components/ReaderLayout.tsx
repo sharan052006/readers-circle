@@ -27,7 +27,7 @@ export default function ReaderLayout({
   syncNote,
   highlights: directHighlights,
 }: {
-  active?: 'dashboard' | 'circles' | 'events' | 'books' | 'recommend' | 'chat' | 'settings' | 'discover';
+  active?: 'dashboard' | 'circles' | 'events' | 'books' | 'orders' | 'recommend' | 'chat' | 'settings' | 'discover';
   children: ReactNode;
   search?: ReactNode;
   syncNote?: string;
@@ -465,6 +465,9 @@ export default function ReaderLayout({
           <NavLink to="/reader-books" className={active === 'books' ? 'rnav-a on' : linkCls}>
             <span>📚</span> Books
           </NavLink>
+          <NavLink to="/reader-orders" className={active === 'orders' ? 'rnav-a on' : linkCls}>
+            <span>📦</span> Orders
+          </NavLink>
           <NavLink to="/reader-recommendations" className={active === 'recommend' ? 'rnav-a on' : linkCls}>
             <span>⭐</span> Recommendations
           </NavLink>
@@ -568,6 +571,14 @@ export default function ReaderLayout({
             >
               <span className="rmobile-nav-icon" aria-hidden="true">📚</span>
               <span>Books</span>
+            </NavLink>
+            <NavLink
+              to="/reader-orders"
+              className={active === 'orders' ? 'rmobile-nav-a on' : 'rmobile-nav-a'}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span className="rmobile-nav-icon" aria-hidden="true">📦</span>
+              <span>Orders</span>
             </NavLink>
             <NavLink
               to="/reader-recommendations"
@@ -772,10 +783,19 @@ export default function ReaderLayout({
                   type="button"
                   onClick={() => {
                     setMeOpen(false);
+                    nav('/reader-orders');
+                  }}
+                >
+                  📦 My Orders
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMeOpen(false);
                     nav('/reader-settings');
                   }}
                 >
-                  Settings
+                  ⚙ Settings
                 </button>
                 <button
                   type="button"

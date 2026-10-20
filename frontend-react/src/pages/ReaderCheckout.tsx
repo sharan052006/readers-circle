@@ -203,9 +203,22 @@ export default function ReaderCheckout() {
               Order <b>{placed.orderNumber}</b> for {rupee(placed.total)} is confirmed.
               You’ll receive updates as it ships.
             </p>
-            <button className="sr-checkout" style={{ width: 'auto', padding: '12px 34px' }} onClick={() => navigate('/reader-books')}>
-              Continue Shopping
-            </button>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center', marginTop: 14 }}>
+              <button
+                className="sr-checkout"
+                style={{ width: 'auto', padding: '12px 28px', background: '#6b2a1f', color: '#fff' }}
+                onClick={() => navigate('/reader-orders?orderId=' + (placed.orderNumber || ''))}
+              >
+                📦 View Order Details →
+              </button>
+              <button
+                className="sr-ghost"
+                style={{ width: 'auto', padding: '12px 28px' }}
+                onClick={() => navigate('/reader-books')}
+              >
+                Continue Shopping
+              </button>
+            </div>
           </div>
         ) : (
           <>
