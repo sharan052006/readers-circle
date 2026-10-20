@@ -48,7 +48,22 @@ export default function ReaderLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const topbarRef = useRef<HTMLDivElement>(null);
+  const fallbackRef = useRef<HTMLDivElement>(null);
   const [headerHeight, setHeaderHeight] = useState<number>(54);
+
+  // If page didn't pass explicit highlights, clone the page's right sidebar on mobile
+  useEffect(() => {
+    if (effectiveHighlights || !rightPanelOpen) return;
+    const timer = setTimeout(() => {
+      const rightAside = document.querySelector<HTMLElement>(
+        '.content > aside:not(#rmobile-right-drawer), aside[aria-label="Details"]:not(#rmobile-right-drawer), aside.railcards:not(#rmobile-right-drawer), aside.rdet-rail:not(#rmobile-right-drawer), aside.gchat-right:not(#rmobile-right-drawer), .rec-grid > div:last-child .rec-side'
+      );
+      if (rightAside && fallbackRef.current) {
+        fallbackRef.current.innerHTML = rightAside.innerHTML;
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [effectiveHighlights, rightPanelOpen, active]);
 
   // Close mobile drawers on route changes
   useEffect(() => {
@@ -488,54 +503,20 @@ export default function ReaderLayout({
               <span aria-hidden="true">{rightPanelIcon}</span>
               <b>{rightPanelTitle}</b>
             </div>
-            <div className="rmobile-rdh-actions">
-              <NavLink
-                to="/reader-discover"
-                className="rmobile-discover-pill"
-                onClick={() => setRightPanelOpen(false)}
-                title="Open Discover"
-              >
-                <span>🧭 Discover</span>
-                <span aria-hidden="true">→</span>
-              </NavLink>
-              <button
-                type="button"
-                className="rmobile-rdh-close"
-                onClick={() => setRightPanelOpen(false)}
-                aria-label={`Close ${rightPanelTitle}`}
-              >
-                ✕
-              </button>
-            </div>
+            <button
+              type="button"
+              className="rmobile-rdh-close"
+              onClick={() => setRightPanelOpen(false)}
+              aria-label={`Close ${rightPanelTitle}`}
+            >
+              ✕
+            </button>
           </div>
           <div className="rmobile-right-drawer-body">
             {effectiveHighlights ? (
               effectiveHighlights
             ) : (
-              <div className="rmobile-default-highlights">
-                <div className="rmobile-discover-banner">
-                  <div className="rmobile-db-header">
-                    <span className="rmobile-db-badge">🧭 Discover Hub</span>
-                    <NavLink
-                      to="/reader-discover"
-                      className="rmobile-db-link"
-                      onClick={() => setRightPanelOpen(false)}
-                    >
-                      Explore →
-                    </NavLink>
-                  </div>
-                  <p className="rmobile-db-text">
-                    Explore trending books, recommended reads, community circles & upcoming events.
-                  </p>
-                  <NavLink
-                    to="/reader-discover"
-                    className="rmobile-discover-cta"
-                    onClick={() => setRightPanelOpen(false)}
-                  >
-                    Open Full Discover Page
-                  </NavLink>
-                </div>
-              </div>
+              <div ref={fallbackRef} className="rmobile-fallback-content" />
             )}
           </div>
         </aside>

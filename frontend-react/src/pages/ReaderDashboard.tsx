@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import ReaderLayout from '../components/ReaderLayout';
 import { ApiError, api, apiBase, getAccess, initialsOf, type Me } from '../lib/api';
 import './ReaderDashboard.css';
@@ -365,29 +365,10 @@ export default function ReaderDashboard() {
   // Right-side widgets for mobile right drawer
   const mobileHighlights = (
     <div className="rmobile-dash-highlights">
-      {/* Discover Hub Banner */}
-      <div className="rmobile-discover-banner">
-        <div className="rmobile-db-header">
-          <span className="rmobile-db-badge">🧭 Discover Hub</span>
-          <NavLink to="/reader-discover" className="rmobile-db-link">
-            Explore →
-          </NavLink>
-        </div>
-        <p className="rmobile-db-text">
-          Browse all trending books, recommendations, circles & events in the Discover page.
-        </p>
-        <NavLink to="/reader-discover" className="rmobile-discover-cta">
-          Open Discover Page
-        </NavLink>
-      </div>
-
       {/* Trending Books Widget */}
       <div className="rmobile-highlight-section">
         <div className="rmobile-hl-section-head">
           <h4>🔥 Trending Books</h4>
-          <NavLink to="/reader-discover" className="rmobile-hl-more">
-            All ({trending?.length || 0})
-          </NavLink>
         </div>
         {(!trending || trending.length === 0) ? (
           <div className="rmobile-hl-empty">No trending books yet.</div>
@@ -417,9 +398,6 @@ export default function ReaderDashboard() {
       <div className="rmobile-highlight-section">
         <div className="rmobile-hl-section-head">
           <h4>⭐ Recommended Books</h4>
-          <NavLink to="/reader-discover" className="rmobile-hl-more">
-            All ({recs?.length || 0})
-          </NavLink>
         </div>
         {(!recs || recs.length === 0) ? (
           <div className="rmobile-hl-empty">No recommendations yet.</div>
@@ -453,9 +431,6 @@ export default function ReaderDashboard() {
       <div className="rmobile-highlight-section">
         <div className="rmobile-hl-section-head">
           <h4>📅 Registered Events</h4>
-          <NavLink to="/reader-discover" className="rmobile-hl-more">
-            All ({myEvents?.length || 0})
-          </NavLink>
         </div>
         {(!myEvents || myEvents.length === 0) ? (
           <div className="rmobile-hl-empty">
