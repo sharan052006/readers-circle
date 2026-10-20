@@ -107,8 +107,6 @@ export default function ReaderDashboard() {
   const [loadingFeed, setLoadingFeed] = useState(true);
   const [feedError, setFeedError] = useState('');
   const [trending, setTrending] = useState<TrendBook[]>([]);
-  const [recs, setRecs] = useState<RecBook[]>([]);
-  const [myEvents, setMyEvents] = useState<RegEvent[]>([]);
   const [sync, setSync] = useState('Connecting...');
   const [liking, setLiking] = useState<Record<string, boolean>>({});
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -169,17 +167,6 @@ export default function ReaderDashboard() {
       const feedItems = dash.feed ?? dash.discussions ?? [];
       setFeed(Array.isArray(feedItems) ? feedItems : []);
       setTrending(Array.isArray(dash.trendingBooks) ? dash.trendingBooks : []);
-      let recList = Array.isArray(dash.recommendedBooks) ? dash.recommendedBooks : [];
-      if (!recList.length) {
-        try {
-          const recApi = await api<RecBook[]>('/api/recommendations/books?limit=3&sort=recommended');
-          if (Array.isArray(recApi)) recList = recApi;
-        } catch {
-          /* keep empty, rails show their empty state */
-        }
-      }
-      setRecs(recList);
-      setMyEvents(Array.isArray(dash.registeredEvents) ? dash.registeredEvents : []);
       try {
         const cs = await api<{ id: string; name: string }[]>('/api/circles');
         setCircles(Array.isArray(cs) ? cs : []);
@@ -202,18 +189,7 @@ export default function ReaderDashboard() {
         } catch {
           /* rail keeps previous value */
         }
-        try {
-          const rb = await api<RecBook[]>('/api/recommendations/books?limit=3');
-          setRecs(Array.isArray(rb) ? rb : []);
-        } catch {
-          /* rail keeps previous value */
-        }
-        try {
-          const ev = await api<RegEvent[]>('/api/users/me/registrations');
-          setMyEvents(Array.isArray(ev) ? ev : []);
-        } catch {
-          /* rail keeps previous value */
-        }
+
         setSync('Synced with admin just now');
       } catch {
         setFeed([]);
@@ -391,74 +367,6 @@ export default function ReaderDashboard() {
               </div>
             </div>
           ))
-        )}
-      </div>
-
-      {/* Recommended Books Widget */}
-      <div className="rmobile-highlight-section">
-        <div className="rmobile-hl-section-head">
-          <h4>⭐ Recommended Books</h4>
-        </div>
-        {(!recs || recs.length === 0) ? (
-          <div className="rmobile-hl-empty">No recommendations yet.</div>
-        ) : (
-          (recs || []).slice(0, 3).map((b, i) => {
-            const n = b.recommendedByCount ?? b.distinctRecommenders ?? b.upvotesCount ?? 0;
-            const cover = b.coverImageUrl || b.coverUrl;
-            return (
-              <div className="rmobile-hl-card" key={i}>
-                <span className="rmobile-hl-rank">{i + 1}</span>
-                {cover && (
-                  <img
-                    src={cover}
-                    alt=""
-                    className="rmobile-hl-thumb"
-                    onError={coverError}
-                  />
-                )}
-                <div className="rmobile-hl-info">
-                  <b>{b.bookTitle || b.title || ''}</b>
-                  <span>{b.author || ''}</span>
-                  <small>Recommended by {n} readers</small>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-
-      {/* Registered Events Widget */}
-      <div className="rmobile-highlight-section">
-        <div className="rmobile-hl-section-head">
-          <h4>📅 Registered Events</h4>
-        </div>
-        {(!myEvents || myEvents.length === 0) ? (
-          <div className="rmobile-hl-empty">
-            <b>Nothing registered</b>
-            <span>Browse events and reserve a seat.</span>
-          </div>
-        ) : (
-          (myEvents || []).slice(0, 3).map((e, i) => {
-            const when = [e.eventDate, e.eventTime].filter(Boolean).join(' · ');
-            return (
-              <div className="rmobile-hl-card" key={i}>
-                <span className="rmobile-hl-rank">{i + 1}</span>
-                {e.coverImageUrl && (
-                  <img
-                    src={e.coverImageUrl}
-                    alt=""
-                    className="rmobile-hl-thumb"
-                    onError={coverError}
-                  />
-                )}
-                <div className="rmobile-hl-info">
-                  <b>{e.title || ''}</b>
-                  <span>{when}</span>
-                  <small>{[e.location, e.venue].filter(Boolean).join(' · ') || e.circleName || ''}</small>
-                </div>
-              </div>
-            );
-          })
         )}
       </div>
     </div>
@@ -642,7 +550,7 @@ export default function ReaderDashboard() {
             })
           )}
         </main>
-        <aside className="railcards" aria-label="Recommendations and events">
+        <aside className="railcards" aria-label="Trending books">
           <section className="panel" aria-labelledby="tTrend">
             <h3 id="tTrend">🔥 Trending Books</h3>
             <div className="rail-cards-track">
@@ -662,62 +570,6 @@ export default function ReaderDashboard() {
                     </div>
                   </div>
                 ))
-              )}
-            </div>
-          </section>
-          <section className="panel" aria-labelledby="tRec">
-            <h3 id="tRec">⭐ Recommended Books</h3>
-            <div className="rail-cards-track">
-              {(!recs || recs.length === 0) ? (
-                <div className="empty">No recommendations yet.</div>
-              ) : (
-                (recs || []).slice(0, 3).map((b, i) => {
-                  const n = b.recommendedByCount ?? b.distinctRecommenders ?? b.upvotesCount ?? 0;
-                  const cover = b.coverImageUrl || b.coverUrl;
-                  return (
-                    <div className="rank" key={i}>
-                      <span className="n">{i + 1}</span>
-                      {cover && (
-                        <img
-                          src={cover}
-                          alt={'Cover of ' + (b.bookTitle || b.title || '')}
-                          onError={coverError}
-                        />
-                      )}
-                      <div>
-                        <b>{b.bookTitle || b.title || ''}</b>
-                        <span>{b.author || ''}</span>
-                        <span>Recommended by {n} readers</span>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </section>
-          <section className="panel" aria-labelledby="tEv">
-            <h3 id="tEv">📅 Registered Events</h3>
-            <div className="rail-cards-track">
-              {(!myEvents || myEvents.length === 0) ? (
-                <div className="empty">
-                  <b>Nothing registered</b>
-                  Browse events and reserve a seat. New bookings appear here and in admin counts.
-                </div>
-              ) : (
-                (myEvents || []).slice(0, 4).map((e, i) => {
-                  const when = [e.eventDate, e.eventTime].filter(Boolean).join(' · ');
-                  return (
-                    <div className="ev" key={i}>
-                      <span className="n">{i + 1}</span>
-                      {e.coverImageUrl && <img src={e.coverImageUrl} alt="" onError={coverError} />}
-                      <div>
-                        <b>{e.title || ''}</b>
-                        <span>{when}</span>
-                        <span>{[e.location, e.venue].filter(Boolean).join(' · ') || e.circleName || ''}</span>
-                      </div>
-                    </div>
-                  );
-                })
               )}
             </div>
           </section>
