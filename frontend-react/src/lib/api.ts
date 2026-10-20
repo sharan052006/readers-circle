@@ -152,7 +152,7 @@ export class NetworkConnectionError extends Error {
   }
 }
 
-export const DEFAULT_TIMEOUT_MS = 25000;
+export const DEFAULT_TIMEOUT_MS = 75000;
 
 export async function fetchWithTimeout(
   input: RequestInfo | URL,
@@ -215,7 +215,7 @@ async function tryRefresh(): Promise<boolean> {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refreshToken: rt }),
-        }, 15000);
+        }, 60000);
         if (!r.ok) return false;
         const d = (await r.json().catch(() => ({}))) as Record<string, unknown>;
         const access = (d.accessToken ?? d.access_token) as string | undefined;
@@ -271,6 +271,18 @@ export async function api<T = unknown>(path: string, opts: Opts = {}): Promise<T
   try {
     return await doFetch<T>(path, opts);
   } catch (e) {
+    // If request failed because backend was in cold-boot (timeout/network error), retry once after a short delay for GET requests
+    if (
+      (e instanceof NetworkTimeoutError || e instanceof NetworkConnectionError) &&
+      (!opts.method || opts.method.toUpperCase() === 'GET')
+    ) {
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+        return await doFetch<T>(path, opts);
+      } catch {
+        /* fallback to throwing original error if retry also fails */
+      }
+    }
     // Access tokens live ~15 min: silently refresh once, then retry.
     // Never intercept the refresh call itself (avoids loops).
     if (e instanceof ApiError && e.status === 401 && !path.startsWith('/api/auth/')) {
