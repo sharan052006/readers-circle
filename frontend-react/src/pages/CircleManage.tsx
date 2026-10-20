@@ -228,36 +228,38 @@ function MembersTab({ circleId }: { circleId: string }) {
       </div>
       {err && <div className="mg-err">{err}</div>}
       <div className="card" style={{ padding: 6 }}>
-        <table className="tbl">
-          <thead><tr><th>#</th><th>Name</th><th>Joined On</th><th>Action</th></tr></thead>
-          <tbody>
-            {shown.map((m, i) => {
-              const self = m.readerId === meId;
-              return (
-                <tr key={m.membershipId || m.readerId || i}>
-                  <td>{i + 1}</td>
-                  <td>
-                    <span className="who">
-                      <span className="face">{initialsOf(m.readerName)}</span>
-                      {m.readerName}{self ? ' (You)' : ''}
-                      {self ? <span className="pill org">👑 Organizer</span> : null}
-                    </span>
-                  </td>
-                  <td>{fmtDate(m.decidedAt || m.requestedAt)}</td>
-                  <td>
-                    {!self ? (
-                      <button className="btn danger-ghost rowbtn" disabled={busy === m.readerId} onClick={() => void remove(m.readerId, m.readerName)}>
-                        👤 Remove
-                      </button>
-                    ) : (
-                      <span style={{ color: '#a39a8a' }}>—</span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="tbl-wrap">
+          <table className="tbl">
+            <thead><tr><th>#</th><th>Name</th><th>Joined On</th><th>Action</th></tr></thead>
+            <tbody>
+              {shown.map((m, i) => {
+                const self = m.readerId === meId;
+                return (
+                  <tr key={m.membershipId || m.readerId || i}>
+                    <td>{i + 1}</td>
+                    <td>
+                      <span className="who">
+                        <span className="face">{initialsOf(m.readerName)}</span>
+                        {m.readerName}{self ? ' (You)' : ''}
+                        {self ? <span className="pill org">👑 Organizer</span> : null}
+                      </span>
+                    </td>
+                    <td>{fmtDate(m.decidedAt || m.requestedAt)}</td>
+                    <td>
+                      {!self ? (
+                        <button className="btn danger-ghost rowbtn" disabled={busy === m.readerId} onClick={() => void remove(m.readerId, m.readerName)}>
+                          👤 Remove
+                        </button>
+                      ) : (
+                        <span style={{ color: '#a39a8a' }}>—</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
         {!shown.length && !err && <div className="emptybox">No members found.</div>}
       </div>
     </div>
@@ -309,33 +311,35 @@ function RequestsTab({ circleId, onChanged }: { circleId: string; onChanged: () 
       </div>
       {err && <div className="mg-err">{err}</div>}
       <div className="card" style={{ padding: 6 }}>
-        <table className="tbl">
-          <thead><tr><th>#</th><th>Name</th><th>Requested On</th><th>Action</th></tr></thead>
-          <tbody>
-            {list.map((m, i) => (
-              <tr key={m.membershipId || i}>
-                <td>{i + 1}</td>
-                <td>
-                  <span className="who">
-                    <span className="face">{initialsOf(m.readerName)}</span>
-                    {m.readerName}
-                  </span>
-                </td>
-                <td>{fmtDate(m.requestedAt)}</td>
-                <td>
-                  <span className="act">
-                    <button className="btn ok-ghost rowbtn" disabled={!!busy} onClick={() => void decide(m.membershipId, 'APPROVE')}>
-                      ✓ Accept
-                    </button>
-                    <button className="btn danger-ghost rowbtn" disabled={!!busy} onClick={() => void decide(m.membershipId, 'REJECT')}>
-                      ✕ Reject
-                    </button>
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="tbl-wrap">
+          <table className="tbl">
+            <thead><tr><th>#</th><th>Name</th><th>Requested On</th><th>Action</th></tr></thead>
+            <tbody>
+              {list.map((m, i) => (
+                <tr key={m.membershipId || i}>
+                  <td>{i + 1}</td>
+                  <td>
+                    <span className="who">
+                      <span className="face">{initialsOf(m.readerName)}</span>
+                      {m.readerName}
+                    </span>
+                  </td>
+                  <td>{fmtDate(m.requestedAt)}</td>
+                  <td>
+                    <span className="act">
+                      <button className="btn ok-ghost rowbtn" disabled={!!busy} onClick={() => void decide(m.membershipId, 'APPROVE')}>
+                        ✓ Accept
+                      </button>
+                      <button className="btn danger-ghost rowbtn" disabled={!!busy} onClick={() => void decide(m.membershipId, 'REJECT')}>
+                        ✕ Reject
+                      </button>
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {!list.length && !err && <div className="emptybox">No pending join requests.</div>}
       </div>
     </div>

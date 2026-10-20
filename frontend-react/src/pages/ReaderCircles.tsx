@@ -982,13 +982,19 @@ function DetailView({ setSync, initTab }: { setSync: (s: string) => void; initTa
                   </span>
                 )}
               </div>
-              {tagsOf(circle).length > 0 && (
-                <div className="rc-circle-tags-row">
-                  {tagsOf(circle).map((t, i) => (
-                    <span key={i} className="rc-circle-tag-pill">{t}</span>
-                  ))}
-                </div>
-              )}
+              {(() => {
+                const extraTags = (circle.tags || [])
+                  .map((t) => t.trim())
+                  .filter((t) => t && t.toLowerCase() !== (circle.category || '').trim().toLowerCase())
+                  .slice(0, 4);
+                return extraTags.length > 0 ? (
+                  <div className="rc-circle-tags-row">
+                    {extraTags.map((t, i) => (
+                      <span key={i} className="rc-circle-tag-pill">{t}</span>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
             </div>
           </div>
         </div>
@@ -1015,11 +1021,25 @@ function DetailView({ setSync, initTab }: { setSync: (s: string) => void; initTa
               <div className="kv"><b>Circle Name</b><span>{circle.name}</span></div>
               <div className="kv"><b>Description</b><span>{circle.description || '—'}</span></div>
               <div className="kv"><b>Tags</b>
-                {tagsOf(circle).length ? (
-                  <span className="tagrow">{tagsOf(circle).map((t, i) => <span key={i}>{t}</span>)}</span>
-                ) : (
-                  <span>—</span>
-                )}
+                {(() => {
+                  const allUnique = Array.from(
+                    new Set(
+                      [
+                        ...(circle.category ? [circle.category.trim()] : []),
+                        ...(circle.tags || []).map((t) => t.trim()),
+                      ].filter(Boolean),
+                    ),
+                  );
+                  return allUnique.length ? (
+                    <span className="tagrow">
+                      {allUnique.map((t, i) => (
+                        <span key={i}>{t}</span>
+                      ))}
+                    </span>
+                  ) : (
+                    <span>—</span>
+                  );
+                })()}
               </div>
             </div>
           </div>

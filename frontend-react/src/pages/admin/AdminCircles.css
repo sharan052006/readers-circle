@@ -129,7 +129,10 @@ th,td{text-align:left;padding:9px 10px;border-bottom:1px solid #EEE9DC}th{backgr
 }
 @media (max-width: 640px) {
   .admin-circles-app .content {
-    padding: 14px 12px 32px;
+    padding: 10px 8px 32px !important;
+  }
+  .admin-circles-app #manageView .mg-wrap {
+    padding: 2px 2px 24px !important;
   }
   .admin-circles-app .toolbar {
     flex-direction: column;

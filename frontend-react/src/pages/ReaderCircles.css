@@ -438,11 +438,87 @@ h1.page{font-family:'Fraunces',serif;font-size:38px;margin:0;letter-spacing:-.01
   .grid3,.grid4{grid-template-columns:1fr}
   .tabs{overflow-x:auto;padding-bottom:6px;gap:14px;white-space:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .tabs::-webkit-scrollbar{display:none}
+  .tabs button{flex-shrink:0;white-space:nowrap}
+  .mg-tabs{overflow-x:auto;padding-bottom:2px;gap:8px;white-space:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .mg-tabs::-webkit-scrollbar{display:none}
+  .mg-tabs button{flex-shrink:0;white-space:nowrap;padding:8px 12px;font-size:13px}
+
+  /* Circle Details Hero on Mobile */
+  .rc-circle-cover-wrap {
+    height: 140px;
+  }
+  .rc-circle-profile-bar {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0 16px 18px;
+    margin-top: -38px;
+    gap: 10px;
+  }
+  .rc-circle-avatar-shell {
+    width: 76px;
+    height: 76px;
+    border-radius: 16px;
+    border: 3.5px solid #FFFFFF;
+    box-shadow: 0 4px 16px rgba(45, 30, 20, 0.14);
+  }
+  .rc-circle-profile-info {
+    padding-top: 0;
+    width: 100%;
+  }
+  .rc-circle-title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .rc-circle-title-col {
+    flex: 1 1 auto;
+    min-width: 180px;
+  }
+  .rc-circle-name {
+    font-size: 22px;
+    line-height: 1.25;
+    margin: 0;
+  }
+  .rc-circle-description {
+    font-size: 13.5px;
+    margin: 4px 0 8px;
+    line-height: 1.5;
+  }
+  .rc-circle-badge-box {
+    margin-top: 2px;
+  }
+  .rc-circle-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    margin-bottom: 6px;
+  }
+  .rc-meta-chip {
+    font-size: 12px;
+    padding: 3.5px 10px;
+    border-radius: 999px;
+  }
+  .rc-circle-tags-row {
+    margin-top: 4px;
+    gap: 6px;
+  }
+  .rc-circle-tag-pill {
+    font-size: 11.5px;
+    padding: 2.5px 9px;
+  }
+
   h1.page{font-size:26px}
   .toolbar{flex-direction:column;align-items:stretch}
   .toolbar input[type=search]{min-width:100%}
   .bigrow{grid-template-columns:1fr}
   .bigrow img{width:100%;height:180px}
+  .evrow{grid-template-columns:1fr;gap:12px}
+  .evrow img{width:100%;height:170px}
+  .evrow-side{align-items:flex-start;width:100%}
   .minis{grid-template-columns:repeat(2, 1fr);gap:8px}
   .stat3{grid-template-columns:repeat(3, 1fr);gap:6px}
   .stat3 .mini{padding:8px 4px}
@@ -453,7 +529,7 @@ h1.page{font-family:'Fraunces',serif;font-size:38px;margin:0;letter-spacing:-.01
 }
 
 @media(max-width:480px){
-  .rapp .content{padding:10px 12px 28px;gap:14px}
+  .rapp .content{padding:10px 10px 28px;gap:14px}
   h1.page{font-size:23px}
   .sub{font-size:12.5px;margin-bottom:10px}
   .secttl{flex-wrap:wrap;gap:6px}
@@ -464,6 +540,8 @@ h1.page{font-family:'Fraunces',serif;font-size:38px;margin:0;letter-spacing:-.01
   .mini span{font-size:10.5px}
   .orgrow,.memrow{grid-template-columns:44px 1fr;gap:10px}
   .memrow img{width:44px;height:44px}
+  .rc-circle-name{font-size:20px}
+  .rc-circle-cover-wrap{height:130px}
 }
 
 @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
