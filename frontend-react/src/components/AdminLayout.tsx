@@ -96,6 +96,115 @@ export default function AdminLayout({
     return () => document.removeEventListener('mousedown', handleClick);
   }, [userDropdownOpen]);
 
+  // Edge-swipe & any-space swipe navigation for mobile drawer
+  useEffect(() => {
+    const isMobile = () =>
+      window.matchMedia('(max-width: 900px)').matches || window.innerWidth <= 900;
+
+    let startX = 0;
+    let startY = 0;
+    let lastX = 0;
+    let lastY = 0;
+    let isTracking = false;
+    let isCanceled = false;
+    let drawerOpenAtStart = false;
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (!isMobile() || e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      const target = e.target;
+      const elem = target instanceof Element ? target : (target as Node)?.parentElement;
+
+      // Prevent triggering when interacting with form controls or carousels
+      if (
+        elem &&
+        elem.closest(
+          'input, textarea, select, button, form, [data-no-swipe], [role="slider"]'
+        )
+      ) {
+        return;
+      }
+
+      drawerOpenAtStart = mobileMenuOpen;
+      startX = touch.clientX;
+      startY = touch.clientY;
+      lastX = touch.clientX;
+      lastY = touch.clientY;
+      isTracking = true;
+      isCanceled = false;
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!isTracking || isCanceled || e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      lastX = touch.clientX;
+      lastY = touch.clientY;
+      const dx = lastX - startX;
+      const dy = lastY - startY;
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
+
+      // Cancel if user is scrolling vertically
+      if (absY > 20 && absY > absX * 1.4) {
+        isCanceled = true;
+        return;
+      }
+
+      if (absX >= 25 && absX > absY) {
+        if (drawerOpenAtStart) {
+          // Drawer open: swipe right to left (dx <= -25) to close
+          if (dx <= -25 || absX >= 35) {
+            setMobileMenuOpen(false);
+            isCanceled = true;
+            isTracking = false;
+          }
+        } else {
+          // Drawer closed: swipe left to right (dx >= 25) from any space to open
+          if (dx >= 25) {
+            setMobileMenuOpen(true);
+            isCanceled = true;
+            isTracking = false;
+          }
+        }
+      }
+    };
+
+    const onTouchEnd = () => {
+      if (!isTracking || isCanceled) {
+        isTracking = false;
+        isCanceled = false;
+        return;
+      }
+      const dx = lastX - startX;
+      const dy = lastY - startY;
+      const absX = Math.abs(dx);
+      const absY = Math.abs(dy);
+
+      if (absX >= 35 && absX > absY) {
+        if (drawerOpenAtStart) {
+          if (dx <= -25 || absX >= 35) setMobileMenuOpen(false);
+        } else {
+          if (dx >= 25) setMobileMenuOpen(true);
+        }
+      }
+
+      isTracking = false;
+      isCanceled = false;
+    };
+
+    window.addEventListener('touchstart', onTouchStart, { passive: true });
+    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('touchend', onTouchEnd, { passive: true });
+    window.addEventListener('touchcancel', onTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', onTouchStart);
+      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener('touchcancel', onTouchEnd);
+    };
+  }, [mobileMenuOpen]);
+
   const handleNavClick = (key: AdminViewKey) => {
     setMobileMenuOpen(false);
     if (onNavigateView) {

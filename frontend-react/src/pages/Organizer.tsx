@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ApiError, api, clearTokens, getAccess, isDemotionAcked, isPromotionAcked, type Me } from '../lib/api';
+import { ApiError, api, getAccess, isDemotionAcked, isPromotionAcked, type Me } from '../lib/api';
 import ReaderDashboard from './ReaderDashboard';
 
 export default function Organizer() {
@@ -37,46 +37,5 @@ export default function Organizer() {
     };
   }, [navigate]);
 
-  function signOut() {
-    clearTokens();
-    navigate('/auth');
-  }
-
-  return (
-    <>
-      <div
-        style={{
-          background: '#6B2A1F',
-          color: '#F7EFE0',
-          padding: '10px 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 16,
-          flexWrap: 'wrap',
-        }}
-      >
-        <b style={{ fontFamily: 'Georgia, serif', fontSize: 16 }}>👑 Organiser Mode</b>
-        <span style={{ fontSize: 13, opacity: 0.9 }}>
-          You have full reader access plus organiser tools to manage your reading circles and events directly from the Circles and Events tabs.
-        </span>
-        <button
-          type="button"
-          onClick={signOut}
-          style={{
-            background: 'transparent',
-            color: '#F7EFE0',
-            border: '1px solid #F7EFE0',
-            borderRadius: 8,
-            padding: '5px 14px',
-            fontWeight: 700,
-            cursor: 'pointer',
-          }}
-        >
-          Sign out
-        </button>
-      </div>
-      <ReaderDashboard />
-    </>
-  );
+  return <ReaderDashboard isOrganizer />;
 }

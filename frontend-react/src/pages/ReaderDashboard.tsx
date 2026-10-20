@@ -101,7 +101,7 @@ function coverError(e: React.SyntheticEvent<HTMLImageElement>) {
   img.src = PLACEHOLDER;
 }
 
-export default function ReaderDashboard() {
+export default function ReaderDashboard({ isOrganizer = false }: { isOrganizer?: boolean } = {}) {
   const navigate = useNavigate();
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [loadingFeed, setLoadingFeed] = useState(true);
@@ -376,6 +376,16 @@ export default function ReaderDashboard() {
     <ReaderLayout active="dashboard" syncNote={sync} highlights={mobileHighlights}>
       <div className="content">
         <main className="feed" aria-live="polite">
+          {isOrganizer && (
+            <div className="org-mode-banner" role="status" aria-label="Organiser Mode">
+              <div className="org-mode-content">
+                <b className="org-mode-title">👑 Organiser Mode</b>
+                <span className="org-mode-desc">
+                  You have full reader access plus organiser tools to manage your reading circles and events directly from the Circles and Events tabs.
+                </span>
+              </div>
+            </div>
+          )}
           <div className="feed-header">
             <div className="feed-header-left">
               <h1>Discussions</h1>

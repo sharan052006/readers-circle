@@ -444,7 +444,7 @@ export default function ReaderLayout({
           <b>Reader's Circle</b>
         </div>
         <nav className="rnav">
-          <NavLink to="/reader" className={active === 'dashboard' ? 'rnav-a on' : linkCls}>
+          <NavLink to={me?.role === 'ORGANIZER' ? '/organizer' : '/reader'} className={active === 'dashboard' ? 'rnav-a on' : linkCls}>
             <span>⌂</span> Dashboard
           </NavLink>
           <NavLink to="/reader-circles" className={active === 'circles' ? 'rnav-a on' : linkCls}>
@@ -529,7 +529,7 @@ export default function ReaderLayout({
         >
           <nav className="rmobile-nav">
             <NavLink
-              to="/reader"
+              to={me?.role === 'ORGANIZER' ? '/organizer' : '/reader'}
               className={active === 'dashboard' ? 'rmobile-nav-a on' : 'rmobile-nav-a'}
               onClick={() => setMobileMenuOpen(false)}
             >
