@@ -20,6 +20,7 @@ import '../ReaderDiscussion.css';
 import AdminBooks from './AdminBooks';
 import AdminOrders from './AdminOrders';
 import RecommendationsView from '../../components/Recommendations';
+import AdminLayout from '../../components/AdminLayout';
 
 type AdminView = 'dashboard' | 'chat' | 'discussions' | 'recommend' | 'usershome' | 'analytics' | 'settings' | 'books' | 'orders';
 
@@ -1107,74 +1108,22 @@ export default function AdminApp() {
     );
   }
 
-  const navBtn = (v: string, label: string) => (
-    <button key={v} className="navbtn" data-view={v} aria-current={view === v ? 'page' : undefined} onClick={() => go(v)}>
-      {label}
-    </button>
-  );
-
   return (
     <>
-    <div className="app admin-app-page">
-      <div className="side" aria-label="Admin navigation">
-        <div className="brandrow">
-          <span className="mark">📚</span>
-          <div>
-            <b>READER'S CIRCLE</b>
-            <span>Admin Panel</span>
-          </div>
-        </div>
-        <nav id="nav">
-          {navBtn('dashboard', '🏠 Dashboard')}
-          {navBtn('circles', '👥 Circles')}
-          {navBtn('events', '📅 Events')}
-          <div className="navgroup">Community</div>
-          {navBtn('chat', '💬 General Chat')}
-          {navBtn('discussions', '📖 Book Discussions')}
-          {navBtn('recommend', '⭐ Book Recommendations')}
-          <div className="navgroup">Commerce</div>
-          {navBtn('books', '📚 Books')}
-          {navBtn('orders', '🛒 Orders')}
-          <div className="navgroup">Users</div>
-          {navBtn('usershome', '👤 Users')}
-          <div className="navgroup">Platform</div>
-          {navBtn('analytics', '📊 Analytics')}
-          {navBtn('settings', '⚙️ Settings')}
-        </nav>
-        <div className="sidefoot">
-          <b>{me.name || me.email}</b>
-          <span>{me.role === 'ADMIN' ? 'Administrator' : me.role}</span>
-          <br />
-          <button className="linkbtn" onClick={signOut}>
-            Sign Out
-          </button>
-        </div>
-      </div>
-
-      <div className="main">
-        <div className="topbar">
-          <span className="sync">
-            <span className="dot"></span>
-            <span>{syncLbl}</span>
-          </span>
-          <span className="sp"></span>
-          <input
-            className="apibase"
-            value={baseUrl}
-            aria-label="API base URL"
-            onChange={(e) => {
-              setBaseUrl(e.target.value);
-              setApiBase(e.target.value.replace(/\/+$/, ''));
-            }}
-          />
-          <span className="userchip">
-            <span className="avatar">{initialsOf(me.name || me.email)}</span>
-            <span>{me.name || me.email}</span>
-          </span>
-        </div>
-
-        <div className="content">
-          {pageErr && <div className="err">{pageErr}</div>}
+      <AdminLayout
+        activeView={view}
+        onNavigateView={(v) => go(v)}
+        syncNote={syncLbl}
+        baseUrl={baseUrl}
+        setBaseUrl={(url) => {
+          setBaseUrl(url);
+          setApiBase(url.replace(/\/+$/, ''));
+        }}
+        me={me}
+        signOut={signOut}
+        className="admin-app-page"
+      >
+        {pageErr && <div className="err">{pageErr}</div>}
 
           <section className={'view' + (view === 'dashboard' ? ' on' : '')} id="v-dashboard">
             <div className="adash">
@@ -2729,9 +2678,7 @@ export default function AdminApp() {
               </div>
             </div>
           </section>
-        </div>
-      </div>
-    </div>
+      </AdminLayout>
       <>
         {!blockTarget ? null : (
           <div className="um-veil" onClick={(e) => { if (e.target === e.currentTarget) setBlockTarget(null); }}>

@@ -739,4 +739,22 @@
   .st-search input {
     width: 100%;
   }
+  .st-hero {
+    padding: 18px 16px !important;
+  }
+  .st-addbtn {
+    width: 100%;
+    text-align: center;
+  }
+  .st-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .st-modal {
+    padding: 18px 16px !important;
+    width: calc(100vw - 24px) !important;
+    max-height: 90vh !important;
+  }
 }

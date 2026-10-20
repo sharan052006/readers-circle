@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api, ApiError, clearTokens, getAccess, initialsOf, setApiBase, apiBase, type Me } from '../../lib/api';
+import { api, ApiError, clearTokens, getAccess, setApiBase, apiBase, type Me } from '../../lib/api';
 import { EventModal } from '../ManageEvents';
 import { EventDetail } from '../ReaderEvents';
 import { COVER_PLACEHOLDER } from '../../lib/placeholders';
 import '../CircleManage.css';
 import '../ReaderEvents.css';
 import './AdminEvents.css';
+import AdminLayout from '../../components/AdminLayout';
 
 function errMsg(e: unknown): string {
   if (e instanceof ApiError) return e.message;
@@ -157,76 +158,22 @@ export default function AdminEvents() {
     setViewId(id);
   }
 
-  const sideBtn = (label: string, onClick: () => void, active?: boolean) => (
-    <button key={label} className="navbtn" data-view={label} aria-current={active ? 'page' : undefined} onClick={onClick}>
-      {label}
-    </button>
-  );
-
   return (
     <>
-      <div className="app admin-events-app">
-      <div className="side" aria-label="Admin navigation">
-        <div className="brandrow">
-          <span className="mark">📚</span>
-          <div>
-            <b>READER'S CIRCLE</b>
-            <span>Admin Panel</span>
-          </div>
-        </div>
-        <nav id="nav">
-          {sideBtn('🏠 Dashboard', () => navigate('/admin'))}
-          {sideBtn('👥 Circles', () => navigate('/circles'))}
-          {sideBtn('📅 Events', () => navigate('/events'), true)}
-          <div className="navgroup">Community</div>
-          {sideBtn('💬 General Chat', () => navigate('/admin?view=chat'))}
-          {sideBtn('📖 Book Discussions', () => navigate('/admin?view=discussions'))}
-          {sideBtn('⭐ Book Recommendations', () => navigate('/admin?view=recommend'))}
-          <div className="navgroup">Commerce</div>
-          {sideBtn('📚 Books', () => navigate('/admin?view=books'))}
-          {sideBtn('🛒 Orders', () => navigate('/admin?view=orders'))}
-          <div className="navgroup">Users</div>
-          {sideBtn('👤 Users', () => navigate('/admin?view=usershome'))}
-          <div className="navgroup">Platform</div>
-          {sideBtn('📊 Analytics', () => navigate('/admin?view=analytics'))}
-          {sideBtn('⚙️ Settings', () => navigate('/admin?view=settings'))}
-        </nav>
-        <div className="sidefoot">
-          <b>{me?.name || me?.email || 'Admin User'}</b>
-          <span>Administrator</span>
-          <br />
-          <button
-            className="linkbtn"
-            onClick={() => {
-              clearTokens();
-              navigate('/auth');
-            }}
-          >
-            Sign Out
-          </button>
-        </div>
-      </div>
-      <div className="main">
-        <div className="topbar">
-          <span className="sync">
-            <span className="dot"></span>
-            <span>Real-Time Sync Active</span>
-          </span>
-          <span className="sp"></span>
-          <input
-            className="apibase"
-            value={baseUrl}
-            aria-label="API base URL"
-            onChange={(e) => {
-              setBaseUrl(e.target.value);
-              setApiBase(e.target.value.replace(/\/+$/, ''));
-            }}
-          />
-          <span className="userchip">
-            <span className="avatar">{initialsOf(me?.name || me?.email)}</span>
-            <span>{me?.name || me?.email || 'Admin User'}</span>
-          </span>
-        </div>
+      <AdminLayout
+        activeView="events"
+        baseUrl={baseUrl}
+        setBaseUrl={(url) => {
+          setBaseUrl(url);
+          setApiBase(url.replace(/\/+$/, ''));
+        }}
+        me={me}
+        signOut={() => {
+          clearTokens();
+          navigate('/auth');
+        }}
+        className="admin-events-app"
+      >
         {viewId ? (
           <EventDetail
             setSync={() => {}}
@@ -240,8 +187,8 @@ export default function AdminEvents() {
             }}
           />
         ) : (
-        <div className="content">
-          {err && <div className="err">{err}</div>}
+          <div>
+            {err && <div className="err">{err}</div>}
           <div className="headrow">
             <div>
               <h1 className="page">EVENTS</h1>
@@ -434,8 +381,7 @@ export default function AdminEvents() {
           </div>
         </div>
         )}
-      </div>
-      </div>
+      </AdminLayout>
       {modal && (
         <EventModal
           circles={circles.map((c) => ({ id: c.id, name: c.name || 'Circle' }))}
