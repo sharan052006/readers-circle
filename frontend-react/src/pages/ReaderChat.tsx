@@ -398,8 +398,8 @@ export default function ReaderChat() {
           </aside>
           <div className="gchat-mid" aria-label="Conversation">
             <div className="gchat-head">
-              <span className="gchat-badge">{headAv}</span>
-              <div>
+              <span className={'gchat-badge' + (isLounge ? ' gold' : '')}>{headAv}</span>
+              <div className="gchat-head-info">
                 <h3>{headName}</h3>
                 <small>{headSub}</small>
               </div>
@@ -409,16 +409,16 @@ export default function ReaderChat() {
                 onClick={() => setShowChannels(!showChannels)}
                 aria-label="Toggle circles list"
               >
-                Circles ▾
+                💬 Circles ▾
               </button>
               <span className="gchat-dot" title="Connected"></span>
             </div>
             <div className="gchat-msgs" aria-live="polite">
               {loaded && circles.length === 0 && !lounge ? (
-                <div className="notice">
-                  <b>No circles yet.</b>
-                  <br />
-                  Join a circle from Circles page — approved circles appear here for chat.
+                <div className="gchat-empty-state">
+                  <div className="gchat-empty-icon">👥</div>
+                  <h4>No circles yet</h4>
+                  <p>Join a circle from Circles page — approved circles appear here for chat.</p>
                 </div>
               ) : msgs.length ? (
                 msgs.map((x, i) => {
@@ -445,7 +445,11 @@ export default function ReaderChat() {
                   );
                 })
               ) : (
-                <div className="notice">No messages yet — say hello to the circle.</div>
+                <div className="gchat-empty-state">
+                  <div className={'gchat-empty-icon' + (isLounge ? ' gold' : '')}>{isLounge ? '👑' : '💬'}</div>
+                  <h4>No messages yet</h4>
+                  <p>{isLounge ? 'Welcome to the Organisers Lounge. Say hello to start the discussion!' : 'Say hello and start the conversation in this circle!'}</p>
+                </div>
               )}
               <div ref={msgsEndRef} />
             </div>
@@ -456,6 +460,14 @@ export default function ReaderChat() {
             )}
             <div className="gchat-comp">
               <div className="gchat-pill">
+                <button
+                  type="button"
+                  className="gchat-tool"
+                  title="Add emoji"
+                  onClick={() => setDraft((d) => d + ' 😊')}
+                >
+                  😊
+                </button>
                 <input
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}
@@ -468,7 +480,7 @@ export default function ReaderChat() {
                   autoComplete="off"
                   disabled={!cur}
                 />
-                <button className="gchat-send" type="button" title="Send message" onClick={() => void send()}>
+                <button className="gchat-send" type="button" title="Send message" disabled={!cur || !draft.trim()} onClick={() => void send()}>
                   ➤
                 </button>
               </div>

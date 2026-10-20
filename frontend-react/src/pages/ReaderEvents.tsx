@@ -1048,8 +1048,10 @@ export function EventDetail({
               );
             })
           ) : (
-            <div className="empty" style={{ margin: 'auto' }}>
-              No messages yet. Start the conversation!
+            <div className="chat-empty-state">
+              <span className="chat-empty-icon">💬</span>
+              <h4>No messages yet</h4>
+              <p>Be the first to say hello to registered event attendees!</p>
             </div>
           )}
         </div>

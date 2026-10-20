@@ -18,6 +18,7 @@ import { COVER_PLACEHOLDER, DISCUSSION_COVER_PLACEHOLDER } from '../../lib/place
 import './AdminApp.css';
 import '../ReaderDashboard.css';
 import '../ReaderDiscussion.css';
+import '../ReaderChat.css';
 import AdminBooks from './AdminBooks';
 import AdminOrders from './AdminOrders';
 import RecommendationsView from '../../components/Recommendations';
@@ -428,6 +429,7 @@ export default function AdminApp() {
   const [chatQ, setChatQ] = useState('');
   const [chatInput, setChatInput] = useState('');
   const [chatErr, setChatErr] = useState('');
+  const [chatMobileOpen, setChatMobileOpen] = useState(false);
   const [meId, setMeId] = useState<string | null>(null);
   const selRef = useRef<{ id: string; lounge: boolean } | null>(null);
   selRef.current = sel;
@@ -448,6 +450,7 @@ export default function AdminApp() {
   const selectChat = useCallback(
     async (s: { id: string; lounge: boolean }) => {
       setSel(s);
+      setChatMobileOpen(false);
       await loadChatMsgs(s.id, true);
     },
     [loadChatMsgs],
@@ -1490,7 +1493,14 @@ export default function AdminApp() {
             </div>
             <div className="gchat-grid">
               <aside aria-label="Channels">
-                <div className="gchat-left">
+                <div className={'gchat-left' + (chatMobileOpen ? ' mobile-open' : '')}>
+                  <button
+                    type="button"
+                    className="gchat-mobile-close"
+                    onClick={() => setChatMobileOpen(false)}
+                  >
+                    ✕ Close Circles
+                  </button>
                   <div className="gchat-search">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                       <circle cx="11" cy="11" r="7" />
@@ -1545,10 +1555,18 @@ export default function AdminApp() {
               <div className="gchat-mid" aria-label="Conversation">
                 <div className="gchat-head">
                   <span className={'gchat-badge' + (isLounge ? ' gold' : '')}>{headInit}</span>
-                  <div>
+                  <div className="gchat-head-info">
                     <h3>{headName}</h3>
                     <small>{headSub}</small>
                   </div>
+                  <button
+                    type="button"
+                    className="gchat-mobile-toggle"
+                    onClick={() => setChatMobileOpen(!chatMobileOpen)}
+                    aria-label="Toggle circles list"
+                  >
+                    💬 Circles ▾
+                  </button>
                   <span className="gchat-dot" title="Connected"></span>
                 </div>
                 <div className="gchat-msgs" id="gchatMsgs" aria-live="polite">
@@ -1588,7 +1606,11 @@ export default function AdminApp() {
                       );
                     })
                   ) : (
-                    <p className="gchat-empty">No messages yet — say hello to the circle.</p>
+                    <div className="gchat-empty-state">
+                      <div className={'gchat-empty-icon' + (isLounge ? ' gold' : '')}>{isLounge ? '👑' : '💬'}</div>
+                      <h4>No messages yet</h4>
+                      <p>{isLounge ? 'Welcome to the Organisers Lounge. Say hello to start the discussion!' : 'Say hello and start the conversation in this circle!'}</p>
+                    </div>
                   )}
                 </div>
                 {chatErr && (

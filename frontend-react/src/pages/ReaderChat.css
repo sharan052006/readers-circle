@@ -209,6 +209,87 @@ button,input{font:inherit}
 #gchatList::-webkit-scrollbar-thumb:hover,
 .gchat-right::-webkit-scrollbar-thumb:hover{background:#C8BFB3}
 
+.gchat-head-info{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  flex:1;
+  overflow:hidden;
+}
+.gchat-head-info h3{
+  margin:0;
+  font-family:'Fraunces',serif;
+  font-size:15px;
+  letter-spacing:.01em;
+  color:#3A2A20;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.gchat-head-info small{
+  color:#8B8079;
+  font-size:11.5px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.gchat-tool{
+  background:none;
+  border:0;
+  padding:6px;
+  font-size:16px;
+  cursor:pointer;
+  border-radius:8px;
+  line-height:1;
+  display:grid;
+  place-items:center;
+  transition:background .15s ease;
+  flex-shrink:0;
+}
+.gchat-tool:hover{
+  background:#F4EDE2;
+}
+
+.gchat-empty-state{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  margin:auto;
+  padding:36px 16px;
+  max-width:340px;
+}
+.gchat-empty-icon{
+  width:56px;
+  height:56px;
+  border-radius:18px;
+  background:#F8EDE3;
+  color:var(--burgundy);
+  display:grid;
+  place-items:center;
+  font-size:26px;
+  margin-bottom:12px;
+  box-shadow:0 4px 14px rgba(107,42,31,.08);
+}
+.gchat-empty-icon.gold{
+  background:#FDF3E0;
+  color:#945D06;
+}
+.gchat-empty-state h4{
+  margin:0 0 6px;
+  font-family:'Fraunces',serif;
+  font-size:18px;
+  color:var(--ink);
+}
+.gchat-empty-state p{
+  margin:0;
+  font-size:13px;
+  color:var(--muted);
+  line-height:1.45;
+}
+
 @media (max-width:1240px){
   .gchat-grid{grid-template-columns:240px minmax(0,1fr) 282px}
 }
@@ -216,40 +297,95 @@ button,input{font:inherit}
   .gchat-grid{grid-template-columns:240px minmax(0,1fr)}
   .gchat-right{display:none}
 }
-@media (max-width:760px){
+@media (max-width:768px){
   .gchat-wrap{
-    height:calc(100dvh - 110px);
-    max-height:calc(100dvh - 110px);
-    padding:10px 12px 16px;
+    height:calc(100dvh - 58px);
+    max-height:calc(100dvh - 58px);
+    padding:0;
     overflow:hidden;
   }
-  .gchat-panel{border-radius:16px}
-  .gchat-banner{padding:13px 15px;gap:8px}
-  .gchat-hero{gap:12px}
-  .gchat-hero-ic{width:42px;height:42px;border-radius:12px}
-  .gchat-hero-ic svg{width:22px;height:22px}
-  .gchat-hero-kick{display:none}
-  .gchat-banner h2{font-size:19px}
-  .gchat-banner p{display:none}
-  .gchat-shelf{display:none}
+  .gchat-panel{
+    border-radius:0;
+    border:0;
+    box-shadow:none;
+  }
+  .gchat-banner{
+    display:none !important;
+  }
+  .gchat-head{
+    padding:10px 14px;
+    gap:10px;
+    background:#FFFDF9;
+    border-bottom:1px solid #EDE5DA;
+  }
+  .gchat-mobile-toggle{
+    display:inline-flex;
+    align-items:center;
+    border-radius:999px;
+    background:#FFFDF9;
+    border:1px solid #E2D7C8;
+    color:var(--burgundy);
+    padding:6px 13px;
+    font-size:12px;
+    font-weight:600;
+    flex-shrink:0;
+    white-space:nowrap;
+    box-shadow:0 1px 3px rgba(36,26,18,.05);
+  }
   .gchat-grid{
     grid-template-columns:minmax(0,1fr);
     height:100%;
     min-height:0;
   }
-  .gchat-left{display:none;border-right:0}
+  .gchat-left{
+    display:none;
+    border-right:0;
+  }
   .gchat-left.mobile-open{
     display:flex;
     position:fixed;
     inset:0;
-    z-index:60;
+    z-index:90;
     background:#FFFDF9;
     border-right:0;
-    padding:16px;
+    padding:20px 16px;
     overflow-y:auto;
     box-shadow:0 8px 32px rgba(0,0,0,0.18);
+    animation:gchatSlideIn .2s ease;
   }
-  .gchat-mobile-toggle{display:inline-flex;align-items:center}
-  .gchat-mobile-close{display:inline-block}
-  .gchat-msgs{padding:16px}
+  .gchat-mobile-close{
+    display:inline-block;
+    border:1px solid var(--border);
+    background:#fff;
+    border-radius:999px;
+    padding:8px 16px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    align-self:flex-start;
+    color:var(--burgundy);
+    margin-bottom:12px;
+  }
+  .gchat-msgs{
+    padding:14px 12px;
+    gap:12px;
+  }
+  .gchat-comp{
+    padding:10px 12px;
+    background:#FFFDF9;
+    border-top:1px solid #EDE5DA;
+  }
+  .gchat-pill{
+    border-radius:999px;
+    padding:4px 6px 4px 12px;
+  }
+  .gchat-send{
+    width:36px;
+    height:36px;
+  }
+}
+
+@keyframes gchatSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
