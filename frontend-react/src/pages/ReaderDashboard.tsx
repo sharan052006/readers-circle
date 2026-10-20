@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import ReaderLayout from '../components/ReaderLayout';
 import { ApiError, api, apiBase, getAccess, initialsOf, type Me } from '../lib/api';
 import './ReaderDashboard.css';
@@ -362,8 +362,135 @@ export default function ReaderDashboard() {
     }
   }
 
+  // Right-side widgets for mobile right drawer
+  const mobileHighlights = (
+    <div className="rmobile-dash-highlights">
+      {/* Discover Hub Banner */}
+      <div className="rmobile-discover-banner">
+        <div className="rmobile-db-header">
+          <span className="rmobile-db-badge">🧭 Discover Hub</span>
+          <NavLink to="/reader-discover" className="rmobile-db-link">
+            Explore →
+          </NavLink>
+        </div>
+        <p className="rmobile-db-text">
+          Browse all trending books, recommendations, circles & events in the Discover page.
+        </p>
+        <NavLink to="/reader-discover" className="rmobile-discover-cta">
+          Open Discover Page
+        </NavLink>
+      </div>
+
+      {/* Trending Books Widget */}
+      <div className="rmobile-highlight-section">
+        <div className="rmobile-hl-section-head">
+          <h4>🔥 Trending Books</h4>
+          <NavLink to="/reader-discover" className="rmobile-hl-more">
+            All ({trending?.length || 0})
+          </NavLink>
+        </div>
+        {(!trending || trending.length === 0) ? (
+          <div className="rmobile-hl-empty">No trending books yet.</div>
+        ) : (
+          (trending || []).slice(0, 3).map((b, i) => (
+            <div className="rmobile-hl-card" key={i}>
+              <span className="rmobile-hl-rank">{i + 1}</span>
+              {b.coverImageUrl && (
+                <img
+                  src={b.coverImageUrl}
+                  alt=""
+                  className="rmobile-hl-thumb"
+                  onError={coverError}
+                />
+              )}
+              <div className="rmobile-hl-info">
+                <b>{b.bookTitle || 'Trending Title'}</b>
+                <span>{b.author || ''}</span>
+                <small>{b.discussionCount ?? b.discussions ?? 0} discussions</small>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Recommended Books Widget */}
+      <div className="rmobile-highlight-section">
+        <div className="rmobile-hl-section-head">
+          <h4>⭐ Recommended Books</h4>
+          <NavLink to="/reader-discover" className="rmobile-hl-more">
+            All ({recs?.length || 0})
+          </NavLink>
+        </div>
+        {(!recs || recs.length === 0) ? (
+          <div className="rmobile-hl-empty">No recommendations yet.</div>
+        ) : (
+          (recs || []).slice(0, 3).map((b, i) => {
+            const n = b.recommendedByCount ?? b.distinctRecommenders ?? b.upvotesCount ?? 0;
+            const cover = b.coverImageUrl || b.coverUrl;
+            return (
+              <div className="rmobile-hl-card" key={i}>
+                <span className="rmobile-hl-rank">{i + 1}</span>
+                {cover && (
+                  <img
+                    src={cover}
+                    alt=""
+                    className="rmobile-hl-thumb"
+                    onError={coverError}
+                  />
+                )}
+                <div className="rmobile-hl-info">
+                  <b>{b.bookTitle || b.title || ''}</b>
+                  <span>{b.author || ''}</span>
+                  <small>Recommended by {n} readers</small>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Registered Events Widget */}
+      <div className="rmobile-highlight-section">
+        <div className="rmobile-hl-section-head">
+          <h4>📅 Registered Events</h4>
+          <NavLink to="/reader-discover" className="rmobile-hl-more">
+            All ({myEvents?.length || 0})
+          </NavLink>
+        </div>
+        {(!myEvents || myEvents.length === 0) ? (
+          <div className="rmobile-hl-empty">
+            <b>Nothing registered</b>
+            <span>Browse events and reserve a seat.</span>
+          </div>
+        ) : (
+          (myEvents || []).slice(0, 3).map((e, i) => {
+            const when = [e.eventDate, e.eventTime].filter(Boolean).join(' · ');
+            return (
+              <div className="rmobile-hl-card" key={i}>
+                <span className="rmobile-hl-rank">{i + 1}</span>
+                {e.coverImageUrl && (
+                  <img
+                    src={e.coverImageUrl}
+                    alt=""
+                    className="rmobile-hl-thumb"
+                    onError={coverError}
+                  />
+                )}
+                <div className="rmobile-hl-info">
+                  <b>{e.title || ''}</b>
+                  <span>{when}</span>
+                  <small>{[e.location, e.venue].filter(Boolean).join(' · ') || e.circleName || ''}</small>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+
   return (
-    <ReaderLayout active="dashboard" syncNote={sync}>
+    <ReaderLayout active="dashboard" syncNote={sync} highlights={mobileHighlights}>
       <div className="content">
         <main className="feed" aria-live="polite">
           <div className="feed-header">

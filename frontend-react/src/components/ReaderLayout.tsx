@@ -1,20 +1,41 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { api, apiUrl, ackDemotion, ackPromotion, clearTokens, getAccess, initialsOf, isFreshDemotion, isFreshPromotion, resolveMedia, type Me } from '../lib/api';
 import './ReaderLayout.css';
+
+export const HighlightsContext = createContext<{
+  setHighlights: (node: ReactNode) => void;
+  highlights: ReactNode;
+}>({
+  setHighlights: () => {},
+  highlights: null,
+});
+
+export function PageHighlights({ children }: { children: ReactNode }) {
+  const { setHighlights } = useContext(HighlightsContext);
+  useEffect(() => {
+    setHighlights(children);
+    return () => setHighlights(null);
+  }, [children, setHighlights]);
+  return null;
+}
 
 export default function ReaderLayout({
   active,
   children,
   search,
   syncNote,
+  highlights: directHighlights,
 }: {
-  active: 'dashboard' | 'circles' | 'events' | 'books' | 'recommend' | 'chat' | 'settings';
+  active?: 'dashboard' | 'circles' | 'events' | 'books' | 'recommend' | 'chat' | 'settings' | 'discover';
   children: ReactNode;
   search?: ReactNode;
   syncNote?: string;
+  highlights?: ReactNode;
 }) {
   const nav = useNavigate();
+  const [contextHighlights, setContextHighlights] = useState<ReactNode>(null);
+  const effectiveHighlights = directHighlights || contextHighlights;
   const [me, setMe] = useState<Me | null>(null);
   const [unread, setUnread] = useState(0);
   const [cartCount, setCartCount] = useState(0);
@@ -397,10 +418,11 @@ export default function ReaderLayout({
   const linkCls = ({ isActive }: { isActive: boolean }) => (isActive ? 'rnav-a on' : 'rnav-a');
 
   return (
-    <div
-      className={'rapp' + (rightPanelOpen ? ' r-right-open' : '')}
-      style={{ '--rh-top': `${headerHeight}px` } as React.CSSProperties}
-    >
+    <HighlightsContext.Provider value={{ setHighlights: setContextHighlights, highlights: contextHighlights }}>
+      <div
+        className={'rapp' + (rightPanelOpen ? ' r-right-open' : '')}
+        style={{ '--rh-top': `${headerHeight}px` } as React.CSSProperties}
+      >
       <aside className="rrail" aria-label="Reader navigation">
         <div className="rbrand">
           <span className="rmark">📖</span>
@@ -454,25 +476,69 @@ export default function ReaderLayout({
             aria-hidden="true"
           />
         )}
-        {rightPanelOpen && hasRightPanel && (
-          <div
-            className="rmobile-right-drawer-header"
-            style={{ top: `${headerHeight}px` }}
-          >
+        <aside
+          id="rmobile-right-drawer"
+          className={'rmobile-right-drawer' + (rightPanelOpen ? ' open' : '')}
+          style={{ top: `${headerHeight}px`, height: `calc(100vh - ${headerHeight}px)` }}
+          aria-label={rightPanelTitle}
+          aria-hidden={!rightPanelOpen}
+        >
+          <div className="rmobile-right-drawer-header">
             <div className="rmobile-rdh-title">
               <span aria-hidden="true">{rightPanelIcon}</span>
               <b>{rightPanelTitle}</b>
             </div>
-            <button
-              type="button"
-              className="rmobile-rdh-close"
-              onClick={() => setRightPanelOpen(false)}
-              aria-label={`Close ${rightPanelTitle}`}
-            >
-              ✕
-            </button>
+            <div className="rmobile-rdh-actions">
+              <NavLink
+                to="/reader-discover"
+                className="rmobile-discover-pill"
+                onClick={() => setRightPanelOpen(false)}
+                title="Open Discover"
+              >
+                <span>🧭 Discover</span>
+                <span aria-hidden="true">→</span>
+              </NavLink>
+              <button
+                type="button"
+                className="rmobile-rdh-close"
+                onClick={() => setRightPanelOpen(false)}
+                aria-label={`Close ${rightPanelTitle}`}
+              >
+                ✕
+              </button>
+            </div>
           </div>
-        )}
+          <div className="rmobile-right-drawer-body">
+            {effectiveHighlights ? (
+              effectiveHighlights
+            ) : (
+              <div className="rmobile-default-highlights">
+                <div className="rmobile-discover-banner">
+                  <div className="rmobile-db-header">
+                    <span className="rmobile-db-badge">🧭 Discover Hub</span>
+                    <NavLink
+                      to="/reader-discover"
+                      className="rmobile-db-link"
+                      onClick={() => setRightPanelOpen(false)}
+                    >
+                      Explore →
+                    </NavLink>
+                  </div>
+                  <p className="rmobile-db-text">
+                    Explore trending books, recommended reads, community circles & upcoming events.
+                  </p>
+                  <NavLink
+                    to="/reader-discover"
+                    className="rmobile-discover-cta"
+                    onClick={() => setRightPanelOpen(false)}
+                  >
+                    Open Full Discover Page
+                  </NavLink>
+                </div>
+              </div>
+            )}
+          </div>
+        </aside>
         <div
           id="rmobile-drawer"
           className={'rmobile-drawer' + (mobileMenuOpen ? ' open' : '')}
@@ -777,5 +843,6 @@ export default function ReaderLayout({
         )}
       </div>
     </div>
+    </HighlightsContext.Provider>
   );
 }
